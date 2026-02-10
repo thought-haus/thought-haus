@@ -19,6 +19,7 @@
     "@codemirror/view": "^6.39.13",
     "@preact/signals": "^2.7.1",
     "codemirror": "^6.0.2",
+    "minisearch": "^7.2.0",
     "preact": "^10.27.2"
   },
   "devDependencies": {
