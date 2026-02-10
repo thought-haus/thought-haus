@@ -6,6 +6,7 @@ import { parseFrontMatter, serializeFrontMatter } from "../notes/frontmatter.ts"
 import { createEditor } from "../editor/editor.ts";
 import { saveStatus, wordCount, countWords } from "../editor/editor-state.ts";
 import { debounce } from "../lib/debounce.ts";
+import { updateInIndex } from "../search/search-engine.ts";
 import type { EditorView } from "@codemirror/view";
 import styles from "./editor-view.module.css";
 
@@ -36,6 +37,12 @@ export function EditorView_() {
       await writeFile(note.fileHandle, content);
       const file = await note.fileHandle.getFile();
       upsertNote({ ...note, lastModified: file.lastModified, size: file.size });
+      updateInIndex({
+        id: note.id,
+        title: note.title,
+        tags: note.tags,
+        body: bodyRef.current,
+      });
       saveStatus.value = "saved";
     } catch {
       saveStatus.value = "unsaved";

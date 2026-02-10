@@ -1,11 +1,20 @@
 import { useComputed } from "@preact/signals";
+import { useRef, useEffect } from "preact/hooks";
 import {
   filteredNotes,
   noteCount,
   tagCounts,
   activeTagFilter,
+  getNote,
 } from "../notes/note-store.ts";
 import { getDateGroup } from "../lib/date.ts";
+import {
+  executeSearch,
+  clearSearch,
+  searchQuery,
+  searchResults,
+  isSearchActive,
+} from "../search/search-engine.ts";
 import type { Note } from "../notes/note.ts";
 import styles from "./sidebar.module.css";
 
@@ -46,6 +55,10 @@ export function Sidebar({ selectedNoteId, onSelectNote, onNewNote }: SidebarProp
   const count = noteCount.value;
   const tags = tagCounts.value;
   const activeTag = activeTagFilter.value;
+  const query = searchQuery.value;
+  const results = searchResults.value;
+  const searching = isSearchActive.value;
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Group notes by date
   const grouped = useComputed(() => {
@@ -62,77 +75,148 @@ export function Sidebar({ selectedNoteId, onSelectNote, onNewNote }: SidebarProp
     return groups;
   });
 
+  // Cmd/Ctrl+K to focus search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  const handleSearchInput = (e: Event) => {
+    const value = (e.target as HTMLInputElement).value;
+    executeSearch(value);
+  };
+
+  const handleSearchClear = () => {
+    clearSearch();
+    searchInputRef.current?.focus();
+  };
+
+  // Resolve search results to Note objects
+  const searchNotes = searching
+    ? results
+        .map((r) => getNote(r.id))
+        .filter((n): n is Note => n !== undefined)
+    : [];
+
   return (
     <aside class={styles.sidebar}>
       <div class={styles.searchBar}>
         <input
+          ref={searchInputRef}
           class={styles.searchInput}
           type="text"
-          placeholder="Search notes..."
+          value={query}
+          placeholder="Search notes... (Cmd+K)"
           aria-label="Search notes"
+          onInput={handleSearchInput}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              clearSearch();
+              (e.target as HTMLInputElement).blur();
+            }
+          }}
         />
-      </div>
-
-      <div class={styles.section}>
-        <div class={styles.sectionRow}>
+        {searching && (
           <button
-            class={`${styles.sectionHeader} ${styles.allNotesBtn} ${!activeTag ? styles.allNotesBtnActive : ""}`}
-            onClick={() => (activeTagFilter.value = null)}
+            class={styles.searchClear}
+            onClick={handleSearchClear}
+            aria-label="Clear search"
           >
-            All Notes ({count})
+            ×
           </button>
-          <button
-            class={styles.newNoteBtn}
-            onClick={onNewNote}
-            title="New note (Cmd/Ctrl+N)"
-            aria-label="New note"
-          >
-            +
-          </button>
-        </div>
-      </div>
-
-      {tags.size > 0 && (
-        <div class={styles.section}>
-          <div class={styles.sectionLabel}>Tags</div>
-          <div class={styles.tagList}>
-            {Array.from(tags.entries())
-              .sort((a, b) => a[0].localeCompare(b[0]))
-              .map(([tag, tagCount]) => (
-                <button
-                  key={tag}
-                  class={`${styles.tagFilter} ${activeTag === tag ? styles.tagFilterActive : ""}`}
-                  onClick={() =>
-                    (activeTagFilter.value =
-                      activeTag === tag ? null : tag)
-                  }
-                >
-                  {tag} ({tagCount})
-                </button>
-              ))}
-          </div>
-        </div>
-      )}
-
-      <div class={styles.noteList} aria-label="Note list">
-        {notes.length === 0 ? (
-          <div class={styles.emptyState}>No notes yet</div>
-        ) : (
-          grouped.value.map((group) => (
-            <div key={group.label}>
-              <div class={styles.dateGroup}>{group.label}</div>
-              {group.notes.map((note) => (
-                <NoteItem
-                  key={note.id}
-                  note={note}
-                  isSelected={note.id === selectedNoteId}
-                  onSelect={onSelectNote}
-                />
-              ))}
-            </div>
-          ))
         )}
       </div>
+
+      {searching ? (
+        <div class={styles.noteList} aria-label="Search results">
+          <div class={styles.section}>
+            <div class={styles.sectionLabel}>
+              {results.length} result{results.length !== 1 ? "s" : ""}
+            </div>
+          </div>
+          {searchNotes.length === 0 ? (
+            <div class={styles.emptyState}>No matching notes</div>
+          ) : (
+            searchNotes.map((note) => (
+              <NoteItem
+                key={note.id}
+                note={note}
+                isSelected={note.id === selectedNoteId}
+                onSelect={onSelectNote}
+              />
+            ))
+          )}
+        </div>
+      ) : (
+        <>
+          <div class={styles.section}>
+            <div class={styles.sectionRow}>
+              <button
+                class={`${styles.sectionHeader} ${styles.allNotesBtn} ${!activeTag ? styles.allNotesBtnActive : ""}`}
+                onClick={() => (activeTagFilter.value = null)}
+              >
+                All Notes ({count})
+              </button>
+              <button
+                class={styles.newNoteBtn}
+                onClick={onNewNote}
+                title="New note (Cmd/Ctrl+N)"
+                aria-label="New note"
+              >
+                +
+              </button>
+            </div>
+          </div>
+
+          {tags.size > 0 && (
+            <div class={styles.section}>
+              <div class={styles.sectionLabel}>Tags</div>
+              <div class={styles.tagList}>
+                {Array.from(tags.entries())
+                  .sort((a, b) => a[0].localeCompare(b[0]))
+                  .map(([tag, tagCount]) => (
+                    <button
+                      key={tag}
+                      class={`${styles.tagFilter} ${activeTag === tag ? styles.tagFilterActive : ""}`}
+                      onClick={() =>
+                        (activeTagFilter.value =
+                          activeTag === tag ? null : tag)
+                      }
+                    >
+                      {tag} ({tagCount})
+                    </button>
+                  ))}
+              </div>
+            </div>
+          )}
+
+          <div class={styles.noteList} aria-label="Note list">
+            {notes.length === 0 ? (
+              <div class={styles.emptyState}>No notes yet</div>
+            ) : (
+              grouped.value.map((group) => (
+                <div key={group.label}>
+                  <div class={styles.dateGroup}>{group.label}</div>
+                  {group.notes.map((note) => (
+                    <NoteItem
+                      key={note.id}
+                      note={note}
+                      isSelected={note.id === selectedNoteId}
+                      onSelect={onSelectNote}
+                    />
+                  ))}
+                </div>
+              ))
+            )}
+          </div>
+        </>
+      )}
     </aside>
   );
 }

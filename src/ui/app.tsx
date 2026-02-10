@@ -14,9 +14,13 @@ import {
   checkPermission,
   requestPermission,
 } from "../fs/directory.ts";
-import { scanDirectory } from "../fs/file-ops.ts";
+import { scanDirectory, readNoteContent } from "../fs/file-ops.ts";
 import { setNotes } from "../notes/note-store.ts";
 import { createWelcomeNote } from "../notes/note-actions.ts";
+import { buildIndex } from "../search/search-engine.ts";
+import { parseFrontMatter } from "../notes/frontmatter.ts";
+import { saveSearchIndex } from "../search/search-persistence.ts";
+import { serializeIndex } from "../search/search-engine.ts";
 import { BrowserCheck } from "./browser-check.tsx";
 import { Onboarding } from "./onboarding.tsx";
 import { RePermission } from "./re-permission.tsx";
@@ -38,6 +42,17 @@ async function openFolderFromHandle(
   if (notes.length === 0) {
     await createWelcomeNote();
   }
+
+  // Build search index from all note content
+  const docs = await Promise.all(
+    notes.map(async (note) => {
+      const raw = await readNoteContent(note.fileHandle);
+      const { body } = parseFrontMatter(raw);
+      return { id: note.id, title: note.title, tags: note.tags, body };
+    }),
+  );
+  buildIndex(docs);
+  saveSearchIndex(serializeIndex()).catch(() => {});
 }
 
 async function openFolder(): Promise<void> {

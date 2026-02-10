@@ -4,6 +4,7 @@ import { generateFilename } from "./filename.ts";
 import { serializeFrontMatter } from "./frontmatter.ts";
 import { upsertNote, removeNote, getNote } from "./note-store.ts";
 import { writeFile } from "../fs/file-ops.ts";
+import { addToIndex, removeFromIndex } from "../search/search-engine.ts";
 import type { Note } from "./note.ts";
 
 const WELCOME_BODY = `Welcome to Noti! This is your first note.
@@ -55,6 +56,7 @@ export async function createNote(): Promise<Note | null> {
   };
 
   upsertNote(note);
+  addToIndex({ id: note.id, title: note.title, tags: note.tags, body: "\n" });
   selectedNoteId.value = note.id;
   return note;
 }
@@ -70,6 +72,7 @@ export async function deleteNote(id: string): Promise<boolean> {
   try {
     await dirHandle.removeEntry(note.filename);
     removeNote(id);
+    removeFromIndex(id);
     if (selectedNoteId.value === id) {
       selectedNoteId.value = null;
     }
@@ -113,6 +116,12 @@ export async function createWelcomeNote(): Promise<Note | null> {
   };
 
   upsertNote(note);
+  addToIndex({
+    id: note.id,
+    title: note.title,
+    tags: note.tags,
+    body: WELCOME_BODY,
+  });
   selectedNoteId.value = note.id;
   return note;
 }
