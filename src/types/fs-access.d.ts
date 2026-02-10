@@ -72,3 +72,29 @@ interface Window {
     options?: ShowDirectoryPickerOptions,
   ): Promise<FileSystemDirectoryHandle>;
 }
+
+/** FileSystemObserver (Chrome 127+, progressive enhancement). */
+interface FileSystemObserverCallback {
+  (records: FileSystemObserverRecord[], observer: FileSystemObserver): void;
+}
+
+interface FileSystemObserverRecord {
+  root: FileSystemHandle;
+  changedHandle: FileSystemHandle;
+  relativePathComponents: string[];
+  type: string;
+}
+
+declare class FileSystemObserver {
+  constructor(callback: FileSystemObserverCallback);
+  observe(handle: FileSystemHandle): void;
+  unobserve(handle: FileSystemHandle): void;
+  disconnect(): void;
+}
+
+// Make FileSystemObserver available on globalThis
+declare let FileSystemObserver:
+  | {
+      new (callback: FileSystemObserverCallback): FileSystemObserver;
+    }
+  | undefined;

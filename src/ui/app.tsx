@@ -21,6 +21,7 @@ import { buildIndex } from "../search/search-engine.ts";
 import { parseFrontMatter } from "../notes/frontmatter.ts";
 import { saveSearchIndex } from "../search/search-persistence.ts";
 import { serializeIndex } from "../search/search-engine.ts";
+import { startWatcher } from "../fs/file-watcher.ts";
 import { BrowserCheck } from "./browser-check.tsx";
 import { Onboarding } from "./onboarding.tsx";
 import { RePermission } from "./re-permission.tsx";
@@ -29,6 +30,8 @@ import { Layout } from "./layout.tsx";
 if (!isFileSystemAccessSupported()) {
   isBrowserCompatible.value = false;
 }
+
+let stopWatcher: (() => void) | null = null;
 
 async function openFolderFromHandle(
   handle: FileSystemDirectoryHandle,
@@ -53,6 +56,10 @@ async function openFolderFromHandle(
   );
   buildIndex(docs);
   saveSearchIndex(serializeIndex()).catch(() => {});
+
+  // Start watching for external changes
+  if (stopWatcher) stopWatcher();
+  stopWatcher = startWatcher(handle);
 }
 
 async function openFolder(): Promise<void> {
