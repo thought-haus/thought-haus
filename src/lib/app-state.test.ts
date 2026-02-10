@@ -3,12 +3,14 @@ import {
   appView,
   isBrowserCompatible,
   showMainLayout,
+  sidebarCollapsed,
 } from "./app-state.ts";
 
 describe("app-state", () => {
   beforeEach(() => {
     appView.value = "onboarding";
     isBrowserCompatible.value = true;
+    sidebarCollapsed.value = false;
   });
 
   it("defaults to onboarding view", () => {
@@ -28,5 +30,16 @@ describe("app-state", () => {
     appView.value = "main";
     isBrowserCompatible.value = false;
     expect(showMainLayout.value).toBe(false);
+  });
+
+  it("sidebarCollapsed defaults to false", () => {
+    expect(sidebarCollapsed.value).toBe(false);
+  });
+
+  it("sidebarCollapsed can be toggled", () => {
+    sidebarCollapsed.value = true;
+    expect(sidebarCollapsed.value).toBe(true);
+    sidebarCollapsed.value = false;
+    expect(sidebarCollapsed.value).toBe(false);
   });
 });

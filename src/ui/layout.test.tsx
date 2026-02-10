@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/preact";
-import { selectedNoteId, directoryHandle } from "../lib/app-state.ts";
+import { render, screen, fireEvent } from "@testing-library/preact";
+import { selectedNoteId, directoryHandle, sidebarCollapsed } from "../lib/app-state.ts";
 import { notesMap } from "../notes/note-store.ts";
 import { Layout } from "./layout.tsx";
 
@@ -22,6 +22,7 @@ describe("Layout", () => {
     selectedNoteId.value = null;
     notesMap.value = new Map();
     directoryHandle.value = null;
+    sidebarCollapsed.value = false;
   });
 
   it("renders the sidebar with search bar", () => {
@@ -44,5 +45,28 @@ describe("Layout", () => {
   it("renders the new note button", () => {
     render(<Layout />);
     expect(screen.getByLabelText("New note")).toBeInTheDocument();
+  });
+
+  it("hides sidebar when sidebarCollapsed is true", () => {
+    sidebarCollapsed.value = true;
+    render(<Layout />);
+    expect(screen.queryByPlaceholderText("Search notes... (Cmd+K)")).not.toBeInTheDocument();
+  });
+
+  it("shows sidebar when sidebarCollapsed is false", () => {
+    sidebarCollapsed.value = false;
+    render(<Layout />);
+    expect(screen.getByPlaceholderText("Search notes... (Cmd+K)")).toBeInTheDocument();
+  });
+
+  it("toggles sidebar with Cmd+\\", () => {
+    render(<Layout />);
+    expect(screen.getByPlaceholderText("Search notes... (Cmd+K)")).toBeInTheDocument();
+
+    fireEvent.keyDown(window, { key: "\\", metaKey: true });
+    expect(sidebarCollapsed.value).toBe(true);
+
+    fireEvent.keyDown(window, { key: "\\", metaKey: true });
+    expect(sidebarCollapsed.value).toBe(false);
   });
 });
