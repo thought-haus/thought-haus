@@ -103,19 +103,19 @@ _User story: US-3 (complete)_
 Any note findable in under 3 seconds via instant search across titles, tags, and
 body content.
 
-- [ ] Integrate MiniSearch with field config (title, tags as joined string,
+- [x] Integrate MiniSearch with field config (title, tags as joined string,
       body)
-- [ ] Configure field boosting: title 2x, tags 1.5x, body 1x
-- [ ] Enable fuzzy matching and prefix search
-- [ ] Build search index from all notes on startup
-- [ ] Search bar in sidebar with `Cmd/Ctrl+K` to focus
-- [ ] As-you-type search results replace note list in sidebar
-- [ ] Display ranked results with title and relevant context
-- [ ] Incremental index updates: `add()` on create, `discard()` + `add()` on
+- [x] Configure field boosting: title 2x, tags 1.5x, body 1x
+- [x] Enable fuzzy matching and prefix search
+- [x] Build search index from all notes on startup
+- [x] Search bar in sidebar with `Cmd/Ctrl+K` to focus
+- [x] As-you-type search results replace note list in sidebar
+- [x] Display ranked results with title and relevant context
+- [x] Incremental index updates: `add()` on create, `discard()` + `add()` on
       edit, `discard()` on delete
-- [ ] Persist index to IndexedDB (`JSON.stringify` / `MiniSearch.loadJSON`)
-- [ ] Load from persisted index on startup when available (fast reload)
-- [ ] Clear search to return to full note list
+- [x] Persist index to IndexedDB (`JSON.stringify` / `MiniSearch.loadJSON`)
+- [x] Load from persisted index on startup when available (fast reload)
+- [x] Clear search to return to full note list
 
 **Deliverable:** User types a query and instantly sees ranked results across all
 notes. Index survives page reload via IndexedDB.
