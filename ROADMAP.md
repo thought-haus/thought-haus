@@ -146,17 +146,17 @@ _User stories: US-8 (complete), P1 scope_
 
 The app stays in sync with external changes and supports renaming notes.
 
-- [ ] Editable title field in editor that reflects current note title
-- [ ] Title change triggers file rename on disk (create new → write → delete
+- [x] Editable title field in editor that reflects current note title
+- [x] Title change triggers file rename on disk (create new → write → delete
       old)
-- [ ] Preserve original timestamp ID across renames
-- [ ] Update note store and search index after rename
-- [ ] Poll directory every 5–10s for external changes
-- [ ] Re-scan on window focus
-- [ ] Detect added files — parse and add to store + search index
-- [ ] Detect deleted files — remove from store + search index
-- [ ] Detect modified files — re-read content, update store + search index
-- [ ] Progressive enhancement: use `FileSystemObserver` when available via
+- [x] Preserve original timestamp ID across renames
+- [x] Update note store and search index after rename
+- [x] Poll directory every 5–10s for external changes
+- [x] Re-scan on window focus
+- [x] Detect added files — parse and add to store + search index
+- [x] Detect deleted files — remove from store + search index
+- [x] Detect modified files — re-read content, update store + search index
+- [x] Progressive enhancement: use `FileSystemObserver` when available via
       feature detection
 
 **Deliverable:** User can rename a note's title from within Noti and the file on
