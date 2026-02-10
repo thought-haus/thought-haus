@@ -10,11 +10,11 @@ end-to-end — rather than building technology layers in isolation.
 Establish the build pipeline and visual skeleton so every subsequent phase has a
 place to land.
 
-- [ ] Initialize Vite + TypeScript + Preact project
-- [ ] Configure CSS Modules
-- [ ] Create two-pane layout shell (sidebar + editor area)
-- [ ] Add browser compatibility detection and notice for non-Chromium browsers
-- [ ] Set up basic routing/state to switch between onboarding and main views
+- [x] Initialize Vite + TypeScript + Preact project
+- [x] Configure CSS Modules
+- [x] Create two-pane layout shell (sidebar + editor area)
+- [x] Add browser compatibility detection and notice for non-Chromium browsers
+- [x] Set up basic routing/state to switch between onboarding and main views
 
 **Deliverable:** App loads in browser, shows empty shell with sidebar and editor
 area. Non-Chromium users see a clear compatibility message.
@@ -28,17 +28,17 @@ _User stories: US-1, US-7, partial US-3_
 The first real value: a user picks a folder and immediately sees their existing
 markdown files listed.
 
-- [ ] Build onboarding/landing page with "Open a Folder" CTA
-- [ ] Integrate `showDirectoryPicker()` to get directory handle
-- [ ] Scan directory for `.md` files (flat, no subdirectories)
-- [ ] Build filename parser — extract timestamp ID and title slug
-- [ ] Build front matter parser — extract `title`, `date`, `tags` from YAML
-- [ ] Create `Note` type and in-memory note store (Preact Signals)
-- [ ] Render note list in sidebar sorted by creation date (newest first)
-- [ ] Show parsed title, date groupings, and tag pills per note
-- [ ] Handle non-Noti `.md` files (raw filename as title, no tags, fully usable)
-- [ ] Persist directory handle in IndexedDB for session persistence
-- [ ] Build returning-user flow: check saved handle, `queryPermission()`,
+- [x] Build onboarding/landing page with "Open a Folder" CTA
+- [x] Integrate `showDirectoryPicker()` to get directory handle
+- [x] Scan directory for `.md` files (flat, no subdirectories)
+- [x] Build filename parser — extract timestamp ID and title slug
+- [x] Build front matter parser — extract `title`, `date`, `tags` from YAML
+- [x] Create `Note` type and in-memory note store (Preact Signals)
+- [x] Render note list in sidebar sorted by creation date (newest first)
+- [x] Show parsed title, date groupings, and tag pills per note
+- [x] Handle non-Noti `.md` files (raw filename as title, no tags, fully usable)
+- [x] Persist directory handle in IndexedDB for session persistence
+- [x] Build returning-user flow: check saved handle, `queryPermission()`,
       one-click re-permission
 
 **Deliverable:** User selects a folder, sees all their markdown notes listed
@@ -53,21 +53,21 @@ _User stories: US-2, US-4, US-6_
 The core loop: create a note, write in it, have it saved, delete what you don't
 need. This is where the app becomes genuinely useful.
 
-- [ ] Set up CodeMirror 6 with Markdown syntax highlighting
-- [ ] Click note in sidebar loads its content into the editor
-- [ ] Track selected note in app state; highlight in sidebar
-- [ ] New note creation via `+` button and `Cmd/Ctrl+N`
-- [ ] Auto-generate filename from timestamp + slugified title
-- [ ] Write front matter (`title`, `date`, empty `tags`) on creation
-- [ ] Immediate editor focus on new note — no dialogs
-- [ ] Debounced auto-save (1–2s after last keystroke)
-- [ ] Save on editor blur
-- [ ] Best-effort save on `beforeunload`
-- [ ] Visual save status indicator in status bar
-- [ ] Word count in status bar
-- [ ] Note deletion with confirmation dialog
-- [ ] Remove deleted note from store and UI immediately
-- [ ] Create a welcome note when user opens an empty folder
+- [x] Set up CodeMirror 6 with Markdown syntax highlighting
+- [x] Click note in sidebar loads its content into the editor
+- [x] Track selected note in app state; highlight in sidebar
+- [x] New note creation via `+` button and `Cmd/Ctrl+N`
+- [x] Auto-generate filename from timestamp + slugified title
+- [x] Write front matter (`title`, `date`, empty `tags`) on creation
+- [x] Immediate editor focus on new note — no dialogs
+- [x] Debounced auto-save (1–2s after last keystroke)
+- [x] Save on editor blur
+- [x] Best-effort save on `beforeunload`
+- [x] Visual save status indicator in status bar
+- [x] Word count in status bar
+- [x] Note deletion with confirmation dialog
+- [x] Remove deleted note from store and UI immediately
+- [x] Create a welcome note when user opens an empty folder
 
 **Deliverable:** Full create → edit → auto-save → delete loop works. User can
 capture thoughts, come back later, and find them saved as `.md` files on disk.
@@ -81,14 +81,14 @@ _User story: US-5_
 Users can tag notes and filter by tag — the primary organizational tool in a
 flat-directory world.
 
-- [ ] Display tag pills in editor metadata bar (below title, beside date)
-- [ ] Add tags via UI (inline input or pill-based entry)
-- [ ] Remove tags via UI (click X on pill)
-- [ ] Tag edits write back to YAML front matter and trigger save
-- [ ] Build tag list in sidebar showing all unique tags with note counts
-- [ ] Click tag in sidebar to filter note list to matching notes
-- [ ] Support clearing tag filter / returning to "All Notes" view
-- [ ] Update tag counts reactively as notes are created/edited/deleted
+- [x] Display tag pills in editor metadata bar (below title, beside date)
+- [x] Add tags via UI (inline input or pill-based entry)
+- [x] Remove tags via UI (click X on pill)
+- [x] Tag edits write back to YAML front matter and trigger save
+- [x] Build tag list in sidebar showing all unique tags with note counts
+- [x] Click tag in sidebar to filter note list to matching notes
+- [x] Support clearing tag filter / returning to "All Notes" view
+- [x] Update tag counts reactively as notes are created/edited/deleted
 
 **Deliverable:** User can tag notes like `#work`, `#recipes` and click a tag in
 the sidebar to instantly filter their note list. Tags live in front matter and
