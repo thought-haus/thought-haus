@@ -6,8 +6,8 @@ Noti is a **local-first, browser-based note-taking app** inspired by the
 original Evernote's focus on simple capture, organization, and retrieval. It
 runs entirely client-side — no server, no accounts, no sync service. Notes are
 stored as plain Markdown files in a user-selected local folder using the browser
-File System API, with filenames following the **denote naming scheme** to encode
-metadata (ID, title, tags) directly in the filename.
+File System API, with filenames encoding an immutable timestamp ID and
+human-readable title.
 
 ### Vision
 
@@ -23,7 +23,6 @@ not a database that exports files.
 | Zero install        | Yes              | No            | No          | N/A         |
 | Local files you own | Yes              | Yes           | No          | No          |
 | No account required | Yes              | Yes           | Yes         | No          |
-| Denote-compatible   | Yes              | No            | No          | No          |
 | Works offline       | Yes (after load) | Yes           | Yes         | No          |
 
 ---
@@ -37,45 +36,68 @@ localhost.
 
 ---
 
-## 3. The Denote Naming Scheme
+## 3. File Naming Scheme
 
-Files follow the [denote](https://protesilaos.com/emacs/denote) naming
-convention:
+Filenames encode an immutable creation timestamp and a slugified title:
 
 ```
-IDENTIFIER--TITLE__KEYWORDS.EXTENSION
+IDENTIFIER--TITLE.EXTENSION
 ```
 
-| Component  | Required | Separator                | Format                                 | Example             |
-| ---------- | -------- | ------------------------ | -------------------------------------- | ------------------- |
-| Identifier | Yes      | (starts filename)        | `YYYYMMDDTHHMMSS`                      | `20240322T131856`   |
-| Signature  | No       | `==` prefix              | Alphanumeric slug                      | `==1a2`             |
-| Title      | No       | `--` prefix              | Hyphen-separated slug                  | `--some-note-title` |
-| Keywords   | No       | `__` prefix, `_` between | Lowercase slugs, alphabetically sorted | `__project_todo`    |
-| Extension  | Yes      | `.`                      | File type                              | `.md`               |
+| Component  | Required | Separator         | Format                | Example             |
+| ---------- | -------- | ----------------- | --------------------- | ------------------- |
+| Identifier | Yes      | (starts filename) | `YYYYMMDDTHHMMSS`    | `20240322T131856`   |
+| Title      | No       | `--` prefix       | Hyphen-separated slug | `--some-note-title` |
+| Extension  | Yes      | `.`               | File type             | `.md`               |
 
-**Valid permutations:**
+**Valid filenames:**
 
-- `20240322T131856--some-title__tag1_tag2.md` (most common)
-- `20240322T131856--some-title.md` (no tags)
-- `20240322T131856__tag1_tag2.md` (no title)
-- `20240322T131856.md` (bare minimum)
+- `20240322T131856--meeting-notes.md` (most common)
+- `20240322T131856.md` (untitled note)
 
 **Key rules:**
 
 - The ID (creation timestamp) is **immutable** — it never changes, even on
   rename
 - Title is slugified: lowercase, spaces become hyphens, strip special characters
-- Keywords are alphabetically sorted, separated by single underscores
-- Changing a title or tags means **renaming the file on disk**
-- No metadata database needed — the filename carries ID, title, and tags
+- Changing a title means **renaming the file on disk**
+- Tags are stored in **YAML front matter** inside the file, not in the filename
+- The ID serves as a stable identifier for **note-to-note linking**
 
 **Implications:**
 
 - Lexicographic sort = chronological sort (IDs are timestamps)
-- Filename-based search covers title + tags + date without reading file contents
-- Files are interoperable with Emacs denote
 - Users see meaningful filenames when browsing in Finder/Explorer
+- Title changes require a file rename; tag changes do not
+- Note linking by ID is stable — links survive title renames
+
+### Front Matter
+
+Every note includes minimal YAML front matter as the metadata source of truth
+for tags:
+
+```yaml
+---
+title: Meeting Notes
+date: 2024-03-22T13:18:56
+tags:
+  - project
+  - work
+---
+```
+
+- `title` — human-readable title (authoritative; also reflected in filename slug)
+- `date` — creation timestamp (matches filename ID)
+- `tags` — list of tags for this note (the **sole source of truth** for tags)
+
+Front matter is written on note creation and updated when the user edits tags
+or title via the UI. Body content follows after the closing `---`.
+
+### Non-Noti Files
+
+`.md` files without the expected naming scheme are shown in the note list using
+their raw filename as the title, with no tags. They are fully editable. Non-`.md`
+files are ignored.
 
 ---
 
@@ -87,54 +109,60 @@ IDENTIFIER--TITLE__KEYWORDS.EXTENSION
    stored in IndexedDB for session persistence. Re-permission flow on return
    visits via `handle.requestPermission()`.
 
-2. **Note listing** — Scan directory for `.md` files, parse denote filenames,
-   display in sidebar sorted by creation date (newest first). Show parsed title
-   and tag pills. Handle non-denote files gracefully.
+2. **Note listing** — Scan directory for `.md` files, parse filenames for ID and
+   title, read front matter for tags. Display in sidebar sorted by creation date
+   (newest first). Show parsed title and tag pills. Handle non-Noti files
+   gracefully (see Section 3).
 
 3. **Note creation** — `Cmd/Ctrl+N` or `+` button. Immediate editor focus — no
-   modal dialogs. Auto-generate denote filename from timestamp + title + tags.
-   File written to disk on first save.
+   modal dialogs. Auto-generate filename from timestamp + title. File written to
+   disk on first save with front matter.
 
 4. **Markdown editing with auto-save** — CodeMirror 6 editor with Markdown
-   support. Hybrid rendering (hide syntax when cursor is elsewhere). Debounced
-   auto-save (1–2s after last keystroke). Save on blur/beforeunload for zero
-   data loss. Visual save status indicator.
+   syntax highlighting. Debounced auto-save (1–2s after last keystroke). Save on
+   blur for minimal data loss. Best-effort save on `beforeunload`. Visual save
+   status indicator.
 
 5. **Note deletion** — Confirmation dialog, then `removeEntry()` on the
-   directory handle. Update UI immediately.
+   directory handle. Update UI and search index immediately.
 
-6. **Tag display & filtering** — Parse tags from filenames, show tag list in
-   sidebar with counts, click to filter note list.
+6. **Tag management & filtering** — Tags stored in front matter. Editable via
+   UI tag pills in the editor metadata bar. Tag list in sidebar with counts,
+   click to filter note list.
+
+7. **Full-text search** — MiniSearch indexes title, tags, and body content.
+   Single search bar in sidebar (`Cmd/Ctrl+K` to focus) provides instant
+   as-you-type results across all fields. Index persisted in IndexedDB for fast
+   reload.
+
+8. **Service worker for offline** — Minimal service worker caching app assets
+   (HTML, JS, CSS) so the app loads fully offline after the first visit.
 
 ### P1 — Ship Soon After
 
-7. **Note renaming** — Edit title/tags in UI, which renames the file on disk
-   (preserving the original ID). Handle via create-new + write + delete-old
-   pattern.
+9. **Note title renaming** — Edit title in UI, which renames the file on disk
+    (preserving the original ID). Handle via create-new + write + delete-old
+    pattern.
 
-8. **Search / filter by title** — Text input filters note list by title
-   substring. Instant as-you-type. Command palette style (`Cmd/Ctrl+K`).
+10. **External change detection** — Poll directory every 5–10 seconds + on
+    window focus. Diff file list against cached state. Detect additions,
+    deletions, modifications. Rebuild affected search index entries.
+    Progressively enhance with `FileSystemObserver` when available.
 
-9. **External change detection** — Poll directory every 5–10 seconds + on window
-   focus. Diff file list against cached state. Detect additions, deletions,
-   modifications. Progressively enhance with `FileSystemObserver` when
-   available.
-
-10. **Keyboard shortcuts** — `Cmd/Ctrl+N` new note, `Cmd/Ctrl+K` search,
+11. **Keyboard shortcuts** — `Cmd/Ctrl+N` new note, `Cmd/Ctrl+K` search,
     `Cmd/Ctrl+\` toggle sidebar.
 
-11. **Front matter** — Minimal YAML front matter (`title`, `date`, `tags`,
-    `identifier`) for denote interop.
+12. **Note linking** — Link to other notes by ID using `[[20240322T131856]]`
+    syntax. Rendered as clickable links showing the target note's title.
 
 ### P2 — Nice to Have
 
-12. Full-text content search (MiniSearch)
-13. Signature support (`==` component)
+13. Hybrid Markdown rendering (hide syntax when cursor is elsewhere)
 14. Note templates
 15. Dark mode / theme support
 16. Sort options (date, title, last modified)
 17. Pin/favorite notes
-18. PWA installability
+18. Full PWA installability (manifest, install prompt)
 
 ### Non-Goals for v1
 
@@ -143,7 +171,7 @@ IDENTIFIER--TITLE__KEYWORDS.EXTENSION
 - No AI features
 - No mobile support
 - No plugins / extensions
-- No nested folders (flat directory, matching denote defaults)
+- No nested folders (flat directory only)
 - No WYSIWYG rich text (Markdown-first)
 - No accounts or authentication
 - No Firefox / Safari support
@@ -162,16 +190,16 @@ that I can capture my thoughts immediately. _One action from intent to typing.
 No dialogs._
 
 **US-3: Browse and Find Notes** — As a user, I want to see all my notes and
-filter by tag or title, so that I can quickly find what I'm looking for. _Any
-note findable in under 3 seconds._
+search by title, tag, or content, so that I can quickly find what I'm looking
+for. _Any note findable in under 3 seconds._
 
 **US-4: Edit and Auto-save** — As a user, I want to edit a note and have changes
 saved automatically, so that I never lose my work. _Visual save indicator, no
 explicit save needed._
 
 **US-5: Organize with Tags** — As a user, I want to add/remove tags and filter
-by them, so that I can organize without managing folders. _Tags sync
-bidirectionally between UI and filename._
+by them, so that I can organize without managing folders. _Tags editable via UI,
+stored in front matter._
 
 **US-6: Delete a Note** — As a user, I want to delete a note I no longer need.
 _Confirmation dialog, file removed from disk._
@@ -192,13 +220,13 @@ new/deleted/modified files._
 
 1. **Capture is king** — Minimum friction from thought to written note
 2. **Files are the truth** — The folder IS the notebook, Noti is a lens
-3. **Tags over folders** — More flexible, matches denote's model (Bear-style)
-4. **Search over browse** — Primary navigation via search, secondary via tag
-   filtering
-5. **Hybrid Markdown** — Rich rendering inline, clean Markdown on disk, no mode
-   switching
-6. **Transparent filenames** — Pretty titles in UI, denote filenames accessible
-   for power users
+3. **Tags over folders** — More flexible, tags live in front matter
+4. **Search over browse** — Primary navigation via full-text search, secondary
+   via tag filtering
+5. **Markdown-native** — Standard Markdown syntax highlighting, clean files on
+   disk
+6. **Transparent filenames** — Pretty titles in UI, timestamped filenames
+   accessible for power users
 7. **Resist feature creep** — Learn from Evernote's decline. Depth over breadth.
 8. **No account required** — Local-first simplicity is a feature
 
@@ -214,7 +242,7 @@ new/deleted/modified files._
 |  ───────────────── |                                          |
 |  TAGS              |  Note body content here...               |
 |   #work (12)       |                                          |
-|   #personal (8)    |  Markdown with inline rendering.         |
+|   #personal (8)    |  Markdown with syntax highlighting.      |
 |   #recipes (5)     |                                          |
 |  ───────────────── |                                          |
 |  NOTES             |                                          |
@@ -236,16 +264,17 @@ new/deleted/modified files._
 
 **Sidebar structure (top to bottom):**
 
-1. Search bar — always visible, `Cmd/Ctrl+K` focuses it
+1. Search bar — always visible, `Cmd/Ctrl+K` focuses it, searches across title,
+   tags, and content via MiniSearch
 2. All Notes — total count, click to show all
-3. Tags section — collapsible, tag hierarchy with counts, click to filter
+3. Tags section — collapsible, tag list with counts, click to filter
 4. Note list — filtered notes, showing title + preview + date + tag pills
 
 **Editor area structure:**
 
-1. Title — large, editable, changes sync to filename
-2. Metadata bar — tag pills + creation date, subtle
-3. Editor body — CodeMirror 6 with hybrid Markdown rendering
+1. Title — large, editable, changes sync to filename on save
+2. Metadata bar — editable tag pills + creation date, subtle
+3. Editor body — CodeMirror 6 with Markdown syntax highlighting
 4. Status bar — word count, save status, minimal
 
 **Sidebar:** Default 280px, resizable, collapsible via `Cmd/Ctrl+\`. On narrow
@@ -273,15 +302,15 @@ viewports (<768px), overlays as slide-out panel.
 1. `Cmd/Ctrl+N` or `+` button
 2. New untitled note opens immediately in editor
 3. Cursor in title field (or body if preferred)
-4. Filename generated on first save: timestamp + slugified title + tags
-5. No dialogs, no "choose notebook" step
+4. Filename generated on first save: `YYYYMMDDTHHMMSS--slugified-title.md`
+5. Front matter written with title, date, and empty tags
+6. No dialogs, no "choose notebook" step
 
 **Editing:**
 
-- Hybrid Markdown: `**bold**` renders as **bold** inline, syntax revealed on
-  cursor
+- Standard Markdown syntax highlighting via CodeMirror 6
 - Minimal formatting toolbar for non-Markdown users
-- No split pane, no mode switching — the editor IS the preview
+- No split pane, no mode switching
 
 ---
 
@@ -289,26 +318,31 @@ viewports (<768px), overlays as slide-out panel.
 
 ### Tech Stack
 
-| Layer        | Choice            | Size (gzip)     | Rationale                                                             |
-| ------------ | ----------------- | --------------- | --------------------------------------------------------------------- |
-| Build        | Vite + TypeScript | —               | Given requirement. Fast HMR, ESM-native.                              |
-| UI Framework | Preact + Signals  | ~5 KB           | React-compatible API, fine-grained reactivity, tiny footprint         |
-| CSS          | CSS Modules       | 0 KB runtime    | Scoped styles via Vite, zero runtime cost                             |
-| Editor       | CodeMirror 6      | ~50 KB          | Markdown-native, modular, used by Obsidian, virtual viewport for perf |
-| Search       | MiniSearch        | ~7 KB           | Full-text indexing, fuzzy search, prefix search, tiny bundle          |
-| **Total JS** |                   | **~100–110 KB** | Well under 500KB budget                                               |
+| Layer        | Choice            | Size (gzip) | Rationale                                                             |
+| ------------ | ----------------- | ----------- | --------------------------------------------------------------------- |
+| Build        | Vite + TypeScript | —           | Given requirement. Fast HMR, ESM-native.                              |
+| UI Framework | Preact + Signals  | ~5 KB       | React-compatible API, fine-grained reactivity, tiny footprint         |
+| CSS          | CSS Modules       | 0 KB        | Scoped styles via Vite, zero runtime cost                             |
+| Editor       | CodeMirror 6      | ~50 KB      | Markdown-native, modular, used by Obsidian, virtual viewport for perf |
+| Search       | MiniSearch        | ~8 KB       | Full-text indexing, fuzzy search, prefix search, field boosting       |
+| **Total JS** |                   | **~100 KB** | Well under 150 KB budget                                              |
 
 **Why Preact:** 3 KB vs React's 40+ KB. React-compat layer available. Signals
 provide fine-grained reactivity without Redux/Zustand boilerplate.
 
 **Why CodeMirror 6:** Markdown-first, composable extensions, virtual viewport
 (handles large docs), TypeScript-native, battle-tested (Obsidian, Replit, Chrome
-DevTools). Supports hybrid rendering via decoration plugins. Extensible for
-future AI features.
+DevTools). Extensible for future features.
+
+**Why MiniSearch:** 8 KB gzipped, zero dependencies. True full-text search with
+fuzzy matching, prefix search, and field-weighted boosting. Supports incremental
+add/remove/update without full index rebuilds. JSON serialization for IndexedDB
+persistence. Battle-tested in production note-taking apps.
 
 **Why not ProseMirror/TipTap:** Better for WYSIWYG, but Noti is Markdown-first.
-Would require building a Markdown-to-schema mapping layer. **Why not Monaco:**
-2–4 MB, overkill.
+**Why not Monaco:** 2–4 MB, overkill. **Why not Fuse.js:** Fuzzy matching only,
+not true full-text search. **Why not FlexSearch:** No match scoring, more complex
+API.
 
 ### Module Architecture
 
@@ -322,18 +356,16 @@ src/
 
   notes/                  # Note Model Layer
     note.ts               # Note type definition
-    denote.ts             # Denote filename parsing and generation
-    frontmatter.ts        # YAML front matter parsing/serialization
+    filename.ts           # Filename parsing (ID + title) and generation
+    frontmatter.ts        # YAML front matter parsing/serialization (tags, title, date)
     note-store.ts         # In-memory note collection (Preact Signals)
 
   search/                 # Search Layer
-    filename-search.ts    # Fast search over parsed filename metadata
-    fulltext-search.ts    # MiniSearch-based content search
-    search-index.ts       # Index management, lazy building, persistence
+    search-engine.ts      # MiniSearch setup, field config, query execution
+    search-index.ts       # Index lifecycle: build, update, persist to IndexedDB
 
   editor/                 # Editor Layer
     editor.ts             # CodeMirror 6 setup and configuration
-    markdown-ext.ts       # Hybrid Markdown extensions (rich preview)
     keybindings.ts        # Custom keybindings
 
   ui/                     # UI Layer (Preact)
@@ -347,6 +379,8 @@ src/
     date.ts               # Timestamp formatting
     slug.ts               # Slugification
     debounce.ts           # Debounce/throttle
+
+  sw.ts                   # Service worker for offline asset caching
 ```
 
 ### Data Flow
@@ -358,13 +392,14 @@ src/
 [FS Layer] ── scans directory, returns FileSystemHandles
        │
        ▼
-[Note Model] ── parses filenames into Note objects
+[Note Model] ── parses filenames for ID + title
+       │         reads front matter for tags
        │         maintains Map<id, Note> via Signals
        ▼
-[Search Layer] ── filename index (instant) + full-text index (lazy)
-       │
+[Search Layer] ── MiniSearch indexes title, tags, body content
+       │          persisted in IndexedDB for fast reload
        ▼
-[UI Layer] ── renders note list, search, tags from store
+[UI Layer] ── renders note list, search results, tags from store
        │
        ▼
 [Editor Layer] ── loads note content into CodeMirror, emits changes
@@ -376,19 +411,17 @@ src/
 [Watcher] ── polling (5–10s) or FileSystemObserver
        │         detects external changes, triggers rescan
        ▼
-[Note Model] ── reconciles, updates store → UI reacts
+[Note Model] ── reconciles, updates store + search index → UI reacts
 ```
 
 ### Key Data Types
 
 ```typescript
 interface Note {
-  id: string; // YYYYMMDDTHHMMSS (immutable)
+  id: string; // YYYYMMDDTHHMMSS (immutable, from filename)
   title: string; // Human-readable, parsed from filename
-  keywords: string[]; // Tags, parsed from filename
-  signature: string | null; // Optional
-  extension: string; // 'md'
-  filename: string; // Full denote filename
+  tags: string[]; // From front matter (source of truth for tags)
+  filename: string; // Full filename on disk
   fileHandle: FileSystemFileHandle;
   lastModified: number; // For conflict detection
   size: number;
@@ -402,31 +435,37 @@ interface Note {
   return visit (one-click prompt)
 - **File watching:** Polling baseline (scan on timer + window focus),
   progressive enhancement with `FileSystemObserver` via feature detection
-- **Rename:** Create new file → write content → delete old file. Rename journal
-  in OPFS for crash recovery.
+- **Rename:** Only triggered on title change. Create new file → write content →
+  delete old file.
 - **Conflict detection:** Check `file.lastModified` before writes. If changed
-  externally, prompt user.
-- **Flat directory only** — no subdirectory traversal (matches denote defaults)
+  externally, warn user and offer to reload or overwrite.
+- **Flat directory only** — no subdirectory traversal
 
 ### Search Strategy
+
+MiniSearch is the primary search and filtering engine for the app:
 
 ```
 User types query
        │
        ▼
-[Filename search] ── instant, always first
-       │               matches title, keywords, date
+[MiniSearch] ── searches across title, tags, and body content
+       │         field boosting: title (2x), tags (1.5x), body (1x)
+       │         fuzzy matching + prefix search
        ▼
-[Full-text search] ── if filename results < threshold
-       │               or user requests content search
-       ▼
-[Merged results] ── deduplicated, ranked by relevance
+[Ranked results] ── returned to UI, displayed in sidebar
 ```
 
-- Filename index built synchronously on directory load (instant for 1k–10k
-  notes)
-- Full-text index built lazily during idle time via MiniSearch
-- Index persisted in IndexedDB/OPFS for fast reload
+- **Index fields:** `title`, `tags` (joined as string), `body`
+- **Stored fields:** `title`, `id` (for fast result rendering without lookup)
+- **Index built on startup:** Load from IndexedDB if available, otherwise build
+  from files. For 1,000 notes this takes < 1 second.
+- **Incremental updates:** `add()` on note creation, `discard()` + `add()` on
+  edit, `discard()` on deletion. No full rebuilds needed.
+- **Persistence:** `JSON.stringify(miniSearch)` → IndexedDB. Debounced save
+  after index changes. `MiniSearch.loadJSON()` on startup.
+- **Tag filtering:** Implemented via MiniSearch field search
+  (`{ fields: ['tags'] }`) or simple in-memory filter on the note store.
 
 ---
 
@@ -437,10 +476,10 @@ User types query
 | **Chromium-only**                    | HIGH       | Clear browser compatibility notice. Target Chrome/Edge/Brave/Arc.                                                      |
 | **Permission re-grant UX**           | MEDIUM     | IndexedDB handle persistence. One-click re-permission. Explain in onboarding.                                          |
 | **Large notebook perf (10k+ files)** | MEDIUM     | Cache file list in IndexedDB. Load from cache first, reconcile in background. Virtualize note list. Lazy-load content. |
-| **No atomic rename**                 | MEDIUM     | Write-then-delete with OPFS rename journal for crash recovery.                                                         |
+| **File rename on title change**      | LOW        | Renames only happen on title change (not tags). Create-new + write + delete-old pattern.                               |
 | **FileSystemObserver not stable**    | LOW        | Polling fallback is the primary strategy. Observer is progressive enhancement.                                         |
-| **Concurrent access conflicts**      | LOW-MEDIUM | `lastModified` check before writes. Conflict resolution UI (keep mine / keep theirs).                                  |
-| **Storage quota for indexes**        | LOW        | Indexes are small (~MB). Check via `navigator.storage.estimate()`.                                                     |
+| **Concurrent access conflicts**      | LOW-MEDIUM | `lastModified` check before writes. Warn and offer reload or overwrite.                                                |
+| **Search index staleness**           | LOW        | Incremental MiniSearch updates on every note change. Periodic full rebuild as safety net.                              |
 
 ---
 
@@ -450,8 +489,9 @@ User types query
 
 - All P0 features working
 - Core loop (create → edit → find → delete) takes under 3 actions each
-- Denote filenames correctly generated and parsed
-- Interoperable: files work in Emacs denote and vice versa
+- Filenames correctly generated and parsed
+- Tags correctly stored in and read from front matter
+- Full-text search returns relevant results across title, tags, and content
 
 ### Performance
 
@@ -459,13 +499,15 @@ User types query
 - 1,000-note directory loads list in under 3 seconds
 - Note opens for editing in under 500ms
 - Auto-save completes in under 200ms
+- Search results appear as-you-type (< 50ms per query)
 - No visible jank during normal use
 
 ### Reliability
 
-- Zero data loss under normal usage
+- Zero data loss under normal usage (debounced auto-save + save on blur)
 - Graceful handling of permission denial, external conflicts, browser restart
 - Works correctly after session restore (re-permission flow)
+- App loads and functions fully offline after first visit (service worker)
 
 ### User Experience
 
@@ -484,17 +526,12 @@ User types query
 
 ## 10. Open Questions for Detailed Planning
 
-1. **Front matter format** — Minimal YAML (`title`, `date`, `tags`,
-   `identifier`) recommended for denote interop. How strictly do we match
-   denote's Emacs format?
-2. **Tag sync strategy** — How do we handle bidirectional sync between inline
-   `#tags` in note body and `__keywords` in filename? Which is the source of
-   truth?
-3. **Hybrid Markdown rendering** — Which CM6 extension/approach for hiding
-   syntax when cursor is elsewhere? Custom decorations vs existing libraries
-   (ink-mde, etc)?
-4. **Non-denote files** — Show in a separate "Other Files" section, or silently
-   ignore?
-5. **Welcome note** — What content? Should it be a tutorial or just a greeting?
-6. **OPFS usage** — Use for search index caching + rename journal. Any other
-   uses?
+1. **Non-Noti `.md` files with front matter** — If an externally-created `.md`
+   file has its own front matter, do we parse it for tags? Or only recognize
+   Noti-generated front matter?
+2. **Welcome note** — What content? Should it be a tutorial or just a greeting?
+3. **Search index cold start** — On first visit with a large existing folder,
+   building the MiniSearch index requires reading every file's content. Show a
+   progress indicator? Build incrementally during idle time?
+4. **Note linking resolution** — When rendering `[[ID]]` links, how do we handle
+   broken links (target note deleted)? Show as dead link with ID?
