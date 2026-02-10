@@ -172,13 +172,13 @@ _P1 scope (remaining)_
 Power-user workflows: full keyboard navigation and wiki-style linking between
 notes.
 
-- [ ] `Cmd/Ctrl+N` — new note (if not already wired)
-- [ ] `Cmd/Ctrl+K` — focus search (if not already wired)
-- [ ] `Cmd/Ctrl+\` — toggle sidebar
-- [ ] Note linking syntax: `[[20240322T131856]]` references another note by ID
-- [ ] Render `[[ID]]` links as clickable, showing target note's title
-- [ ] Clicking a note link navigates to that note in the editor
-- [ ] Handle broken links gracefully (target deleted → show as dead link with
+- [x] `Cmd/Ctrl+N` — new note (if not already wired)
+- [x] `Cmd/Ctrl+K` — focus search (if not already wired)
+- [x] `Cmd/Ctrl+\` — toggle sidebar
+- [x] Note linking syntax: `[[20240322T131856]]` references another note by ID
+- [x] Render `[[ID]]` links as clickable, showing target note's title
+- [x] Clicking a note link navigates to that note in the editor
+- [x] Handle broken links gracefully (target deleted → show as dead link with
       ID)
 
 **Deliverable:** Power users can navigate entirely by keyboard. Notes can
