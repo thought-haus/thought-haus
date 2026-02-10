@@ -7,6 +7,7 @@ import { createEditor } from "../editor/editor.ts";
 import { saveStatus, wordCount, countWords } from "../editor/editor-state.ts";
 import { debounce } from "../lib/debounce.ts";
 import { updateInIndex } from "../search/search-engine.ts";
+import { renameNote } from "../notes/note-actions.ts";
 import type { EditorView } from "@codemirror/view";
 import styles from "./editor-view.module.css";
 
@@ -17,6 +18,7 @@ export function EditorView_() {
   const noteIdRef = useRef<string | null>(null);
   const [tagInput, setTagInput] = useState("");
   const [showTagInput, setShowTagInput] = useState(false);
+  const [titleDraft, setTitleDraft] = useState("");
 
   const saveNote = useCallback(async () => {
     const noteId = noteIdRef.current;
@@ -68,6 +70,8 @@ export function EditorView_() {
 
     const note = getNote(noteId);
     if (!note) return;
+
+    setTitleDraft(note.title);
 
     (async () => {
       const rawContent = await readNoteContent(note.fileHandle);
@@ -156,6 +160,20 @@ export function EditorView_() {
     [saveNote],
   );
 
+  const commitTitle = useCallback(async () => {
+    const noteId = noteIdRef.current;
+    if (!noteId) return;
+    const note = getNote(noteId);
+    if (!note) return;
+    const trimmed = titleDraft.trim() || "Untitled";
+    if (trimmed === note.title) {
+      setTitleDraft(note.title);
+      return;
+    }
+    await renameNote(noteId, trimmed);
+    setTitleDraft(trimmed);
+  }, [titleDraft]);
+
   const handleTagKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === "Enter") {
@@ -185,7 +203,21 @@ export function EditorView_() {
   return (
     <main class={styles.editor}>
       <div class={styles.header}>
-        <h1 class={styles.title}>{note.title}</h1>
+        <input
+          class={styles.titleInput}
+          type="text"
+          value={titleDraft}
+          onInput={(e) =>
+            setTitleDraft((e.target as HTMLInputElement).value)
+          }
+          onBlur={() => commitTitle()}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              (e.target as HTMLInputElement).blur();
+            }
+          }}
+          aria-label="Note title"
+        />
         <div class={styles.metadata}>
           <div class={styles.tags}>
             {note.tags.map((tag) => (

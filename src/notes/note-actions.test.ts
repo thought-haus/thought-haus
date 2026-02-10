@@ -1,11 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { directoryHandle, selectedNoteId } from "../lib/app-state.ts";
 import { notesMap, noteCount } from "./note-store.ts";
-import { createNote, deleteNote, createWelcomeNote } from "./note-actions.ts";
+import {
+  createNote,
+  deleteNote,
+  createWelcomeNote,
+  renameNote,
+} from "./note-actions.ts";
+import { getNote } from "./note-store.ts";
 
 vi.mock("../search/search-engine.ts", () => ({
   addToIndex: vi.fn(),
   removeFromIndex: vi.fn(),
+  updateInIndex: vi.fn(),
 }));
 
 // Mock file system
@@ -108,6 +115,66 @@ describe("note-actions", () => {
       const content = String(mockWritable.write.mock.lastCall?.[0]);
       expect(content).toContain("Welcome to Noti");
       expect(content).toContain("Getting Started");
+    });
+  });
+
+  describe("renameNote", () => {
+    it("updates title in store and creates new file, deletes old", async () => {
+      const note = await createNote();
+      const oldFilename = note!.filename;
+      vi.clearAllMocks();
+
+      const result = await renameNote(note!.id, "My New Title");
+
+      expect(result).toBe(true);
+      const updated = getNote(note!.id);
+      expect(updated!.title).toBe("My New Title");
+      expect(updated!.filename).toContain("my-new-title");
+      expect(updated!.filename).not.toBe(oldFilename);
+      // Should create new file and delete old
+      expect(mockDirHandle.getFileHandle).toHaveBeenCalled();
+      expect(mockDirHandle.removeEntry).toHaveBeenCalledWith(oldFilename);
+    });
+
+    it("falls back to 'Untitled' when given empty string", async () => {
+      const note = await createNote();
+      vi.clearAllMocks();
+
+      const result = await renameNote(note!.id, "  ");
+
+      expect(result).toBe(true);
+      const updated = getNote(note!.id);
+      expect(updated!.title).toBe("Untitled");
+    });
+
+    it("slugifies special characters in filename", async () => {
+      const note = await createNote();
+      vi.clearAllMocks();
+
+      await renameNote(note!.id, "Hello, World! @#$%");
+
+      const updated = getNote(note!.id);
+      expect(updated!.filename).toContain("hello-world");
+      expect(updated!.filename).not.toContain("@");
+      expect(updated!.filename).not.toContain("!");
+    });
+
+    it("returns false if no directory handle", async () => {
+      const note = await createNote();
+      directoryHandle.value = null;
+      const result = await renameNote(note!.id, "New Title");
+      expect(result).toBe(false);
+    });
+
+    it("returns true without changes if title is the same", async () => {
+      const note = await createNote();
+      vi.clearAllMocks();
+
+      const result = await renameNote(note!.id, "Untitled");
+
+      expect(result).toBe(true);
+      // Should not have created any new files
+      expect(mockDirHandle.getFileHandle).not.toHaveBeenCalled();
     });
   });
 });

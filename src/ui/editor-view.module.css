@@ -27,6 +27,19 @@
   margin-bottom: 0.25rem;
 }
 
+.titleInput {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  padding: 0;
+}
+
 .metadata {
   display: flex;
   align-items: center;

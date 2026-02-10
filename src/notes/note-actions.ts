@@ -1,10 +1,14 @@
 import { directoryHandle, selectedNoteId } from "../lib/app-state.ts";
 import { formatTimestampId } from "../lib/date.ts";
 import { generateFilename } from "./filename.ts";
-import { serializeFrontMatter } from "./frontmatter.ts";
+import { parseFrontMatter, serializeFrontMatter } from "./frontmatter.ts";
 import { upsertNote, removeNote, getNote } from "./note-store.ts";
-import { writeFile } from "../fs/file-ops.ts";
-import { addToIndex, removeFromIndex } from "../search/search-engine.ts";
+import { readNoteContent, writeFile } from "../fs/file-ops.ts";
+import {
+  addToIndex,
+  removeFromIndex,
+  updateInIndex,
+} from "../search/search-engine.ts";
 import type { Note } from "./note.ts";
 
 const WELCOME_BODY = `Welcome to Noti! This is your first note.
@@ -80,6 +84,60 @@ export async function deleteNote(id: string): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+/** Rename a note: update title in store, rewrite file with new frontmatter, rename on disk. */
+export async function renameNote(
+  id: string,
+  newTitle: string,
+): Promise<boolean> {
+  const dirHandle = directoryHandle.value;
+  if (!dirHandle) return false;
+
+  const note = getNote(id);
+  if (!note) return false;
+
+  const title = newTitle.trim() || "Untitled";
+  if (title === note.title) return true;
+
+  const oldFilename = note.filename;
+  const newFilename = generateFilename(note.createdAt, title);
+
+  // Read current content and re-serialize with updated title
+  const rawContent = await readNoteContent(note.fileHandle);
+  const { body } = parseFrontMatter(rawContent);
+  const content = serializeFrontMatter(
+    {
+      title,
+      date: note.createdAt.toISOString().replace("Z", ""),
+      tags: note.tags,
+    },
+    body,
+  );
+
+  // Write to new file, then delete old
+  const newFileHandle = await dirHandle.getFileHandle(newFilename, {
+    create: true,
+  });
+  await writeFile(newFileHandle, content);
+
+  if (newFilename !== oldFilename) {
+    await dirHandle.removeEntry(oldFilename);
+  }
+
+  const file = await newFileHandle.getFile();
+  upsertNote({
+    ...note,
+    title,
+    filename: newFilename,
+    fileHandle: newFileHandle,
+    lastModified: file.lastModified,
+    size: file.size,
+  });
+
+  updateInIndex({ id: note.id, title, tags: note.tags, body });
+
+  return true;
 }
 
 /** Create a welcome note in an empty folder. */
