@@ -1,16 +1,37 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/preact";
+import { render, screen, fireEvent, waitFor } from "@testing-library/preact";
 import { appView, isBrowserCompatible } from "../lib/app-state.ts";
+import { notesMap } from "../notes/note-store.ts";
 import { App } from "./app.tsx";
 
 vi.mock("../lib/browser.ts", () => ({
   isFileSystemAccessSupported: () => true,
 }));
 
+const mockDirHandle = {
+  name: "my-notes",
+  kind: "directory",
+  entries: vi.fn(() => ({
+    [Symbol.asyncIterator]: () => ({ next: () => Promise.resolve({ done: true }) }),
+  })),
+} as unknown as FileSystemDirectoryHandle;
+
+vi.mock("../fs/directory.ts", () => ({
+  pickDirectory: () => Promise.resolve(mockDirHandle),
+  saveDirectoryHandle: () => Promise.resolve(),
+  loadDirectoryHandle: () => Promise.resolve(null),
+  checkPermission: () => Promise.resolve(false),
+}));
+
+vi.mock("../fs/file-ops.ts", () => ({
+  scanDirectory: () => Promise.resolve([]),
+}));
+
 describe("App", () => {
   beforeEach(() => {
     appView.value = "onboarding";
     isBrowserCompatible.value = true;
+    notesMap.value = new Map();
   });
 
   it("shows onboarding by default", () => {
@@ -36,9 +57,11 @@ describe("App", () => {
     expect(screen.getByText("Browser Not Supported")).toBeInTheDocument();
   });
 
-  it("transitions from onboarding to main on Open a Folder click", () => {
+  it("transitions from onboarding to main on Open a Folder click", async () => {
     render(<App />);
     fireEvent.click(screen.getByRole("button", { name: "Open a Folder" }));
-    expect(appView.value).toBe("main");
+    await waitFor(() => {
+      expect(appView.value).toBe("main");
+    });
   });
 });

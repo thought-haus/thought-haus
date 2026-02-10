@@ -11,6 +11,12 @@ export const isBrowserCompatible = signal(true);
 /** The name of the currently opened folder. */
 export const folderName = signal<string | null>(null);
 
+/** The directory handle for the currently opened folder. */
+export const directoryHandle = signal<FileSystemDirectoryHandle | null>(null);
+
+/** The currently selected note ID. */
+export const selectedNoteId = signal<string | null>(null);
+
 /** Derived: should we show the main editor layout? */
 export const showMainLayout = computed(
   () => appView.value === "main" && isBrowserCompatible.value,
