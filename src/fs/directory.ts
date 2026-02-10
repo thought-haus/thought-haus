@@ -1,18 +1,7 @@
-const DB_NAME = "noti";
+import { openDB } from "../lib/db.ts";
+
 const STORE_NAME = "handles";
 const HANDLE_KEY = "directoryHandle";
-
-/** Open the IndexedDB database. */
-function openDB(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, 1);
-    req.onupgradeneeded = () => {
-      req.result.createObjectStore(STORE_NAME);
-    };
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
-}
 
 /** Persist a directory handle to IndexedDB. */
 export async function saveDirectoryHandle(
