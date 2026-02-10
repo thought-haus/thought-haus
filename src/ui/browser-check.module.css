@@ -1,0 +1,28 @@
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 2rem;
+}
+
+.card {
+  max-width: 480px;
+  text-align: center;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.message {
+  color: var(--color-text-secondary);
+  margin-bottom: 0.75rem;
+}
+
+.hint {
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+}
