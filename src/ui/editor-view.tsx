@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from "preact/hooks";
+import { useEffect, useRef, useCallback, useState } from "preact/hooks";
 import { selectedNoteId } from "../lib/app-state.ts";
 import { getNote, upsertNote } from "../notes/note-store.ts";
 import { readNoteContent, writeFile } from "../fs/file-ops.ts";
@@ -14,6 +14,8 @@ export function EditorView_() {
   const cmRef = useRef<EditorView | null>(null);
   const bodyRef = useRef("");
   const noteIdRef = useRef<string | null>(null);
+  const [tagInput, setTagInput] = useState("");
+  const [showTagInput, setShowTagInput] = useState(false);
 
   const saveNote = useCallback(async () => {
     const noteId = noteIdRef.current;
@@ -116,6 +118,50 @@ export function EditorView_() {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [saveNote]);
 
+  const addTag = useCallback(
+    (raw: string) => {
+      const tag = raw.trim().toLowerCase().replace(/\s+/g, "-");
+      if (!tag) return;
+      const noteId = noteIdRef.current;
+      if (!noteId) return;
+      const note = getNote(noteId);
+      if (!note) return;
+      if (note.tags.includes(tag)) return;
+
+      upsertNote({ ...note, tags: [...note.tags, tag] });
+      setTagInput("");
+      setShowTagInput(false);
+      saveNote();
+    },
+    [saveNote],
+  );
+
+  const removeTag = useCallback(
+    (tagToRemove: string) => {
+      const noteId = noteIdRef.current;
+      if (!noteId) return;
+      const note = getNote(noteId);
+      if (!note) return;
+
+      upsertNote({ ...note, tags: note.tags.filter((t) => t !== tagToRemove) });
+      saveNote();
+    },
+    [saveNote],
+  );
+
+  const handleTagKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        addTag((e.target as HTMLInputElement).value);
+      } else if (e.key === "Escape") {
+        setTagInput("");
+        setShowTagInput(false);
+      }
+    },
+    [addTag],
+  );
+
   const noteId = selectedNoteId.value;
   const note = noteId ? getNote(noteId) : null;
 
@@ -134,15 +180,49 @@ export function EditorView_() {
       <div class={styles.header}>
         <h1 class={styles.title}>{note.title}</h1>
         <div class={styles.metadata}>
-          {note.tags.length > 0 && (
-            <div class={styles.tags}>
-              {note.tags.map((tag) => (
-                <span key={tag} class={styles.tagPill}>
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
+          <div class={styles.tags}>
+            {note.tags.map((tag) => (
+              <span key={tag} class={styles.tagPill}>
+                {tag}
+                <button
+                  class={styles.tagRemove}
+                  onClick={() => removeTag(tag)}
+                  aria-label={`Remove tag ${tag}`}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+            {showTagInput ? (
+              <input
+                class={styles.tagInput}
+                type="text"
+                value={tagInput}
+                placeholder="tag name"
+                aria-label="Add tag"
+                autoFocus
+                onInput={(e) =>
+                  setTagInput((e.target as HTMLInputElement).value)
+                }
+                onKeyDown={handleTagKeyDown}
+                onBlur={() => {
+                  if (tagInput.trim()) {
+                    addTag(tagInput);
+                  } else {
+                    setShowTagInput(false);
+                  }
+                }}
+              />
+            ) : (
+              <button
+                class={styles.addTagBtn}
+                onClick={() => setShowTagInput(true)}
+                aria-label="Add tag"
+              >
+                + tag
+              </button>
+            )}
+          </div>
           <span class={styles.date}>
             {note.createdAt.toLocaleDateString("en-US", {
               year: "numeric",

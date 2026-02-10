@@ -37,7 +37,9 @@
 
 .tags {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.25rem;
+  align-items: center;
 }
 
 .tagPill {
@@ -46,6 +48,60 @@
   border-radius: 999px;
   background: var(--color-tag-bg);
   color: var(--color-tag-text);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.tagRemove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border: none;
+  background: none;
+  color: var(--color-tag-text);
+  cursor: pointer;
+  font-size: 0.875rem;
+  line-height: 1;
+  padding: 0;
+  border-radius: 50%;
+  opacity: 0.6;
+}
+
+.tagRemove:hover {
+  opacity: 1;
+  background: var(--color-accent);
+  color: white;
+}
+
+.tagInput {
+  font-size: 0.75rem;
+  padding: 0.0625rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-accent);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: inherit;
+  outline: none;
+  width: 80px;
+}
+
+.addTagBtn {
+  font-size: 0.75rem;
+  padding: 0.0625rem 0.5rem;
+  border-radius: 999px;
+  border: 1px dashed var(--color-border);
+  background: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.addTagBtn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
 }
 
 .date {
