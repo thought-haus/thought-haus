@@ -38,9 +38,10 @@ function NoteItem({ note, isSelected, onSelect }: NoteItemProps) {
 interface SidebarProps {
   selectedNoteId: string | null;
   onSelectNote: (id: string) => void;
+  onNewNote: () => void;
 }
 
-export function Sidebar({ selectedNoteId, onSelectNote }: SidebarProps) {
+export function Sidebar({ selectedNoteId, onSelectNote, onNewNote }: SidebarProps) {
   const notes = filteredNotes.value;
   const count = noteCount.value;
   const tags = tagCounts.value;
@@ -73,12 +74,22 @@ export function Sidebar({ selectedNoteId, onSelectNote }: SidebarProps) {
       </div>
 
       <div class={styles.section}>
-        <button
-          class={`${styles.sectionHeader} ${styles.allNotesBtn} ${!activeTag ? styles.allNotesBtnActive : ""}`}
-          onClick={() => (activeTagFilter.value = null)}
-        >
-          All Notes ({count})
-        </button>
+        <div class={styles.sectionRow}>
+          <button
+            class={`${styles.sectionHeader} ${styles.allNotesBtn} ${!activeTag ? styles.allNotesBtnActive : ""}`}
+            onClick={() => (activeTagFilter.value = null)}
+          >
+            All Notes ({count})
+          </button>
+          <button
+            class={styles.newNoteBtn}
+            onClick={onNewNote}
+            title="New note (Cmd/Ctrl+N)"
+            aria-label="New note"
+          >
+            +
+          </button>
+        </div>
       </div>
 
       {tags.size > 0 && (

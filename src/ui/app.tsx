@@ -14,6 +14,7 @@ import {
 } from "../fs/directory.ts";
 import { scanDirectory } from "../fs/file-ops.ts";
 import { setNotes } from "../notes/note-store.ts";
+import { createWelcomeNote } from "../notes/note-actions.ts";
 import { BrowserCheck } from "./browser-check.tsx";
 import { Onboarding } from "./onboarding.tsx";
 import { Layout } from "./layout.tsx";
@@ -31,6 +32,9 @@ async function openFolder(): Promise<void> {
     const notes = await scanDirectory(handle);
     setNotes(notes);
     appView.value = "main";
+    if (notes.length === 0) {
+      await createWelcomeNote();
+    }
   } catch {
     // User cancelled the picker
   }

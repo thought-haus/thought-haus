@@ -3,3 +3,98 @@
   height: 100%;
   width: 100%;
 }
+
+.editorPane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.375rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.deleteBtn {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background: var(--color-bg);
+  color: var(--color-danger);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.deleteBtn:hover {
+  background: #fff1f0;
+  border-color: var(--color-danger);
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.dialog {
+  background: var(--color-bg);
+  border-radius: 12px;
+  padding: 1.5rem;
+  max-width: 360px;
+  width: 100%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+.dialog p {
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.dialogHint {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  font-weight: 400 !important;
+}
+
+.dialogActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.cancelBtn {
+  padding: 0.375rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-bg);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.875rem;
+}
+
+.confirmDeleteBtn {
+  padding: 0.375rem 1rem;
+  border: none;
+  border-radius: 6px;
+  background: var(--color-danger);
+  color: #fff;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.confirmDeleteBtn:hover {
+  background: #b91c28;
+}
