@@ -3,6 +3,7 @@ import { EditorView, keymap, placeholder } from "@codemirror/view";
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import { languages } from "@codemirror/language-data";
 import { defaultKeymap, historyKeymap, history } from "@codemirror/commands";
+import { noteLinkPlugin, noteLinkTheme } from "./note-links.ts";
 
 export interface EditorConfig {
   parent: HTMLElement;
@@ -25,6 +26,8 @@ export function createEditor({ parent, content, onChange }: EditorConfig): Edito
       keymap.of([...defaultKeymap, ...historyKeymap]),
       markdown({ base: markdownLanguage, codeLanguages: languages }),
       updateListener,
+      noteLinkPlugin,
+      noteLinkTheme,
       placeholder("Start writing..."),
       EditorView.lineWrapping,
       EditorView.theme({
