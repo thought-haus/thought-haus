@@ -1,6 +1,6 @@
 import { signal, computed } from "@preact/signals";
 
-export type AppView = "onboarding" | "main";
+export type AppView = "onboarding" | "re-permission" | "main";
 
 /** The current top-level view of the app. */
 export const appView = signal<AppView>("onboarding");
@@ -13,6 +13,9 @@ export const folderName = signal<string | null>(null);
 
 /** The directory handle for the currently opened folder. */
 export const directoryHandle = signal<FileSystemDirectoryHandle | null>(null);
+
+/** A saved directory handle that needs re-permission from the user. */
+export const savedHandle = signal<FileSystemDirectoryHandle | null>(null);
 
 /** The currently selected note ID. */
 export const selectedNoteId = signal<string | null>(null);

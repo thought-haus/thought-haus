@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/preact";
-import { appView, isBrowserCompatible } from "../lib/app-state.ts";
+import {
+  appView,
+  isBrowserCompatible,
+  savedHandle,
+  folderName,
+} from "../lib/app-state.ts";
 import { notesMap } from "../notes/note-store.ts";
 import { App } from "./app.tsx";
 
@@ -12,7 +17,9 @@ const mockDirHandle = {
   name: "my-notes",
   kind: "directory",
   entries: vi.fn(() => ({
-    [Symbol.asyncIterator]: () => ({ next: () => Promise.resolve({ done: true }) }),
+    [Symbol.asyncIterator]: () => ({
+      next: () => Promise.resolve({ done: true }),
+    }),
   })),
 } as unknown as FileSystemDirectoryHandle;
 
@@ -21,6 +28,7 @@ vi.mock("../fs/directory.ts", () => ({
   saveDirectoryHandle: () => Promise.resolve(),
   loadDirectoryHandle: () => Promise.resolve(null),
   checkPermission: () => Promise.resolve(false),
+  requestPermission: () => Promise.resolve(true),
 }));
 
 vi.mock("../fs/file-ops.ts", () => ({
@@ -31,6 +39,8 @@ describe("App", () => {
   beforeEach(() => {
     appView.value = "onboarding";
     isBrowserCompatible.value = true;
+    savedHandle.value = null;
+    folderName.value = null;
     notesMap.value = new Map();
   });
 
@@ -63,5 +73,26 @@ describe("App", () => {
     await waitFor(() => {
       expect(appView.value).toBe("main");
     });
+  });
+
+  it("shows re-permission view when saved handle needs permission", () => {
+    appView.value = "re-permission";
+    folderName.value = "my-notes";
+    savedHandle.value = mockDirHandle;
+    render(<App />);
+    expect(screen.getByText("Welcome Back")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Re-open my-notes" }),
+    ).toBeInTheDocument();
+  });
+
+  it("re-permission view has option to choose different folder", () => {
+    appView.value = "re-permission";
+    folderName.value = "my-notes";
+    savedHandle.value = mockDirHandle;
+    render(<App />);
+    expect(
+      screen.getByRole("button", { name: "Or choose a different folder" }),
+    ).toBeInTheDocument();
   });
 });
