@@ -26,7 +26,7 @@ describe("Layout", () => {
 
   it("renders the sidebar with search bar", () => {
     render(<Layout />);
-    expect(screen.getByPlaceholderText("Search notes...")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Search notes... (Cmd+K)")).toBeInTheDocument();
   });
 
   it("renders the editor placeholder when no note selected", () => {

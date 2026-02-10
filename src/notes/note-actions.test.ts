@@ -3,6 +3,11 @@ import { directoryHandle, selectedNoteId } from "../lib/app-state.ts";
 import { notesMap, noteCount } from "./note-store.ts";
 import { createNote, deleteNote, createWelcomeNote } from "./note-actions.ts";
 
+vi.mock("../search/search-engine.ts", () => ({
+  addToIndex: vi.fn(),
+  removeFromIndex: vi.fn(),
+}));
+
 // Mock file system
 const mockWritable = {
   write: vi.fn((_data: string) => Promise.resolve()),

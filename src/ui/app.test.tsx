@@ -33,6 +33,24 @@ vi.mock("../fs/directory.ts", () => ({
 
 vi.mock("../fs/file-ops.ts", () => ({
   scanDirectory: () => Promise.resolve([]),
+  readNoteContent: () => Promise.resolve(""),
+}));
+
+vi.mock("../search/search-engine.ts", async (importOriginal) => {
+  const { signal } = await import("@preact/signals");
+  return {
+    buildIndex: vi.fn(),
+    serializeIndex: () => "{}",
+    executeSearch: vi.fn(),
+    clearSearch: vi.fn(),
+    searchQuery: signal(""),
+    searchResults: signal([]),
+    isSearchActive: signal(false),
+  };
+});
+
+vi.mock("../search/search-persistence.ts", () => ({
+  saveSearchIndex: () => Promise.resolve(),
 }));
 
 describe("App", () => {
@@ -55,7 +73,7 @@ describe("App", () => {
   it("shows main layout when view is main", () => {
     appView.value = "main";
     render(<App />);
-    expect(screen.getByPlaceholderText("Search notes...")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Search notes... (Cmd+K)")).toBeInTheDocument();
     expect(
       screen.getByText("Select a note or create a new one"),
     ).toBeInTheDocument();
