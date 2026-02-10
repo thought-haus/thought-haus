@@ -62,6 +62,58 @@ tags:
     expect(frontMatter.title).toBe("Empty");
     expect(body).toBe("");
   });
+
+  it("handles front matter with extra unknown fields", () => {
+    const content = `---
+title: Note
+custom_field: value
+tags:
+  - test
+---
+Body`;
+
+    const { frontMatter, body } = parseFrontMatter(content);
+    expect(frontMatter.title).toBe("Note");
+    expect(frontMatter.tags).toEqual(["test"]);
+    expect(body).toBe("Body");
+  });
+
+  it("handles Windows-style line endings", () => {
+    const content = "---\r\ntitle: Note\r\ntags:\r\n  - work\r\n---\r\nBody";
+    const { frontMatter, body } = parseFrontMatter(content);
+    expect(frontMatter.title).toBe("Note");
+    expect(frontMatter.tags).toEqual(["work"]);
+    expect(body).toBe("Body");
+  });
+
+  it("treats minimal front matter delimiters as no front matter", () => {
+    // ---\n---\n has no content between delimiters — treated as regular content
+    const content = "---\n---\nBody";
+    const { frontMatter, body } = parseFrontMatter(content);
+    expect(frontMatter.tags).toEqual([]);
+    expect(body).toBe(content);
+  });
+
+  it("parses front matter with single empty line between delimiters", () => {
+    const content = "---\n\n---\nBody";
+    const { frontMatter, body } = parseFrontMatter(content);
+    expect(frontMatter.tags).toEqual([]);
+    expect(body).toBe("Body");
+  });
+
+  it("preserves multiple tags in order", () => {
+    const content = `---
+title: Tagged
+tags:
+  - alpha
+  - beta
+  - gamma
+---
+Content`;
+
+    const { frontMatter } = parseFrontMatter(content);
+    expect(frontMatter.tags).toEqual(["alpha", "beta", "gamma"]);
+  });
 });
 
 describe("serializeFrontMatter", () => {
