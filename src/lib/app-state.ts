@@ -20,6 +20,9 @@ export const savedHandle = signal<FileSystemDirectoryHandle | null>(null);
 /** The currently selected note ID. */
 export const selectedNoteId = signal<string | null>(null);
 
+/** Whether the sidebar is collapsed. */
+export const sidebarCollapsed = signal(false);
+
 /** Derived: should we show the main editor layout? */
 export const showMainLayout = computed(
   () => appView.value === "main" && isBrowserCompatible.value,

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "preact/hooks";
-import { selectedNoteId } from "../lib/app-state.ts";
+import { selectedNoteId, sidebarCollapsed } from "../lib/app-state.ts";
 import { getNote } from "../notes/note-store.ts";
 import { createNote, deleteNote } from "../notes/note-actions.ts";
 import { Sidebar } from "./sidebar.tsx";
@@ -27,12 +27,16 @@ export function Layout() {
     setShowDeleteConfirm(false);
   };
 
-  // Keyboard shortcut: Cmd/Ctrl+N for new note
+  // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "n") {
         e.preventDefault();
         createNote();
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === "\\") {
+        e.preventDefault();
+        sidebarCollapsed.value = !sidebarCollapsed.value;
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -44,11 +48,13 @@ export function Layout() {
 
   return (
     <div class={styles.layout}>
-      <Sidebar
-        selectedNoteId={selectedNoteId.value}
-        onSelectNote={(id) => (selectedNoteId.value = id)}
-        onNewNote={handleNewNote}
-      />
+      {!sidebarCollapsed.value && (
+        <Sidebar
+          selectedNoteId={selectedNoteId.value}
+          onSelectNote={(id) => (selectedNoteId.value = id)}
+          onNewNote={handleNewNote}
+        />
+      )}
       <div class={styles.editorPane}>
         {note && (
           <div class={styles.toolbar}>
