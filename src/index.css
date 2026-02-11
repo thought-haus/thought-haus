@@ -8,6 +8,7 @@
 
 :root {
   --sidebar-width: 300px;
+  --agent-panel-width: 380px;
   --color-bg: #fdfcfa;
   --color-surface: #f6f5f1;
   --color-border: #e9e6de;

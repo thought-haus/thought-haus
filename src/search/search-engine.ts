@@ -116,6 +116,16 @@ export function clearSearch(): void {
   isSearchActive.value = false;
 }
 
+/** Query the index without mutating UI signals. Used by the agent tools. */
+export function queryIndex(query: string): SearchResult[] {
+  if (!query.trim()) return [];
+  return miniSearch.search(query).map((r) => ({
+    id: r.id as string,
+    title: (r.title as string) || "",
+    score: r.score,
+  }));
+}
+
 /** Serialize the index to JSON for IndexedDB persistence. */
 export function serializeIndex(): string {
   return JSON.stringify(miniSearch);
