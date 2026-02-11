@@ -40,7 +40,7 @@
 }
 
 .cta:hover {
-  background: #a35718;
+  background: var(--color-accent-hover);
 }
 
 .cta:active {

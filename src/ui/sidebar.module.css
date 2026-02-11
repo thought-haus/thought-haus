@@ -7,6 +7,25 @@
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-scrollbar) transparent;
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: var(--color-scrollbar);
+  border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-scrollbar-hover);
 }
 
 .searchBar {
@@ -54,7 +73,7 @@
 
 .searchInput:focus {
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px rgba(184, 98, 27, 0.1);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
 .section {
@@ -160,6 +179,25 @@
   flex: 1;
   overflow-y: auto;
   padding: 0.25rem 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-scrollbar) transparent;
+}
+
+.noteList::-webkit-scrollbar {
+  width: 6px;
+}
+
+.noteList::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.noteList::-webkit-scrollbar-thumb {
+  background: var(--color-scrollbar);
+  border-radius: 3px;
+}
+
+.noteList::-webkit-scrollbar-thumb:hover {
+  background: var(--color-scrollbar-hover);
 }
 
 .dateGroup {
@@ -185,7 +223,7 @@
 }
 
 .noteItem:hover {
-  background: rgba(253, 252, 250, 0.7);
+  background: var(--color-note-hover);
 }
 
 .noteItemSelected {
@@ -221,4 +259,30 @@
   text-align: center;
   color: var(--color-text-secondary);
   font-size: 0.8125rem;
+}
+
+.sidebarFooter {
+  padding: 0.5rem 1rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.themeToggle {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.625rem;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.themeToggle:hover {
+  color: var(--color-text);
+  background: var(--color-note-hover);
 }

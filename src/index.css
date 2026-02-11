@@ -15,9 +15,19 @@
   --color-text-secondary: #94918a;
   --color-accent: #b8621b;
   --color-accent-subtle: #fef7f0;
+  --color-accent-hover: #a35718;
   --color-danger: #c24040;
+  --color-danger-hover: #a83535;
+  --color-danger-subtle: #fdf0ef;
   --color-tag-bg: #efece4;
   --color-tag-text: #6d6a5e;
+  --color-backdrop: rgba(26, 26, 24, 0.3);
+  --color-shadow: 0 16px 48px rgba(26, 26, 24, 0.12), 0 2px 8px rgba(26, 26, 24, 0.06);
+  --color-scrollbar: rgba(180, 170, 155, 0.35);
+  --color-scrollbar-hover: rgba(180, 170, 155, 0.55);
+  --color-focus-ring: rgba(184, 98, 27, 0.1);
+  --color-note-hover: rgba(253, 252, 250, 0.7);
+  --color-link-underline: rgba(184, 98, 27, 0.4);
   --font-sans: "Iosevka Aile", -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: "SF Mono", "Fira Code", "Fira Mono", Menlo, Consolas, monospace;
 
@@ -31,6 +41,38 @@
   --editor-hr:              #E0D9CC;
   --editor-active-line:     #FBF8F2;
   --editor-selection:       rgba(184, 98, 27, 0.12);
+}
+
+[data-theme="dark"] {
+  --color-bg: #1c1b1a;
+  --color-surface: #252422;
+  --color-border: #3a3835;
+  --color-text: #e8e6e1;
+  --color-text-secondary: #8a8780;
+  --color-accent: #d4873a;
+  --color-accent-subtle: #2e2418;
+  --color-accent-hover: #e09540;
+  --color-danger: #d45555;
+  --color-danger-hover: #c04040;
+  --color-danger-subtle: #2e1a1a;
+  --color-tag-bg: #33312c;
+  --color-tag-text: #b0aa9f;
+  --color-backdrop: rgba(0, 0, 0, 0.5);
+  --color-shadow: 0 16px 48px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2);
+  --color-scrollbar: rgba(140, 130, 115, 0.3);
+  --color-scrollbar-hover: rgba(140, 130, 115, 0.5);
+  --color-focus-ring: rgba(212, 135, 58, 0.15);
+  --color-note-hover: rgba(255, 255, 255, 0.04);
+  --color-link-underline: rgba(212, 135, 58, 0.4);
+  --editor-syntax: #7a7060;
+  --editor-code-text: #c89860;
+  --editor-code-bg: #2a2825;
+  --editor-block-bg: #282623;
+  --editor-blockquote: #b08050;
+  --editor-blockquote-text: #a09888;
+  --editor-hr: #3a3835;
+  --editor-active-line: #222120;
+  --editor-selection: rgba(212, 135, 58, 0.18);
 }
 
 html,

@@ -15,6 +15,8 @@ import {
   searchResults,
   isSearchActive,
 } from "../search/search-engine.ts";
+import { themeMode, setTheme } from "../lib/app-state.ts";
+import type { ThemeMode } from "../lib/app-state.ts";
 import type { Note } from "../notes/note.ts";
 import styles from "./sidebar.module.css";
 
@@ -40,6 +42,54 @@ function NoteItem({ note, isSelected, onSelect }: NoteItemProps) {
           ))}
         </div>
       )}
+    </button>
+  );
+}
+
+const THEME_CYCLE: ThemeMode[] = ["light", "dark", "system"];
+const THEME_LABELS: Record<ThemeMode, string> = {
+  light: "Light",
+  dark: "Dark",
+  system: "System",
+};
+
+function ThemeToggle() {
+  const mode = themeMode.value;
+  const next = THEME_CYCLE[(THEME_CYCLE.indexOf(mode) + 1) % THEME_CYCLE.length];
+
+  return (
+    <button
+      class={styles.themeToggle}
+      onClick={() => setTheme(next)}
+      title={`Theme: ${THEME_LABELS[mode]} (click for ${THEME_LABELS[next]})`}
+      aria-label={`Switch theme to ${THEME_LABELS[next]}`}
+    >
+      {mode === "light" && (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="5" />
+          <line x1="12" y1="1" x2="12" y2="3" />
+          <line x1="12" y1="21" x2="12" y2="23" />
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+          <line x1="1" y1="12" x2="3" y2="12" />
+          <line x1="21" y1="12" x2="23" y2="12" />
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+        </svg>
+      )}
+      {mode === "dark" && (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+        </svg>
+      )}
+      {mode === "system" && (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+          <line x1="8" y1="21" x2="16" y2="21" />
+          <line x1="12" y1="17" x2="12" y2="21" />
+        </svg>
+      )}
+      <span>{THEME_LABELS[mode]}</span>
     </button>
   );
 }
@@ -259,6 +309,10 @@ export function Sidebar({ selectedNoteId, onSelectNote, onNewNote }: SidebarProp
           </div>
         </>
       )}
+
+      <div class={styles.sidebarFooter}>
+        <ThemeToggle />
+      </div>
     </aside>
   );
 }

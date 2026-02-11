@@ -5,6 +5,7 @@ import {
   folderName,
   directoryHandle,
   savedHandle,
+  initTheme,
 } from "../lib/app-state.ts";
 import { isFileSystemAccessSupported } from "../lib/browser.ts";
 import {
@@ -108,6 +109,7 @@ async function tryRestoreSession(): Promise<void> {
 
 export function App() {
   useEffect(() => {
+    initTheme();
     startRouter();
     tryRestoreSession();
   }, []);

@@ -15,7 +15,7 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(26, 26, 24, 0.3);
+  background: var(--color-backdrop);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -29,7 +29,7 @@
   padding: 2rem;
   max-width: 360px;
   width: 100%;
-  box-shadow: 0 16px 48px rgba(26, 26, 24, 0.12), 0 2px 8px rgba(26, 26, 24, 0.06);
+  box-shadow: var(--color-shadow);
 }
 
 .dialog p {
@@ -80,5 +80,5 @@
 }
 
 .confirmDeleteBtn:hover {
-  background: #a83535;
+  background: var(--color-danger-hover);
 }

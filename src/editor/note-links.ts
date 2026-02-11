@@ -151,7 +151,7 @@ export const noteLinkTheme = EditorView.baseTheme({
     textDecoration: "underline",
     textDecorationStyle: "dotted",
     textUnderlineOffset: "2px",
-    textDecorationColor: "rgba(184, 98, 27, 0.4)",
+    textDecorationColor: "var(--color-link-underline)",
     borderRadius: "2px",
     padding: "0 2px",
     transition: "text-decoration-color 0.15s ease, background 0.15s ease",

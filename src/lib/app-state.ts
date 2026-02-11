@@ -2,6 +2,60 @@ import { signal, computed } from "@preact/signals";
 
 export type AppView = "onboarding" | "re-permission" | "main";
 
+export type ThemeMode = "light" | "dark" | "system";
+
+const THEME_KEY = "noti-theme";
+
+/** The user's chosen theme mode. */
+export const themeMode = signal<ThemeMode>("system");
+
+function prefersDark(): boolean {
+  return typeof window.matchMedia === "function" &&
+    window.matchMedia("(prefers-color-scheme: dark)").matches;
+}
+
+/** The resolved theme after applying system preference. */
+export const resolvedTheme = computed<"light" | "dark">(() => {
+  if (themeMode.value !== "system") return themeMode.value;
+  return prefersDark() ? "dark" : "light";
+});
+
+function applyTheme() {
+  document.documentElement.dataset.theme = resolvedTheme.value;
+}
+
+/** Set the theme mode and persist it. */
+export function setTheme(mode: ThemeMode) {
+  themeMode.value = mode;
+  try {
+    localStorage.setItem(THEME_KEY, mode);
+  } catch {
+    // localStorage unavailable (e.g. test environment)
+  }
+  applyTheme();
+}
+
+/** Initialize theme from localStorage and listen for OS changes. */
+export function initTheme() {
+  try {
+    const saved = localStorage.getItem(THEME_KEY) as ThemeMode | null;
+    if (saved === "light" || saved === "dark" || saved === "system") {
+      themeMode.value = saved;
+    }
+  } catch {
+    // localStorage unavailable (e.g. test environment)
+  }
+  applyTheme();
+
+  if (typeof window.matchMedia === "function") {
+    window
+      .matchMedia("(prefers-color-scheme: dark)")
+      .addEventListener("change", () => {
+        if (themeMode.value === "system") applyTheme();
+      });
+  }
+}
+
 /** The current top-level view of the app. */
 export const appView = signal<AppView>("onboarding");
 

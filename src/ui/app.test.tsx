@@ -36,7 +36,7 @@ vi.mock("../fs/file-ops.ts", () => ({
   readNoteContent: () => Promise.resolve(""),
 }));
 
-vi.mock("../search/search-engine.ts", async (importOriginal) => {
+vi.mock("../search/search-engine.ts", async () => {
   const { signal } = await import("@preact/signals");
   return {
     buildIndex: vi.fn(),

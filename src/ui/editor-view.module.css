@@ -45,7 +45,7 @@
 }
 
 .deleteBtn:hover {
-  background: #fdf0ef;
+  background: var(--color-danger-subtle);
   border-color: var(--color-danger);
   color: var(--color-danger);
 }
@@ -171,7 +171,7 @@
 
 .editorBody :global(.cm-scroller) {
   scrollbar-width: thin;
-  scrollbar-color: rgba(180, 170, 155, 0.35) transparent;
+  scrollbar-color: var(--color-scrollbar) transparent;
 }
 .editorBody :global(.cm-scroller)::-webkit-scrollbar {
   width: 6px;
@@ -180,11 +180,11 @@
   background: transparent;
 }
 .editorBody :global(.cm-scroller)::-webkit-scrollbar-thumb {
-  background: rgba(180, 170, 155, 0.35);
+  background: var(--color-scrollbar);
   border-radius: 3px;
 }
 .editorBody :global(.cm-scroller)::-webkit-scrollbar-thumb:hover {
-  background: rgba(180, 170, 155, 0.55);
+  background: var(--color-scrollbar-hover);
 }
 
 .statusBar {
