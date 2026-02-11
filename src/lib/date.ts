@@ -32,16 +32,37 @@ export function formatDisplayDate(date: Date): string {
   });
 }
 
-/** Get a relative date group label: "Today", "Yesterday", or formatted date. */
-export function getDateGroup(date: Date): string {
-  const now = new Date();
+/** Get the Monday at 00:00 of the week containing the given date. */
+function startOfWeek(date: Date): Date {
+  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const day = d.getDay(); // 0=Sun, 1=Mon, ...
+  const diff = day === 0 ? 6 : day - 1; // distance back to Monday
+  d.setDate(d.getDate() - diff);
+  return d;
+}
+
+/** Get a relative date group label for the sidebar. */
+export function getDateGroup(date: Date, now: Date = new Date()): string {
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const noteDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
   const diffMs = today.getTime() - noteDay.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
 
   if (diffDays === 0) return "Today";
   if (diffDays === 1) return "Yesterday";
-  if (diffDays < 7) return `${diffDays} days ago`;
-  return formatDisplayDate(date);
+
+  const weekStart = startOfWeek(today);
+  if (noteDay >= weekStart) return "This Week";
+
+  const lastWeekStart = new Date(weekStart);
+  lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+  if (noteDay >= lastWeekStart) return "Last Week";
+
+  const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+  if (noteDay >= monthStart) return "This Month";
+
+  const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+  if (noteDay >= lastMonthStart) return "Last Month";
+
+  return "Older";
 }

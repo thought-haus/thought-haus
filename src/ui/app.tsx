@@ -22,6 +22,7 @@ import { parseFrontMatter } from "../notes/frontmatter.ts";
 import { saveSearchIndex } from "../search/search-persistence.ts";
 import { serializeIndex } from "../search/search-engine.ts";
 import { startWatcher } from "../fs/file-watcher.ts";
+import { startRouter, applyPendingHash } from "../lib/router.ts";
 import { BrowserCheck } from "./browser-check.tsx";
 import { Onboarding } from "./onboarding.tsx";
 import { RePermission } from "./re-permission.tsx";
@@ -42,6 +43,7 @@ async function openFolderFromHandle(
   const notes = await scanDirectory(handle);
   setNotes(notes);
   appView.value = "main";
+  applyPendingHash();
   if (notes.length === 0) {
     await createWelcomeNote();
   }
@@ -106,6 +108,7 @@ async function tryRestoreSession(): Promise<void> {
 
 export function App() {
   useEffect(() => {
+    startRouter();
     tryRestoreSession();
   }, []);
 

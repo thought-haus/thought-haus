@@ -44,24 +44,41 @@ describe("formatDisplayDate", () => {
 });
 
 describe("getDateGroup", () => {
+  // Use a fixed "now": Thursday, February 12, 2026
+  // Week starts Monday Feb 9
+  const now = new Date(2026, 1, 12);
+
   it("returns 'Today' for today's date", () => {
-    expect(getDateGroup(new Date())).toBe("Today");
+    expect(getDateGroup(new Date(2026, 1, 12), now)).toBe("Today");
   });
 
   it("returns 'Yesterday' for yesterday", () => {
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    expect(getDateGroup(yesterday)).toBe("Yesterday");
+    expect(getDateGroup(new Date(2026, 1, 11), now)).toBe("Yesterday");
   });
 
-  it("returns 'X days ago' for recent dates", () => {
-    const threeDaysAgo = new Date();
-    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-    expect(getDateGroup(threeDaysAgo)).toBe("3 days ago");
+  it("returns 'This Week' for earlier in the same week", () => {
+    // Monday Feb 9 and Tuesday Feb 10 are earlier this week
+    expect(getDateGroup(new Date(2026, 1, 9), now)).toBe("This Week");
+    expect(getDateGroup(new Date(2026, 1, 10), now)).toBe("This Week");
   });
 
-  it("returns formatted date for older dates", () => {
-    const oldDate = new Date(2023, 0, 15);
-    expect(getDateGroup(oldDate)).toBe("January 15, 2023");
+  it("returns 'Last Week' for the previous week", () => {
+    // Mon Feb 2 – Sun Feb 8
+    expect(getDateGroup(new Date(2026, 1, 2), now)).toBe("Last Week");
+    expect(getDateGroup(new Date(2026, 1, 8), now)).toBe("Last Week");
+  });
+
+  it("returns 'This Month' for earlier in the same month", () => {
+    expect(getDateGroup(new Date(2026, 1, 1), now)).toBe("This Month");
+  });
+
+  it("returns 'Last Month' for the previous month", () => {
+    expect(getDateGroup(new Date(2026, 0, 15), now)).toBe("Last Month");
+    expect(getDateGroup(new Date(2026, 0, 1), now)).toBe("Last Month");
+  });
+
+  it("returns 'Older' for dates before last month", () => {
+    expect(getDateGroup(new Date(2025, 11, 31), now)).toBe("Older");
+    expect(getDateGroup(new Date(2023, 0, 15), now)).toBe("Older");
   });
 });
