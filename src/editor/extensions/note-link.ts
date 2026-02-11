@@ -5,8 +5,11 @@ import type {
   MarkdownToken,
   RenderContext,
 } from "@tiptap/core";
+import Suggestion from "@tiptap/suggestion";
 import { resolveNoteLink, NOTE_LINK_RE } from "../note-links.ts";
 import { selectedNoteId } from "../../lib/app-state.ts";
+import { noteLinkSuggestion } from "./note-link-suggest.ts";
+import "../note-link-suggest.css";
 
 /**
  * TipTap inline node for [[YYYYMMDDTHHMMSS]] note links.
@@ -83,5 +86,14 @@ export const NoteLink = Node.create({
 
       return { dom };
     };
+  },
+
+  addProseMirrorPlugins() {
+    return [
+      Suggestion({
+        editor: this.editor,
+        ...noteLinkSuggestion,
+      }),
+    ];
   },
 });
