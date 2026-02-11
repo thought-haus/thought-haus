@@ -15,31 +15,33 @@
 .toolbar {
   display: flex;
   justify-content: flex-end;
-  padding: 0.375rem 1rem;
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface);
+  padding: 0.5rem 1.5rem;
+  background: var(--color-bg);
 }
 
 .deleteBtn {
   font-size: 0.75rem;
   padding: 0.25rem 0.75rem;
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  background: var(--color-bg);
-  color: var(--color-danger);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text-secondary);
   cursor: pointer;
   font-family: inherit;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
 }
 
 .deleteBtn:hover {
-  background: #fff1f0;
+  background: #fdf0ef;
   border-color: var(--color-danger);
+  color: var(--color-danger);
 }
 
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(26, 26, 24, 0.3);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -48,11 +50,11 @@
 
 .dialog {
   background: var(--color-bg);
-  border-radius: 12px;
-  padding: 1.5rem;
+  border-radius: 16px;
+  padding: 2rem;
   max-width: 360px;
   width: 100%;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 16px 48px rgba(26, 26, 24, 0.12), 0 2px 8px rgba(26, 26, 24, 0.06);
 }
 
 .dialog p {
@@ -70,31 +72,38 @@
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem;
-  margin-top: 1rem;
+  margin-top: 1.25rem;
 }
 
 .cancelBtn {
-  padding: 0.375rem 1rem;
+  padding: 0.5rem 1.25rem;
   border: 1px solid var(--color-border);
-  border-radius: 6px;
+  border-radius: 8px;
   background: var(--color-bg);
   cursor: pointer;
   font-family: inherit;
   font-size: 0.875rem;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.cancelBtn:hover {
+  background: var(--color-surface);
+  border-color: var(--color-text-secondary);
 }
 
 .confirmDeleteBtn {
-  padding: 0.375rem 1rem;
+  padding: 0.5rem 1.25rem;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   background: var(--color-danger);
   color: #fff;
   cursor: pointer;
   font-family: inherit;
   font-size: 0.875rem;
   font-weight: 500;
+  transition: background 0.15s ease;
 }
 
 .confirmDeleteBtn:hover {
-  background: #b91c28;
+  background: #a83535;
 }

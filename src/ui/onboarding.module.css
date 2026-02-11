@@ -13,36 +13,42 @@
 
 .title {
   font-size: 2.5rem;
-  font-weight: 700;
+  font-weight: 600;
   margin-bottom: 0.5rem;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
 }
 
 .subtitle {
   color: var(--color-text-secondary);
   margin-bottom: 2rem;
-  font-size: 1.125rem;
+  font-size: 1.0625rem;
 }
 
 .cta {
   display: inline-block;
   padding: 0.75rem 2rem;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 500;
   font-family: inherit;
   color: #fff;
   background: var(--color-accent);
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.15s ease, transform 0.1s ease;
 }
 
 .cta:hover {
-  background: #0860ca;
+  background: #a35718;
+}
+
+.cta:active {
+  transform: scale(0.98);
 }
 
 .hint {
-  margin-top: 1rem;
+  margin-top: 1.25rem;
   color: var(--color-text-secondary);
   font-size: 0.8125rem;
 }

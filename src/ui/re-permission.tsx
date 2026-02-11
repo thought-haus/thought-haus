@@ -32,7 +32,9 @@ export function RePermission({
               fontFamily: "inherit",
               fontSize: "inherit",
               padding: 0,
-              textDecoration: "underline",
+              textDecoration: "none",
+              borderBottom: "1px solid var(--color-border)",
+              transition: "border-color 0.15s ease",
             }}
           >
             Or choose a different folder

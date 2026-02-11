@@ -10,14 +10,13 @@
 }
 
 .searchBar {
-  padding: 0.75rem;
-  border-bottom: 1px solid var(--color-border);
+  padding: 0.875rem 1rem;
   position: relative;
 }
 
 .searchClear {
   position: absolute;
-  right: 1rem;
+  right: 1.125rem;
   top: 50%;
   transform: translateY(-50%);
   border: none;
@@ -25,9 +24,10 @@
   color: var(--color-text-secondary);
   cursor: pointer;
   font-size: 1rem;
-  padding: 0.125rem 0.25rem;
+  padding: 0.125rem 0.375rem;
   line-height: 1;
-  border-radius: 2px;
+  border-radius: 4px;
+  transition: color 0.15s ease, background 0.15s ease;
 }
 
 .searchClear:hover {
@@ -37,22 +37,28 @@
 
 .searchInput {
   width: 100%;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
+  padding: 0.5rem 0.875rem;
+  font-size: 0.8125rem;
   font-family: inherit;
   border: 1px solid var(--color-border);
-  border-radius: 6px;
+  border-radius: 8px;
   background: var(--color-bg);
   outline: none;
+  color: var(--color-text);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.searchInput::placeholder {
+  color: var(--color-text-secondary);
 }
 
 .searchInput:focus {
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 2px var(--color-accent-subtle);
+  box-shadow: 0 0 0 3px rgba(184, 98, 27, 0.1);
 }
 
 .section {
-  padding: 0.5rem 0.75rem;
+  padding: 0.5rem 1rem;
 }
 
 .sectionRow {
@@ -62,27 +68,28 @@
 }
 
 .sectionHeader {
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   color: var(--color-text-secondary);
 }
 
 .newNoteBtn {
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   display: flex;
   align-items: center;
   justify-content: center;
   border: 1px solid var(--color-border);
-  border-radius: 4px;
+  border-radius: 6px;
   background: var(--color-bg);
   cursor: pointer;
   font-size: 1rem;
   font-family: inherit;
   color: var(--color-text-secondary);
   line-height: 1;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 
 .newNoteBtn:hover {
@@ -95,9 +102,9 @@
   font-size: 0.6875rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   color: var(--color-text-secondary);
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.375rem;
 }
 
 .allNotesBtn {
@@ -108,6 +115,7 @@
   width: 100%;
   text-align: left;
   font-family: inherit;
+  transition: color 0.15s ease;
 }
 
 .allNotesBtn:hover {
@@ -121,18 +129,19 @@
 .tagList {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.25rem;
+  gap: 0.375rem;
 }
 
 .tagFilter {
-  font-size: 0.75rem;
-  padding: 0.125rem 0.5rem;
+  font-size: 0.6875rem;
+  padding: 0.1875rem 0.625rem;
   border-radius: 999px;
   border: 1px solid var(--color-border);
   background: var(--color-bg);
   color: var(--color-text-secondary);
   cursor: pointer;
   font-family: inherit;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
 .tagFilter:hover {
@@ -143,7 +152,8 @@
 .tagFilterActive {
   background: var(--color-tag-bg);
   color: var(--color-tag-text);
-  border-color: var(--color-tag-text);
+  border-color: var(--color-tag-bg);
+  font-weight: 500;
 }
 
 .noteList {
@@ -153,28 +163,29 @@
 }
 
 .dateGroup {
-  font-size: 0.6875rem;
+  font-size: 0.625rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
   color: var(--color-text-secondary);
-  padding: 0.5rem 0.75rem 0.25rem;
+  padding: 0.75rem 1rem 0.375rem;
 }
 
 .noteItem {
   display: block;
   width: 100%;
   text-align: left;
-  padding: 0.5rem 0.75rem;
+  padding: 0.625rem 1rem;
   border: none;
   background: none;
   cursor: pointer;
   font-family: inherit;
-  border-left: 3px solid transparent;
+  border-left: 2.5px solid transparent;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .noteItem:hover {
-  background: var(--color-bg);
+  background: rgba(253, 252, 250, 0.7);
 }
 
 .noteItemSelected {
@@ -183,7 +194,7 @@
 }
 
 .noteTitle {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 500;
   color: var(--color-text);
   white-space: nowrap;
@@ -194,20 +205,20 @@
 .noteTags {
   display: flex;
   gap: 0.25rem;
-  margin-top: 0.125rem;
+  margin-top: 0.1875rem;
 }
 
 .tagPill {
-  font-size: 0.6875rem;
-  padding: 0 0.375rem;
+  font-size: 0.625rem;
+  padding: 0.0625rem 0.375rem;
   border-radius: 999px;
   background: var(--color-tag-bg);
   color: var(--color-tag-text);
 }
 
 .emptyState {
-  padding: 2rem 0.75rem;
+  padding: 2rem 1rem;
   text-align: center;
   color: var(--color-text-secondary);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
 }
