@@ -165,27 +165,25 @@
 
 .editorBody {
   flex: 1;
-  overflow: hidden;
+  overflow-y: auto;
   padding: 0 3rem;
-}
-
-.editorBody :global(.cm-scroller) {
   scrollbar-width: thin;
   scrollbar-color: var(--color-scrollbar) transparent;
 }
-.editorBody :global(.cm-scroller)::-webkit-scrollbar {
+.editorBody::-webkit-scrollbar {
   width: 6px;
 }
-.editorBody :global(.cm-scroller)::-webkit-scrollbar-track {
+.editorBody::-webkit-scrollbar-track {
   background: transparent;
 }
-.editorBody :global(.cm-scroller)::-webkit-scrollbar-thumb {
+.editorBody::-webkit-scrollbar-thumb {
   background: var(--color-scrollbar);
   border-radius: 3px;
 }
-.editorBody :global(.cm-scroller)::-webkit-scrollbar-thumb:hover {
+.editorBody::-webkit-scrollbar-thumb:hover {
   background: var(--color-scrollbar-hover);
 }
+
 
 .statusBar {
   display: flex;
