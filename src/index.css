@@ -20,6 +20,17 @@
   --color-tag-text: #6d6a5e;
   --font-sans: "Iosevka Aile", -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: "SF Mono", "Fira Code", "Fira Mono", Menlo, Consolas, monospace;
+
+  /* Editor-specific palette */
+  --editor-syntax:          #C4B5A2;
+  --editor-code-text:       #8B5E34;
+  --editor-code-bg:         #F3EFE7;
+  --editor-block-bg:        #F6F3ED;
+  --editor-blockquote:      #D4A574;
+  --editor-blockquote-text: #5C5850;
+  --editor-hr:              #E0D9CC;
+  --editor-active-line:     #FBF8F2;
+  --editor-selection:       rgba(184, 98, 27, 0.12);
 }
 
 html,

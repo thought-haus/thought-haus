@@ -146,19 +146,23 @@ export const noteLinkPlugin = ViewPlugin.fromClass(
 /** Theme for note link decorations. */
 export const noteLinkTheme = EditorView.baseTheme({
   ".cm-note-link": {
-    color: "var(--color-accent, #2563eb)",
+    color: "var(--color-accent)",
     cursor: "pointer",
     textDecoration: "underline",
     textDecorationStyle: "dotted",
+    textUnderlineOffset: "2px",
+    textDecorationColor: "rgba(184, 98, 27, 0.4)",
     borderRadius: "2px",
     padding: "0 2px",
+    transition: "text-decoration-color 0.15s ease, background 0.15s ease",
   },
   ".cm-note-link:hover": {
     textDecorationStyle: "solid",
-    backgroundColor: "var(--color-accent-subtle, #eff6ff)",
+    textDecorationColor: "var(--color-accent)",
+    backgroundColor: "var(--color-accent-subtle)",
   },
   ".cm-note-link-dead": {
-    color: "var(--color-danger, #dc2626)",
+    color: "var(--color-danger)",
     cursor: "default",
     textDecoration: "line-through",
     opacity: "0.7",
