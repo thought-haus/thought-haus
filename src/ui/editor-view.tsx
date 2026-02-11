@@ -3,12 +3,12 @@ import { selectedNoteId } from "../lib/app-state.ts";
 import { getNote, upsertNote } from "../notes/note-store.ts";
 import { readNoteContent, writeFile } from "../fs/file-ops.ts";
 import { parseFrontMatter, serializeFrontMatter } from "../notes/frontmatter.ts";
-import { createEditor } from "../editor/editor.ts";
+import { createEditor } from "../editor/tiptap-editor.ts";
 import { saveStatus, wordCount, countWords } from "../editor/editor-state.ts";
 import { debounce } from "../lib/debounce.ts";
 import { updateInIndex } from "../search/search-engine.ts";
 import { renameNote } from "../notes/note-actions.ts";
-import type { EditorView } from "@codemirror/view";
+import type { Editor } from "@tiptap/core";
 import styles from "./editor-view.module.css";
 
 interface EditorViewProps {
@@ -16,8 +16,8 @@ interface EditorViewProps {
 }
 
 export function EditorView_({ onDelete }: EditorViewProps) {
-  const editorRef = useRef<HTMLDivElement>(null);
-  const cmRef = useRef<EditorView | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const editorInstanceRef = useRef<Editor | null>(null);
   const bodyRef = useRef("");
   const noteIdRef = useRef<string | null>(null);
   const [tagInput, setTagInput] = useState("");
@@ -29,6 +29,12 @@ export function EditorView_({ onDelete }: EditorViewProps) {
     if (!noteId) return;
     const note = getNote(noteId);
     if (!note) return;
+
+    // Serialize markdown from TipTap at save time (not on every keystroke)
+    const editor = editorInstanceRef.current;
+    if (editor) {
+      bodyRef.current = editor.getMarkdown();
+    }
 
     saveStatus.value = "saving";
     try {
@@ -65,9 +71,9 @@ export function EditorView_({ onDelete }: EditorViewProps) {
     if (!noteId) {
       saveStatus.value = "idle";
       wordCount.value = 0;
-      if (cmRef.current) {
-        cmRef.current.destroy();
-        cmRef.current = null;
+      if (editorInstanceRef.current) {
+        editorInstanceRef.current.destroy();
+        editorInstanceRef.current = null;
       }
       return;
     }
@@ -85,19 +91,18 @@ export function EditorView_({ onDelete }: EditorViewProps) {
       saveStatus.value = "saved";
 
       // Destroy old editor
-      if (cmRef.current) {
-        cmRef.current.destroy();
-        cmRef.current = null;
+      if (editorInstanceRef.current) {
+        editorInstanceRef.current.destroy();
+        editorInstanceRef.current = null;
       }
 
-      if (!editorRef.current) return;
+      if (!containerRef.current) return;
 
-      cmRef.current = createEditor({
-        parent: editorRef.current,
+      editorInstanceRef.current = createEditor({
+        parent: containerRef.current,
         content: body,
-        onChange: (newContent) => {
-          bodyRef.current = newContent;
-          wordCount.value = countWords(newContent);
+        onChange: (text) => {
+          wordCount.value = countWords(text);
           saveStatus.value = "unsaved";
           debouncedSave.current();
         },
@@ -289,7 +294,7 @@ export function EditorView_({ onDelete }: EditorViewProps) {
           </span>
         </div>
       </div>
-      <div class={styles.editorBody} ref={editorRef} />
+      <div class={styles.editorBody} ref={containerRef} />
       <div class={styles.statusBar}>
         <span>{wordCount.value} words</span>
         <span class={styles.saveIndicator}>
