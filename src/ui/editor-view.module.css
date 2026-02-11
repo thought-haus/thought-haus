@@ -16,7 +16,38 @@
 }
 
 .header {
-  padding: 2rem 3rem 1.25rem;
+  padding: 1.25rem 3rem 1rem;
+}
+
+.titleRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.headerActions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  padding-top: 0.375rem;
+}
+
+.deleteBtn {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-family: inherit;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.deleteBtn:hover {
+  background: #fdf0ef;
+  border-color: var(--color-danger);
+  color: var(--color-danger);
 }
 
 .title {
@@ -31,7 +62,8 @@
   font-size: 1.875rem;
   font-weight: 600;
   margin-bottom: 0.375rem;
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   border: none;
   outline: none;
   background: transparent;
@@ -135,7 +167,6 @@
   flex: 1;
   overflow: hidden;
   padding: 0 3rem;
-  max-width: 720px;
 }
 
 .editorBody :global(.cm-scroller) {

@@ -11,7 +11,11 @@ import { renameNote } from "../notes/note-actions.ts";
 import type { EditorView } from "@codemirror/view";
 import styles from "./editor-view.module.css";
 
-export function EditorView_() {
+interface EditorViewProps {
+  onDelete?: () => void;
+}
+
+export function EditorView_({ onDelete }: EditorViewProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const cmRef = useRef<EditorView | null>(null);
   const bodyRef = useRef("");
@@ -203,21 +207,35 @@ export function EditorView_() {
   return (
     <main class={styles.editor}>
       <div class={styles.header}>
-        <input
-          class={styles.titleInput}
-          type="text"
-          value={titleDraft}
-          onInput={(e) =>
-            setTitleDraft((e.target as HTMLInputElement).value)
-          }
-          onBlur={() => commitTitle()}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              (e.target as HTMLInputElement).blur();
+        <div class={styles.titleRow}>
+          <input
+            class={styles.titleInput}
+            type="text"
+            value={titleDraft}
+            onInput={(e) =>
+              setTitleDraft((e.target as HTMLInputElement).value)
             }
-          }}
-          aria-label="Note title"
-        />
+            onBlur={() => commitTitle()}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                (e.target as HTMLInputElement).blur();
+              }
+            }}
+            aria-label="Note title"
+          />
+          {onDelete && (
+            <div class={styles.headerActions}>
+              <button
+                class={styles.deleteBtn}
+                onClick={onDelete}
+                title="Delete note"
+                aria-label="Delete note"
+              >
+                Delete
+              </button>
+            </div>
+          )}
+        </div>
         <div class={styles.metadata}>
           <div class={styles.tags}>
             {note.tags.map((tag) => (

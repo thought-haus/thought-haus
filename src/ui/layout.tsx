@@ -56,19 +56,7 @@ export function Layout() {
         />
       )}
       <div class={styles.editorPane}>
-        {note && (
-          <div class={styles.toolbar}>
-            <button
-              class={styles.deleteBtn}
-              onClick={handleDeleteNote}
-              title="Delete note"
-              aria-label="Delete note"
-            >
-              Delete
-            </button>
-          </div>
-        )}
-        <EditorView />
+        <EditorView onDelete={handleDeleteNote} />
       </div>
       {showDeleteConfirm && (
         <div class={styles.overlay} role="dialog" aria-label="Confirm deletion">

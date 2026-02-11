@@ -12,31 +12,6 @@
   overflow: hidden;
 }
 
-.toolbar {
-  display: flex;
-  justify-content: flex-end;
-  padding: 0.5rem 1.5rem;
-  background: var(--color-bg);
-}
-
-.deleteBtn {
-  font-size: 0.75rem;
-  padding: 0.25rem 0.75rem;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  font-family: inherit;
-  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
-}
-
-.deleteBtn:hover {
-  background: #fdf0ef;
-  border-color: var(--color-danger);
-  color: var(--color-danger);
-}
-
 .overlay {
   position: fixed;
   inset: 0;

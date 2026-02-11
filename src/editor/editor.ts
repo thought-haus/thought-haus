@@ -43,6 +43,7 @@ const notiEditorTheme = EditorView.theme({
     caretColor: "var(--color-accent)",
     fontFamily: '"Iosevka Aile", var(--font-sans)',
     minHeight: "300px",
+    maxWidth: "720px",
   },
   "&.cm-focused": {
     outline: "none",
