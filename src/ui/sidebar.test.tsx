@@ -5,6 +5,11 @@ import {
   setNotes,
   activeTagFilter,
 } from "../notes/note-store.ts";
+import {
+  searchQuery,
+  searchResults,
+  isSearchActive,
+} from "../search/search-engine.ts";
 import type { Note } from "../notes/note.ts";
 import { Sidebar } from "./sidebar.tsx";
 
@@ -26,6 +31,9 @@ describe("Sidebar", () => {
   beforeEach(() => {
     notesMap.value = new Map();
     activeTagFilter.value = null;
+    searchQuery.value = "";
+    searchResults.value = [];
+    isSearchActive.value = false;
   });
 
   it("shows empty state when no notes", () => {
@@ -190,5 +198,126 @@ describe("Sidebar", () => {
     );
     fireEvent.click(screen.getByText("work (1)"));
     expect(activeTagFilter.value).toBeNull();
+  });
+
+  describe("search keyboard navigation", () => {
+    function setupSearch() {
+      setNotes([
+        makeNote({ id: "note-a", title: "Alpha" }),
+        makeNote({ id: "note-b", title: "Beta" }),
+        makeNote({ id: "note-c", title: "Charlie" }),
+      ]);
+      // Simulate active search with results
+      searchQuery.value = "test";
+      searchResults.value = [
+        { id: "note-a", title: "Alpha", score: 3 },
+        { id: "note-b", title: "Beta", score: 2 },
+        { id: "note-c", title: "Charlie", score: 1 },
+      ];
+      isSearchActive.value = true;
+    }
+
+    it("highlights next result on ArrowDown", () => {
+      setupSearch();
+      const { container } = render(
+        <Sidebar
+          selectedNoteId={null}
+          onSelectNote={() => {}}
+          onNewNote={() => {}}
+        />,
+      );
+      const input = screen.getByLabelText("Search notes");
+      fireEvent.keyDown(input, { key: "ArrowDown" });
+      const buttons = container.querySelectorAll("button");
+      const highlighted = Array.from(buttons).find((b) =>
+        b.className.includes("noteItemSelected"),
+      );
+      expect(highlighted?.textContent).toContain("Alpha");
+    });
+
+    it("highlights previous result on ArrowUp", () => {
+      setupSearch();
+      const { container } = render(
+        <Sidebar
+          selectedNoteId={null}
+          onSelectNote={() => {}}
+          onNewNote={() => {}}
+        />,
+      );
+      const input = screen.getByLabelText("Search notes");
+      // ArrowDown twice then ArrowUp once → should be on first item
+      fireEvent.keyDown(input, { key: "ArrowDown" });
+      fireEvent.keyDown(input, { key: "ArrowDown" });
+      fireEvent.keyDown(input, { key: "ArrowUp" });
+      const buttons = container.querySelectorAll("button");
+      const highlighted = Array.from(buttons).find((b) =>
+        b.className.includes("noteItemSelected"),
+      );
+      expect(highlighted?.textContent).toContain("Alpha");
+    });
+
+    it("navigates with Ctrl+N and Ctrl+P", () => {
+      setupSearch();
+      const { container } = render(
+        <Sidebar
+          selectedNoteId={null}
+          onSelectNote={() => {}}
+          onNewNote={() => {}}
+        />,
+      );
+      const input = screen.getByLabelText("Search notes");
+      fireEvent.keyDown(input, { key: "n", ctrlKey: true });
+      fireEvent.keyDown(input, { key: "n", ctrlKey: true });
+      const buttons = container.querySelectorAll("button");
+      const highlighted = Array.from(buttons).find((b) =>
+        b.className.includes("noteItemSelected"),
+      );
+      expect(highlighted?.textContent).toContain("Beta");
+
+      fireEvent.keyDown(input, { key: "p", ctrlKey: true });
+      const buttons2 = container.querySelectorAll("button");
+      const highlighted2 = Array.from(buttons2).find((b) =>
+        b.className.includes("noteItemSelected"),
+      );
+      expect(highlighted2?.textContent).toContain("Alpha");
+    });
+
+    it("selects highlighted result on Enter", () => {
+      setupSearch();
+      const onSelectNote = vi.fn();
+      render(
+        <Sidebar
+          selectedNoteId={null}
+          onSelectNote={onSelectNote}
+          onNewNote={() => {}}
+        />,
+      );
+      const input = screen.getByLabelText("Search notes");
+      fireEvent.keyDown(input, { key: "ArrowDown" });
+      fireEvent.keyDown(input, { key: "Enter" });
+      expect(onSelectNote).toHaveBeenCalledWith("note-a");
+    });
+
+    it("wraps around from bottom to top", () => {
+      setupSearch();
+      const { container } = render(
+        <Sidebar
+          selectedNoteId={null}
+          onSelectNote={() => {}}
+          onNewNote={() => {}}
+        />,
+      );
+      const input = screen.getByLabelText("Search notes");
+      // Go down 3 times (past last) → wraps to first
+      fireEvent.keyDown(input, { key: "ArrowDown" });
+      fireEvent.keyDown(input, { key: "ArrowDown" });
+      fireEvent.keyDown(input, { key: "ArrowDown" });
+      fireEvent.keyDown(input, { key: "ArrowDown" });
+      const buttons = container.querySelectorAll("button");
+      const highlighted = Array.from(buttons).find((b) =>
+        b.className.includes("noteItemSelected"),
+      );
+      expect(highlighted?.textContent).toContain("Alpha");
+    });
   });
 });
