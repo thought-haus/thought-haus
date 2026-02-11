@@ -60,8 +60,8 @@ export async function createNote(): Promise<Note | null> {
   };
 
   upsertNote(note);
-  addToIndex({ id: note.id, title: note.title, tags: note.tags, body: "\n" });
   selectedNoteId.value = note.id;
+  addToIndex({ id: note.id, title: note.title, tags: note.tags, body: "\n" });
   return note;
 }
 
@@ -174,12 +174,12 @@ export async function createWelcomeNote(): Promise<Note | null> {
   };
 
   upsertNote(note);
+  selectedNoteId.value = note.id;
   addToIndex({
     id: note.id,
     title: note.title,
     tags: note.tags,
     body: WELCOME_BODY,
   });
-  selectedNoteId.value = note.id;
   return note;
 }
