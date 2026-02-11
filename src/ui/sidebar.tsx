@@ -16,6 +16,7 @@ import {
   isSearchActive,
 } from "../search/search-engine.ts";
 import { themeMode, setTheme } from "../lib/app-state.ts";
+import { agentPanelOpen } from "../agent/agent-state.ts";
 import type { ThemeMode } from "../lib/app-state.ts";
 import type { Note } from "../notes/note.ts";
 import styles from "./sidebar.module.css";
@@ -312,6 +313,21 @@ export function Sidebar({ selectedNoteId, onSelectNote, onNewNote }: SidebarProp
 
       <div class={styles.sidebarFooter}>
         <ThemeToggle />
+        <button
+          class={styles.aiToggle}
+          onClick={() => (agentPanelOpen.value = !agentPanelOpen.value)}
+          title="AI Assistant (Cmd+Shift+A)"
+          aria-label="Toggle AI assistant"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2a4 4 0 0 1 4 4v1a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2V6a4 4 0 0 1 4-4z" />
+            <circle cx="9" cy="9" r="1" />
+            <circle cx="15" cy="9" r="1" />
+            <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+            <path d="M6 18h12v2a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-2z" />
+          </svg>
+          <span>AI</span>
+        </button>
       </div>
     </aside>
   );

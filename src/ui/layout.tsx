@@ -1,9 +1,11 @@
 import { useEffect, useState } from "preact/hooks";
 import { selectedNoteId, sidebarCollapsed } from "../lib/app-state.ts";
+import { agentPanelOpen } from "../agent/agent-state.ts";
 import { getNote } from "../notes/note-store.ts";
 import { createNote, deleteNote } from "../notes/note-actions.ts";
 import { Sidebar } from "./sidebar.tsx";
 import { EditorView } from "./editor-view.tsx";
+import { AgentPanel } from "./agent-panel.tsx";
 import styles from "./layout.module.css";
 
 export function Layout() {
@@ -38,6 +40,10 @@ export function Layout() {
         e.preventDefault();
         sidebarCollapsed.value = !sidebarCollapsed.value;
       }
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "a") {
+        e.preventDefault();
+        agentPanelOpen.value = !agentPanelOpen.value;
+      }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
@@ -58,6 +64,7 @@ export function Layout() {
       <div class={styles.editorPane}>
         <EditorView onDelete={handleDeleteNote} />
       </div>
+      {agentPanelOpen.value && <AgentPanel />}
       {showDeleteConfirm && (
         <div class={styles.overlay} role="dialog" aria-label="Confirm deletion">
           <div class={styles.dialog}>
