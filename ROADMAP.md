@@ -192,7 +192,7 @@ Nice-to-have improvements once the core is solid.
 
 - [ ] Hybrid Markdown rendering (hide syntax when cursor is elsewhere)
 - [ ] Note templates (predefined front matter + body structure)
-- [ ] Dark mode / theme support
+- [x] Dark mode / theme support
 - [ ] Sort options in sidebar (by date, title, last modified)
 - [ ] Pin / favorite notes (sticky at top of list)
 - [ ] Full PWA installability (manifest + install prompt)
