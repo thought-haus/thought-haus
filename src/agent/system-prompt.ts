@@ -32,7 +32,7 @@ Available tools:
 - delete_note: Delete a note by ID
 - search_notes: Full-text search across all notes
 - list_notes: List notes, optionally filtered by tag
-- run_javascript: Execute JavaScript code and return the result`);
+- run_javascript: Execute JavaScript code in the browser. Has full access to browser APIs including document/DOM, window, fetch, localStorage, navigator, Canvas, Web APIs, etc. Code runs in the page context of the Noti app. Supports async/await. Return value is converted to a string.`);
 
   // Memory notes
   const memoryNotes = await loadMemoryNotes();

@@ -190,7 +190,8 @@ export function createTools(): AgentTool[] {
   const runJavascript: AgentTool = {
     name: "run_javascript",
     label: "Run JavaScript",
-    description: "Execute JavaScript code and return the result.",
+    description:
+      "Execute JavaScript code in the browser. The code runs in the page context with full access to browser APIs: document, window, fetch, localStorage, navigator, Canvas, Web Audio, and all other Web APIs. Supports async/await. The return value of the last expression is converted to a string.",
     parameters: Type.Object({
       code: Type.String({ description: "JavaScript code to execute" }),
     }),
@@ -198,8 +199,8 @@ export function createTools(): AgentTool[] {
       const p = raw as P;
       const code = p.code as string;
       try {
-        const fn = new Function(code);
-        const result = fn();
+        const fn = new Function(`return (async () => { ${code} })();`);
+        const result = await fn();
         return text(String(result ?? "undefined"));
       } catch (e) {
         return err(`Error: ${e instanceof Error ? e.message : String(e)}`);
