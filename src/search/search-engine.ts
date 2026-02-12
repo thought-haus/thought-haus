@@ -14,17 +14,84 @@ export interface SearchResult {
   score: number;
 }
 
+// Synthetic tokens injected into the index for structural markdown patterns
+// that MiniSearch's default tokenizer would otherwise discard.
+const TASK_UNDONE_TOKEN = "__noti.task.undone__";
+const TASK_DONE_TOKEN = "__noti.task.done__";
+
+const SYNTHETIC_TOKEN_RE = /__noti\.[a-z.]+__/g;
+const DEFAULT_SPLIT_RE = /[\n\r\p{Z}\p{P}]+/u;
+
+/** Tokenizer that preserves __noti.*__ synthetic tokens as single terms. */
+function tokenize(text: string): string[] {
+  const tokens: string[] = [];
+  let lastIndex = 0;
+
+  for (const match of text.matchAll(new RegExp(SYNTHETIC_TOKEN_RE, "g"))) {
+    const before = text.slice(lastIndex, match.index);
+    if (before) {
+      for (const t of before.split(DEFAULT_SPLIT_RE)) {
+        if (t) tokens.push(t);
+      }
+    }
+    tokens.push(match[0]);
+    lastIndex = match.index! + match[0].length;
+  }
+
+  const tail = text.slice(lastIndex);
+  if (tail) {
+    for (const t of tail.split(DEFAULT_SPLIT_RE)) {
+      if (t) tokens.push(t);
+    }
+  }
+
+  return tokens;
+}
+
+/** Disable fuzzy/prefix for synthetic tokens to prevent cross-matching. */
+function fuzzy(term: string): number | false {
+  return SYNTHETIC_TOKEN_RE.test(term) ? false : 0.2;
+}
+function prefix(term: string): boolean {
+  return !SYNTHETIC_TOKEN_RE.test(term);
+}
+
 const MINISEARCH_OPTIONS = {
   fields: ["title", "tags", "body"],
   storeFields: ["title"],
+  tokenize,
   searchOptions: {
     boost: { title: 2, tags: 1.5 },
-    fuzzy: 0.2,
-    prefix: true,
+    fuzzy,
+    prefix,
+    tokenize,
   },
 };
 
 let miniSearch = new MiniSearch<SearchDocument>(MINISEARCH_OPTIONS);
+
+// Patterns that map markdown task syntax → synthetic tokens
+const TASK_UNDONE_RE = /- \[ \]/g;
+const TASK_DONE_RE = /- \[x\]/gi;
+
+/** Inject synthetic tokens for structural markdown patterns. */
+export function preprocessBody(body: string): string {
+  const extras: string[] = [];
+  if (TASK_UNDONE_RE.test(body)) extras.push(TASK_UNDONE_TOKEN);
+  if (TASK_DONE_RE.test(body)) extras.push(TASK_DONE_TOKEN);
+  // Reset lastIndex since we used global regexes with .test()
+  TASK_UNDONE_RE.lastIndex = 0;
+  TASK_DONE_RE.lastIndex = 0;
+  if (extras.length === 0) return body;
+  return body + " " + extras.join(" ");
+}
+
+/** Translate user query task-marker patterns to synthetic tokens. */
+export function preprocessQuery(query: string): string {
+  return query
+    .replace(TASK_DONE_RE, TASK_DONE_TOKEN)
+    .replace(TASK_UNDONE_RE, TASK_UNDONE_TOKEN);
+}
 
 /** Current search query. */
 export const searchQuery = signal("");
@@ -45,7 +112,7 @@ export function buildIndex(
       id: doc.id,
       title: doc.title,
       tags: doc.tags.join(" "),
-      body: doc.body,
+      body: preprocessBody(doc.body),
     });
   }
 }
@@ -61,7 +128,7 @@ export function addToIndex(doc: {
     id: doc.id,
     title: doc.title,
     tags: doc.tags.join(" "),
-    body: doc.body,
+    body: preprocessBody(doc.body),
   });
 }
 
@@ -100,7 +167,7 @@ export function executeSearch(query: string): SearchResult[] {
   }
 
   isSearchActive.value = true;
-  const results = miniSearch.search(query).map((r) => ({
+  const results = miniSearch.search(preprocessQuery(query)).map((r) => ({
     id: r.id as string,
     title: (r.title as string) || "",
     score: r.score,
@@ -119,7 +186,7 @@ export function clearSearch(): void {
 /** Query the index without mutating UI signals. Used by the agent tools. */
 export function queryIndex(query: string): SearchResult[] {
   if (!query.trim()) return [];
-  return miniSearch.search(query).map((r) => ({
+  return miniSearch.search(preprocessQuery(query)).map((r) => ({
     id: r.id as string,
     title: (r.title as string) || "",
     score: r.score,
