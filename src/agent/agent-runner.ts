@@ -1,6 +1,6 @@
 import { Agent } from "@mariozechner/pi-agent-core";
 import type { AgentEvent } from "@mariozechner/pi-agent-core";
-import type { AssistantMessage, TextContent } from "@mariozechner/pi-ai";
+import type { AssistantMessage, TextContent, UserMessage } from "@mariozechner/pi-ai";
 import {
   agentSettings,
   isAgentStreaming,
@@ -21,6 +21,7 @@ import {
   loadCommandBody,
 } from "./command-loader.ts";
 import { slugify } from "../lib/slug.ts";
+import { expandMentions } from "./note-mention.ts";
 
 let agent: Agent | null = null;
 
@@ -77,8 +78,11 @@ export async function sendMessage(userText: string): Promise<void> {
   isAgentStreaming.value = true;
   streamingText.value = "";
 
+  // Expand @"Title" mentions so the AI sees full note content
+  const expandedText = await expandMentions(userText);
+
   try {
-    await a.prompt(userText);
+    await a.prompt(expandedText);
   } finally {
     unsub();
     isAgentStreaming.value = false;
@@ -86,6 +90,19 @@ export async function sendMessage(userText: string): Promise<void> {
 
     // Sync messages back from agent
     conversationMessages.value = [...a.state.messages];
+
+    // Replace last user message content with original text (preserving @"Title" form in UI)
+    if (expandedText !== userText) {
+      const msgs = conversationMessages.value;
+      for (let i = msgs.length - 1; i >= 0; i--) {
+        if (msgs[i].role === "user") {
+          const updated = [...msgs];
+          updated[i] = { ...(updated[i] as UserMessage), content: userText };
+          conversationMessages.value = updated;
+          break;
+        }
+      }
+    }
 
     // Save conversation
     const convId = activeConversationId.value;

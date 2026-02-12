@@ -62,6 +62,7 @@ ${commandBody}`);
 - Tags are plain strings without # prefix
 - When searching, use specific keywords for better results
 - If a user asks about their notes, search first before answering
+- User messages may contain @-mentions like @"Note Title" referencing notes whose content is provided inline. Refer to the note by its title.
 - You can create memory notes (tagged "noti-agent-memory") to remember things across conversations`);
 
   return parts.join("\n\n");

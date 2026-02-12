@@ -18,6 +18,8 @@ import { slugify } from "../lib/slug.ts";
 import type { Note } from "../notes/note.ts";
 import styles from "./agent-panel.module.css";
 import "../agent/slash-command-suggest.css";
+import "../agent/note-mention-suggest.css";
+import { getAtMentionQuery, getNonConversationNotes } from "../agent/note-mention.ts";
 
 export function AgentPanel() {
   if (agentPanelView.value === "settings") {
@@ -274,30 +276,39 @@ function AgentInput() {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const popupRef = useRef<HTMLDivElement>(null);
 
-  // Load command notes on mount and when notesMap changes
+  // @-mention autocomplete state
+  const [allNotes, setAllNotes] = useState<Note[]>([]);
+  const [showMentionPopup, setShowMentionPopup] = useState(false);
+  const [mentionSuggestions, setMentionSuggestions] = useState<Note[]>([]);
+  const [mentionSelectedIndex, setMentionSelectedIndex] = useState(0);
+  const [mentionStart, setMentionStart] = useState(-1);
+  const mentionPopupRef = useRef<HTMLDivElement>(null);
+
+  // Load command notes and all notes on mount and when notesMap changes
   useEffect(() => {
     setCommandNotes(getCommandNotes());
+    setAllNotes(getNonConversationNotes());
   }, [notesMap.value]);
 
   // Close popup on outside click
   useEffect(() => {
-    if (!showSuggestions) return;
+    if (!showSuggestions && !showMentionPopup) return;
     const handler = (e: MouseEvent) => {
-      if (
-        popupRef.current &&
-        !popupRef.current.contains(e.target as Node) &&
-        e.target !== textareaRef.current
-      ) {
+      const target = e.target as Node;
+      if (target === textareaRef.current) return;
+      if (showSuggestions && popupRef.current && !popupRef.current.contains(target)) {
         setShowSuggestions(false);
+      }
+      if (showMentionPopup && mentionPopupRef.current && !mentionPopupRef.current.contains(target)) {
+        setShowMentionPopup(false);
       }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, [showSuggestions]);
+  }, [showSuggestions, showMentionPopup]);
 
-  const updateSuggestions = (value: string) => {
+  const updateSlashSuggestions = (value: string) => {
     const trimmed = value.trim();
-    // Show popup when typing `/` at start, before any space
     if (trimmed.startsWith("/") && !trimmed.includes(" ")) {
       const query = trimmed.slice(1).toLowerCase();
       const filtered = query
@@ -313,10 +324,39 @@ function AgentInput() {
     }
   };
 
+  const updateMentionSuggestions = (value: string, cursorPos: number) => {
+    const result = getAtMentionQuery(value, cursorPos);
+    if (result) {
+      const { query, start } = result;
+      setMentionStart(start);
+      const filtered = query
+        ? allNotes.filter((n) =>
+            n.title.toLowerCase().includes(query.toLowerCase()),
+          )
+        : allNotes;
+      setMentionSuggestions(filtered);
+      setMentionSelectedIndex(0);
+      setShowMentionPopup(true);
+      // Slash and mention popups are mutually exclusive
+      setShowSuggestions(false);
+    } else {
+      setShowMentionPopup(false);
+    }
+  };
+
   const selectCommand = (note: Note) => {
     const slug = slugify(note.title);
     setText(`/${slug} `);
     setShowSuggestions(false);
+    textareaRef.current?.focus();
+  };
+
+  const selectMention = (note: Note) => {
+    const before = text.slice(0, mentionStart);
+    const after = text.slice(textareaRef.current?.selectionStart ?? text.length);
+    const inserted = `@"${note.title}" `;
+    setText(before + inserted + after);
+    setShowMentionPopup(false);
     textareaRef.current?.focus();
   };
 
@@ -326,6 +366,7 @@ function AgentInput() {
     setText("");
     setError(null);
     setShowSuggestions(false);
+    setShowMentionPopup(false);
 
     // Reset textarea height
     if (textareaRef.current) {
@@ -340,6 +381,7 @@ function AgentInput() {
   };
 
   const handleKeyDown = (e: KeyboardEvent) => {
+    // Slash command popup keyboard handling
     if (showSuggestions && suggestions.length > 0) {
       if (e.key === "ArrowDown") {
         e.preventDefault();
@@ -367,6 +409,34 @@ function AgentInput() {
       }
     }
 
+    // @-mention popup keyboard handling
+    if (showMentionPopup && mentionSuggestions.length > 0) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setMentionSelectedIndex((i) =>
+          i < mentionSuggestions.length - 1 ? i + 1 : 0,
+        );
+        return;
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setMentionSelectedIndex((i) =>
+          i > 0 ? i - 1 : mentionSuggestions.length - 1,
+        );
+        return;
+      }
+      if (e.key === "Enter") {
+        e.preventDefault();
+        selectMention(mentionSuggestions[mentionSelectedIndex]);
+        return;
+      }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setShowMentionPopup(false);
+        return;
+      }
+    }
+
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
@@ -376,7 +446,17 @@ function AgentInput() {
   const handleInput = (e: Event) => {
     const target = e.target as HTMLTextAreaElement;
     setText(target.value);
-    updateSuggestions(target.value);
+
+    // Check for @-mention first (can appear anywhere), then slash commands (start only)
+    const cursorPos = target.selectionStart ?? target.value.length;
+    const mentionResult = getAtMentionQuery(target.value, cursorPos);
+    if (mentionResult) {
+      updateMentionSuggestions(target.value, cursorPos);
+    } else {
+      setShowMentionPopup(false);
+      updateSlashSuggestions(target.value);
+    }
+
     // Auto-resize
     target.style.height = "auto";
     target.style.height = Math.min(target.scrollHeight, 128) + "px";
@@ -411,11 +491,39 @@ function AgentInput() {
           )}
         </div>
       )}
+      {showMentionPopup && (
+        <div ref={mentionPopupRef} class="note-mention-suggest">
+          {mentionSuggestions.length === 0 ? (
+            <div class="note-mention-suggest-empty">
+              No matching notes
+            </div>
+          ) : (
+            mentionSuggestions.map((note, i) => (
+              <button
+                key={note.id}
+                class={`note-mention-suggest-item${i === mentionSelectedIndex ? " is-selected" : ""}`}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  selectMention(note);
+                }}
+                onMouseEnter={() => setMentionSelectedIndex(i)}
+              >
+                <span class="note-mention-title">{note.title}</span>
+                {note.tags.length > 0 && (
+                  <span class="note-mention-tags">
+                    {note.tags.join(", ")}
+                  </span>
+                )}
+              </button>
+            ))
+          )}
+        </div>
+      )}
       <div class={styles.inputRow}>
         <textarea
           ref={textareaRef}
           class={styles.inputField}
-          placeholder="Ask about your notes... (/ for commands)"
+          placeholder="Ask about your notes... (/ for commands, @ for notes)"
           value={text}
           onInput={handleInput}
           onKeyDown={handleKeyDown}
