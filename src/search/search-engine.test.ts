@@ -11,6 +11,8 @@ import {
   isSearchActive,
   serializeIndex,
   loadSerializedIndex,
+  preprocessBody,
+  preprocessQuery,
 } from "./search-engine.ts";
 
 describe("search-engine", () => {
@@ -182,6 +184,107 @@ describe("search-engine", () => {
       expect(searchQuery.value).toBe("");
       expect(searchResults.value).toEqual([]);
       expect(isSearchActive.value).toBe(false);
+    });
+  });
+
+  describe("task marker search", () => {
+    it("finds notes with unchecked tasks via - [ ]", () => {
+      buildIndex([
+        { id: "1", title: "Todo List", tags: [], body: "- [ ] Buy groceries\n- [ ] Clean house" },
+        { id: "2", title: "Done List", tags: [], body: "- [x] Filed taxes" },
+        { id: "3", title: "Plain Note", tags: [], body: "No tasks here" },
+      ]);
+
+      const results = executeSearch("- [ ]");
+      expect(results.length).toBe(1);
+      expect(results[0].id).toBe("1");
+    });
+
+    it("finds notes with checked tasks via - [x]", () => {
+      buildIndex([
+        { id: "1", title: "Todo List", tags: [], body: "- [ ] Buy groceries" },
+        { id: "2", title: "Done List", tags: [], body: "- [x] Filed taxes" },
+        { id: "3", title: "Plain Note", tags: [], body: "No tasks here" },
+      ]);
+
+      const results = executeSearch("- [x]");
+      expect(results.length).toBe(1);
+      expect(results[0].id).toBe("2");
+    });
+
+    it("finds notes with both open and closed tasks", () => {
+      buildIndex([
+        { id: "1", title: "Mixed Tasks", tags: [], body: "- [ ] Open\n- [x] Done" },
+      ]);
+
+      expect(executeSearch("- [ ]").length).toBe(1);
+      expect(executeSearch("- [x]").length).toBe(1);
+    });
+
+    it("is case-insensitive for [X] vs [x]", () => {
+      buildIndex([
+        { id: "1", title: "Tasks", tags: [], body: "- [X] Done item" },
+      ]);
+
+      const results = executeSearch("- [x]");
+      expect(results.length).toBe(1);
+    });
+
+    it("does not match notes without tasks", () => {
+      buildIndex([
+        { id: "1", title: "Plain", tags: [], body: "Just some text with brackets [like this]" },
+      ]);
+
+      expect(executeSearch("- [ ]").length).toBe(0);
+      expect(executeSearch("- [x]").length).toBe(0);
+    });
+
+    it("works with addToIndex and updateInIndex", () => {
+      addToIndex({ id: "1", title: "New Tasks", tags: [], body: "- [ ] First task" });
+      expect(executeSearch("- [ ]").length).toBe(1);
+
+      updateInIndex({ id: "1", title: "New Tasks", tags: [], body: "- [x] First task" });
+      expect(executeSearch("- [ ]").length).toBe(0);
+      expect(executeSearch("- [x]").length).toBe(1);
+    });
+  });
+
+  describe("preprocessBody", () => {
+    it("appends undone token when body has unchecked tasks", () => {
+      expect(preprocessBody("- [ ] Todo")).toContain("__noti.task.undone__");
+    });
+
+    it("appends done token when body has checked tasks", () => {
+      expect(preprocessBody("- [x] Done")).toContain("__noti.task.done__");
+    });
+
+    it("appends both tokens when body has both", () => {
+      const result = preprocessBody("- [ ] Open\n- [x] Closed");
+      expect(result).toContain("__noti.task.undone__");
+      expect(result).toContain("__noti.task.done__");
+    });
+
+    it("returns body unchanged when no tasks", () => {
+      const body = "Just plain text";
+      expect(preprocessBody(body)).toBe(body);
+    });
+  });
+
+  describe("preprocessQuery", () => {
+    it("translates - [ ] to undone token", () => {
+      expect(preprocessQuery("- [ ]")).toBe("__noti.task.undone__");
+    });
+
+    it("translates - [x] to done token", () => {
+      expect(preprocessQuery("- [x]")).toBe("__noti.task.done__");
+    });
+
+    it("translates - [X] to done token", () => {
+      expect(preprocessQuery("- [X]")).toBe("__noti.task.done__");
+    });
+
+    it("leaves regular queries unchanged", () => {
+      expect(preprocessQuery("meeting notes")).toBe("meeting notes");
     });
   });
 
