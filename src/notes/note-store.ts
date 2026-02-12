@@ -1,13 +1,27 @@
 import { signal, computed } from "@preact/signals";
+import { sortMode, sortDirection } from "../lib/app-state.ts";
 import type { Note } from "./note.ts";
 
 /** In-memory collection of all notes, keyed by ID. */
 export const notesMap = signal<Map<string, Note>>(new Map());
 
-/** All notes sorted by creation date (newest first). */
+/** All notes sorted according to the active sort mode and direction. */
 export const notesSorted = computed(() => {
   const notes = Array.from(notesMap.value.values());
-  return notes.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  const mode = sortMode.value;
+  const dir = sortDirection.value;
+  const mult = dir === "asc" ? 1 : -1;
+
+  return notes.sort((a, b) => {
+    switch (mode) {
+      case "created":
+        return mult * (a.createdAt.getTime() - b.createdAt.getTime()) || a.title.localeCompare(b.title);
+      case "title":
+        return mult * a.title.localeCompare(b.title) || b.createdAt.getTime() - a.createdAt.getTime();
+      case "modified":
+        return mult * (a.lastModified - b.lastModified) || a.title.localeCompare(b.title);
+    }
+  });
 });
 
 /** All unique tags with their note counts. */

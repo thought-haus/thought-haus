@@ -11,6 +11,7 @@ import {
   removeNote,
   getNote,
 } from "./note-store.ts";
+import { sortMode, sortDirection } from "../lib/app-state.ts";
 import type { Note } from "./note.ts";
 
 function makeNote(overrides: Partial<Note> & { id: string }): Note {
@@ -31,6 +32,8 @@ describe("note-store", () => {
   beforeEach(() => {
     notesMap.value = new Map();
     activeTagFilter.value = null;
+    sortMode.value = "created";
+    sortDirection.value = "desc";
   });
 
   it("starts with empty notes", () => {

@@ -66,3 +66,8 @@ export function getDateGroup(date: Date, now: Date = new Date()): string {
 
   return "Older";
 }
+
+/** Get a "Modified ..." date group label for last-modified sort. */
+export function getModifiedDateGroup(date: Date, now?: Date): string {
+  return `Modified ${getDateGroup(date, now)}`;
+}
