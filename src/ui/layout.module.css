@@ -4,6 +4,28 @@
   width: 100%;
 }
 
+.resizeHandle {
+  width: 4px;
+  cursor: col-resize;
+  background: transparent;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+  margin-left: -2px;
+  margin-right: -2px;
+  transition: background 0.15s ease;
+}
+
+.resizeHandle:hover,
+.resizeHandleActive {
+  background: var(--color-accent);
+}
+
+.layoutResizing {
+  cursor: col-resize;
+  user-select: none;
+}
+
 .editorPane {
   flex: 1;
   display: flex;
