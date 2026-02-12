@@ -16,7 +16,6 @@ function makeNote(overrides: Partial<Note> & { id: string }): Note {
     title: "Test Note",
     tags: [],
     filename: `${overrides.id}.md`,
-    fileHandle: {} as FileSystemFileHandle,
     lastModified: Date.now(),
     size: 100,
     isNotiFormat: true,

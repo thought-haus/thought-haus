@@ -1,6 +1,6 @@
 import type { Note } from "../notes/note.ts";
 import { notesMap } from "../notes/note-store.ts";
-import { readNoteContent } from "../fs/file-ops.ts";
+import { storageBackend } from "../lib/app-state.ts";
 import { parseFrontMatter } from "../notes/frontmatter.ts";
 import { COMMAND_TAG } from "./conversation-format.ts";
 
@@ -17,7 +17,9 @@ export function getCommandNotes(): Note[] {
 
 /** Read a command note's file and return the trimmed body (without frontmatter). */
 export async function loadCommandBody(note: Note): Promise<string> {
-  const content = await readNoteContent(note.fileHandle);
+  const backend = storageBackend.value;
+  if (!backend) return "";
+  const content = await backend.read(note.filename);
   const { body } = parseFrontMatter(content);
   return body.trim();
 }

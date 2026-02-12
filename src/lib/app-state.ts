@@ -1,4 +1,5 @@
 import { signal, computed } from "@preact/signals";
+import type { StorageBackend } from "../storage/backend.ts";
 
 export type AppView = "onboarding" | "re-permission" | "main";
 
@@ -105,8 +106,8 @@ export const isBrowserCompatible = signal(true);
 /** The name of the currently opened folder. */
 export const folderName = signal<string | null>(null);
 
-/** The directory handle for the currently opened folder. */
-export const directoryHandle = signal<FileSystemDirectoryHandle | null>(null);
+/** The active storage backend for the currently opened folder. */
+export const storageBackend = signal<StorageBackend | null>(null);
 
 /** A saved directory handle that needs re-permission from the user. */
 export const savedHandle = signal<FileSystemDirectoryHandle | null>(null);
@@ -116,6 +117,33 @@ export const selectedNoteId = signal<string | null>(null);
 
 /** Whether the sidebar is collapsed. */
 export const sidebarCollapsed = signal(false);
+
+/** The sidebar width in pixels. */
+const SIDEBAR_WIDTH_KEY = "noti-sidebar-width";
+const DEFAULT_SIDEBAR_WIDTH = 300;
+
+export const sidebarWidth = signal(DEFAULT_SIDEBAR_WIDTH);
+
+/** Set the sidebar width and persist it. */
+export function setSidebarWidth(width: number) {
+  sidebarWidth.value = width;
+  try {
+    localStorage.setItem(SIDEBAR_WIDTH_KEY, String(width));
+  } catch { /* localStorage unavailable */ }
+}
+
+/** Initialize sidebar width from localStorage. */
+export function initSidebarWidth(): void {
+  try {
+    const saved = localStorage.getItem(SIDEBAR_WIDTH_KEY);
+    if (saved) {
+      const width = Number(saved);
+      if (width >= 200 && width <= 800) {
+        sidebarWidth.value = width;
+      }
+    }
+  } catch { /* corrupt or unavailable */ }
+}
 
 /** Derived: should we show the main editor layout? */
 export const showMainLayout = computed(

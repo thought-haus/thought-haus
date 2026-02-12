@@ -1,14 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/preact";
-import { selectedNoteId, directoryHandle, sidebarCollapsed } from "../lib/app-state.ts";
+import { selectedNoteId, storageBackend, sidebarCollapsed } from "../lib/app-state.ts";
 import { notesMap } from "../notes/note-store.ts";
 import { Layout } from "./layout.tsx";
-
-vi.mock("../fs/file-ops.ts", () => ({
-  readNoteContent: () => Promise.resolve("---\ntitle: Test\ntags:\n---\nBody"),
-  writeFile: () => Promise.resolve(),
-  scanDirectory: () => Promise.resolve([]),
-}));
 
 vi.mock("../fs/directory.ts", () => ({
   pickDirectory: () => Promise.resolve(null),
@@ -21,7 +15,7 @@ describe("Layout", () => {
   beforeEach(() => {
     selectedNoteId.value = null;
     notesMap.value = new Map();
-    directoryHandle.value = null;
+    storageBackend.value = null;
     sidebarCollapsed.value = false;
   });
 

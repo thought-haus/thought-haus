@@ -11,7 +11,6 @@ function makeNote(id: string): Note {
     tags: [],
     filename: `${id}.md`,
     createdAt: new Date(),
-    fileHandle: {} as FileSystemFileHandle,
     lastModified: Date.now(),
     size: 0,
     isNotiFormat: true,

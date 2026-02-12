@@ -1,7 +1,6 @@
 import { useEffect, useRef, useCallback, useState } from "preact/hooks";
-import { selectedNoteId } from "../lib/app-state.ts";
+import { selectedNoteId, storageBackend } from "../lib/app-state.ts";
 import { getNote, upsertNote } from "../notes/note-store.ts";
-import { readNoteContent, writeFile } from "../fs/file-ops.ts";
 import { parseFrontMatter, serializeFrontMatter } from "../notes/frontmatter.ts";
 import { createEditor } from "../editor/tiptap-editor.ts";
 import { saveStatus, wordCount, countWords } from "../editor/editor-state.ts";
@@ -38,6 +37,8 @@ export function EditorView_({ onDelete }: EditorViewProps) {
 
     saveStatus.value = "saving";
     try {
+      const backend = storageBackend.value;
+      if (!backend) { saveStatus.value = "unsaved"; return; }
       const content = serializeFrontMatter(
         {
           title: note.title,
@@ -46,9 +47,8 @@ export function EditorView_({ onDelete }: EditorViewProps) {
         },
         bodyRef.current,
       );
-      await writeFile(note.fileHandle, content);
-      const file = await note.fileHandle.getFile();
-      upsertNote({ ...note, lastModified: file.lastModified, size: file.size });
+      const meta = await backend.write(note.filename, content);
+      upsertNote({ ...note, lastModified: meta.lastModified, size: meta.size });
       updateInIndex({
         id: note.id,
         title: note.title,
@@ -84,7 +84,9 @@ export function EditorView_({ onDelete }: EditorViewProps) {
     setTitleDraft(note.title);
 
     (async () => {
-      const rawContent = await readNoteContent(note.fileHandle);
+      const backend = storageBackend.value;
+      if (!backend) return;
+      const rawContent = await backend.read(note.filename);
       const { body } = parseFrontMatter(rawContent);
       bodyRef.current = body;
       wordCount.value = countWords(body);

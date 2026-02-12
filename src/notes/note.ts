@@ -7,8 +7,6 @@ export interface Note {
   tags: string[];
   /** Full filename on disk. */
   filename: string;
-  /** File handle from FS Access API. */
-  fileHandle: FileSystemFileHandle;
   /** Last modified timestamp for conflict detection. */
   lastModified: number;
   /** File size in bytes. */

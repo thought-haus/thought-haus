@@ -1,6 +1,5 @@
-import { selectedNoteId } from "../lib/app-state.ts";
+import { selectedNoteId, storageBackend } from "../lib/app-state.ts";
 import { notesMap, getNote } from "../notes/note-store.ts";
-import { readNoteContent } from "../fs/file-ops.ts";
 import { parseFrontMatter } from "../notes/frontmatter.ts";
 import { CONVERSATION_TAG, MEMORY_TAG } from "./conversation-format.ts";
 
@@ -69,11 +68,14 @@ ${commandBody}`);
 }
 
 async function loadMemoryNotes(): Promise<string | null> {
+  const backend = storageBackend.value;
+  if (!backend) return null;
+
   const memoryNotes: { title: string; body: string; lastModified: number }[] = [];
   for (const note of notesMap.value.values()) {
     if (note.tags.includes(MEMORY_TAG)) {
       try {
-        const content = await readNoteContent(note.fileHandle);
+        const content = await backend.read(note.filename);
         const { frontMatter, body } = parseFrontMatter(content);
         memoryNotes.push({
           title: frontMatter.title || note.title,
@@ -111,8 +113,11 @@ async function loadCurrentNoteContext(): Promise<string | null> {
   // Skip conversation notes
   if (note.tags.includes(CONVERSATION_TAG)) return null;
 
+  const backend = storageBackend.value;
+  if (!backend) return null;
+
   try {
-    const content = await readNoteContent(note.fileHandle);
+    const content = await backend.read(note.filename);
     const { frontMatter, body } = parseFrontMatter(content);
 
     let noteBody = body.trim();

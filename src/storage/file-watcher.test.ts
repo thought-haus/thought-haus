@@ -3,6 +3,7 @@ import { diffChanges, applyChanges, poll } from "./file-watcher.ts";
 import { notesMap, setNotes, getNote } from "../notes/note-store.ts";
 import { selectedNoteId } from "../lib/app-state.ts";
 import type { Note } from "../notes/note.ts";
+import type { StorageBackend } from "./backend.ts";
 
 vi.mock("../search/search-engine.ts", () => ({
   addToIndex: vi.fn(),
@@ -10,11 +11,8 @@ vi.mock("../search/search-engine.ts", () => ({
   updateInIndex: vi.fn(),
 }));
 
-vi.mock("./file-ops.ts", () => ({
-  scanDirectory: vi.fn(),
-  readNoteContent: vi.fn(() =>
-    Promise.resolve("---\ntitle: Test\ntags:\n---\nBody content"),
-  ),
+vi.mock("./scan.ts", () => ({
+  scanNotes: vi.fn(),
 }));
 
 import {
@@ -22,14 +20,30 @@ import {
   removeFromIndex,
   updateInIndex,
 } from "../search/search-engine.ts";
-import { scanDirectory, readNoteContent } from "./file-ops.ts";
+import { scanNotes } from "./scan.ts";
+
+const mockBackend: StorageBackend = {
+  type: "local" as const,
+  name: "test-folder",
+  list: vi.fn(() => Promise.resolve([])),
+  read: vi.fn(() =>
+    Promise.resolve("---\ntitle: Test\ntags:\n---\nBody content"),
+  ),
+  write: vi.fn(() =>
+    Promise.resolve({ lastModified: Date.now(), size: 100 }),
+  ),
+  delete: vi.fn(() => Promise.resolve()),
+  getMetadata: vi.fn(() =>
+    Promise.resolve({ lastModified: Date.now(), size: 100 }),
+  ),
+  disconnect: vi.fn(),
+};
 
 function makeNote(overrides: Partial<Note> & { id: string }): Note {
   return {
     title: "Test Note",
     tags: [],
     filename: `${overrides.id}--test-note.md`,
-    fileHandle: {} as FileSystemFileHandle,
     lastModified: 1000,
     size: 100,
     isNotiFormat: true,
@@ -141,7 +155,7 @@ describe("applyChanges", () => {
 
   it("adds new notes to store and search index", async () => {
     const note = makeNote({ id: "20240322T131856" });
-    await applyChanges([{ type: "added", note }]);
+    await applyChanges([{ type: "added", note }], mockBackend);
 
     expect(getNote("20240322T131856")).toBeDefined();
     expect(addToIndex).toHaveBeenCalledWith(
@@ -153,7 +167,7 @@ describe("applyChanges", () => {
     const note = makeNote({ id: "20240322T131856" });
     setNotes([note]);
 
-    await applyChanges([{ type: "deleted", note }]);
+    await applyChanges([{ type: "deleted", note }], mockBackend);
 
     expect(getNote("20240322T131856")).toBeUndefined();
     expect(removeFromIndex).toHaveBeenCalledWith("20240322T131856");
@@ -164,7 +178,7 @@ describe("applyChanges", () => {
     setNotes([note]);
     selectedNoteId.value = "20240322T131856";
 
-    await applyChanges([{ type: "deleted", note }]);
+    await applyChanges([{ type: "deleted", note }], mockBackend);
 
     expect(selectedNoteId.value).toBeNull();
   });
@@ -178,7 +192,7 @@ describe("applyChanges", () => {
       lastModified: 2000,
       title: "Updated Title",
     });
-    await applyChanges([{ type: "modified", note: updated }]);
+    await applyChanges([{ type: "modified", note: updated }], mockBackend);
 
     const stored = getNote("20240322T131856");
     expect(stored?.lastModified).toBe(2000);
@@ -192,9 +206,9 @@ describe("applyChanges", () => {
 
   it("reads file content for search indexing on add", async () => {
     const note = makeNote({ id: "20240322T131856" });
-    await applyChanges([{ type: "added", note }]);
+    await applyChanges([{ type: "added", note }], mockBackend);
 
-    expect(readNoteContent).toHaveBeenCalledWith(note.fileHandle);
+    expect(mockBackend.read).toHaveBeenCalledWith(note.filename);
     expect(addToIndex).toHaveBeenCalledWith(
       expect.objectContaining({ body: "Body content" }),
     );
@@ -207,13 +221,11 @@ describe("poll", () => {
     vi.clearAllMocks();
   });
 
-  it("detects and applies changes from directory scan", async () => {
+  it("detects and applies changes from backend scan", async () => {
     const note = makeNote({ id: "20240322T131856" });
-    vi.mocked(scanDirectory).mockResolvedValue([note]);
+    vi.mocked(scanNotes).mockResolvedValue([note]);
 
-    const changes = await poll(
-      {} as FileSystemDirectoryHandle,
-    );
+    const changes = await poll(mockBackend);
 
     expect(changes).toHaveLength(1);
     expect(changes[0].type).toBe("added");
@@ -223,11 +235,9 @@ describe("poll", () => {
   it("returns empty array when nothing changed", async () => {
     const note = makeNote({ id: "20240322T131856" });
     setNotes([note]);
-    vi.mocked(scanDirectory).mockResolvedValue([note]);
+    vi.mocked(scanNotes).mockResolvedValue([note]);
 
-    const changes = await poll(
-      {} as FileSystemDirectoryHandle,
-    );
+    const changes = await poll(mockBackend);
 
     expect(changes).toHaveLength(0);
   });

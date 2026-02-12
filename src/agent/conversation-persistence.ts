@@ -1,8 +1,7 @@
-import { directoryHandle } from "../lib/app-state.ts";
+import { storageBackend } from "../lib/app-state.ts";
 import { formatTimestampId } from "../lib/date.ts";
 import { generateFilename } from "../notes/filename.ts";
 import { upsertNote, getNote, notesMap } from "../notes/note-store.ts";
-import { readNoteContent, writeFile } from "../fs/file-ops.ts";
 import { addToIndex, updateInIndex } from "../search/search-engine.ts";
 import type { Note } from "../notes/note.ts";
 import type { Message } from "@mariozechner/pi-ai";
@@ -18,8 +17,8 @@ import {
 
 /** Create a new conversation note and return its ID. */
 export async function createConversationNote(): Promise<string | null> {
-  const dirHandle = directoryHandle.value;
-  if (!dirHandle) return null;
+  const backend = storageBackend.value;
+  if (!backend) return null;
 
   const now = new Date();
   const id = formatTimestampId(now);
@@ -38,18 +37,15 @@ export async function createConversationNote(): Promise<string | null> {
   };
 
   const content = serializeConversationNote(frontMatter, []);
-  const fileHandle = await dirHandle.getFileHandle(filename, { create: true });
-  await writeFile(fileHandle, content);
+  const meta = await backend.write(filename, content);
 
-  const file = await fileHandle.getFile();
   const note: Note = {
     id,
     title,
     tags: [CONVERSATION_TAG],
     filename,
-    fileHandle,
-    lastModified: file.lastModified,
-    size: file.size,
+    lastModified: meta.lastModified,
+    size: meta.size,
     isNotiFormat: true,
     createdAt: now,
   };
@@ -67,17 +63,19 @@ export async function saveConversation(
   const note = getNote(noteId);
   if (!note) return;
 
+  const backend = storageBackend.value;
+  if (!backend) return;
+
   try {
-    const rawContent = await readNoteContent(note.fileHandle);
+    const rawContent = await backend.read(note.filename);
     const { frontMatter } = parseConversationNote(rawContent);
     const content = serializeConversationNote(frontMatter, messages);
-    await writeFile(note.fileHandle, content);
+    const meta = await backend.write(note.filename, content);
 
-    const file = await note.fileHandle.getFile();
     upsertNote({
       ...note,
-      lastModified: file.lastModified,
-      size: file.size,
+      lastModified: meta.lastModified,
+      size: meta.size,
     });
     updateInIndex({
       id: note.id,
@@ -97,7 +95,10 @@ export async function loadConversation(
   const note = getNote(noteId);
   if (!note) return [];
 
-  const rawContent = await readNoteContent(note.fileHandle);
+  const backend = storageBackend.value;
+  if (!backend) return [];
+
+  const rawContent = await backend.read(note.filename);
   const { messages } = parseConversationNote(rawContent);
   return messages;
 }

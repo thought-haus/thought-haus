@@ -1,6 +1,6 @@
 import type { Note } from "../notes/note.ts";
 import { notesMap } from "../notes/note-store.ts";
-import { readNoteContent } from "../fs/file-ops.ts";
+import { storageBackend } from "../lib/app-state.ts";
 import { parseFrontMatter } from "../notes/frontmatter.ts";
 import { CONVERSATION_TAG } from "./conversation-format.ts";
 
@@ -52,6 +52,9 @@ export async function expandMentions(text: string): Promise<string> {
   const matches = [...text.matchAll(MENTION_RE)];
   if (matches.length === 0) return text;
 
+  const backend = storageBackend.value;
+  if (!backend) return text;
+
   // Build a map of title (lowercase) -> Note for quick lookup
   const notesByTitle = new Map<string, Note>();
   for (const note of notesMap.value.values()) {
@@ -67,7 +70,7 @@ export async function expandMentions(text: string): Promise<string> {
     if (!note) continue;
 
     try {
-      const content = await readNoteContent(note.fileHandle);
+      const content = await backend.read(note.filename);
       const { body } = parseFrontMatter(content);
       const expansion = `[Note: "${note.title}"]:\n${body.trim()}\n[End of note]`;
       result =

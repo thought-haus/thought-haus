@@ -1,6 +1,6 @@
 import { Type } from "@mariozechner/pi-ai";
 import type { AgentTool, AgentToolResult } from "@mariozechner/pi-agent-core";
-import { directoryHandle } from "../lib/app-state.ts";
+import { storageBackend } from "../lib/app-state.ts";
 import { formatTimestampId } from "../lib/date.ts";
 import { generateFilename } from "../notes/filename.ts";
 import {
@@ -8,7 +8,6 @@ import {
   serializeFrontMatter,
 } from "../notes/frontmatter.ts";
 import { upsertNote, removeNote, getNote, notesMap } from "../notes/note-store.ts";
-import { readNoteContent, writeFile } from "../fs/file-ops.ts";
 import {
   addToIndex,
   updateInIndex,
@@ -41,7 +40,10 @@ export function createTools(): AgentTool[] {
       const note = getNote(noteId);
       if (!note) return err(`Note "${noteId}" not found.`);
 
-      const content = await readNoteContent(note.fileHandle);
+      const backend = storageBackend.value;
+      if (!backend) return err("No directory open.");
+
+      const content = await backend.read(note.filename);
       const { frontMatter, body } = parseFrontMatter(content);
       const tagStr = note.tags.length > 0 ? `\nTags: ${note.tags.join(", ")}` : "";
       return text(`Title: ${frontMatter.title || note.title}\nID: ${note.id}${tagStr}\n\n${body.trim()}`);
@@ -62,8 +64,8 @@ export function createTools(): AgentTool[] {
       const title = p.title as string;
       const body = p.body as string;
       const tags = (p.tags as string[] | undefined) ?? [];
-      const dirHandle = directoryHandle.value;
-      if (!dirHandle) return err("No directory open.");
+      const backend = storageBackend.value;
+      if (!backend) return err("No directory open.");
 
       const now = new Date();
       const id = formatTimestampId(now);
@@ -72,13 +74,11 @@ export function createTools(): AgentTool[] {
       const frontMatter = { title, date: now.toISOString().replace("Z", ""), tags };
       const content = serializeFrontMatter(frontMatter, body + "\n");
 
-      const fileHandle = await dirHandle.getFileHandle(filename, { create: true });
-      await writeFile(fileHandle, content);
+      const meta = await backend.write(filename, content);
 
-      const file = await fileHandle.getFile();
       const note: Note = {
-        id, title, tags, filename, fileHandle,
-        lastModified: file.lastModified, size: file.size,
+        id, title, tags, filename,
+        lastModified: meta.lastModified, size: meta.size,
         isNotiFormat: true, createdAt: now,
       };
 
@@ -103,13 +103,15 @@ export function createTools(): AgentTool[] {
       const note = getNote(noteId);
       if (!note) return err(`Note "${noteId}" not found.`);
 
-      const rawContent = await readNoteContent(note.fileHandle);
+      const backend = storageBackend.value;
+      if (!backend) return err("No directory open.");
+
+      const rawContent = await backend.read(note.filename);
       const { frontMatter } = parseFrontMatter(rawContent);
       const content = serializeFrontMatter(frontMatter, body + "\n");
-      await writeFile(note.fileHandle, content);
+      const meta = await backend.write(note.filename, content);
 
-      const file = await note.fileHandle.getFile();
-      upsertNote({ ...note, lastModified: file.lastModified, size: file.size });
+      upsertNote({ ...note, lastModified: meta.lastModified, size: meta.size });
       updateInIndex({ id: note.id, title: note.title, tags: note.tags, body });
       return text(`Updated note "${note.title}" (ID: ${noteId})`);
     },
@@ -125,13 +127,13 @@ export function createTools(): AgentTool[] {
     execute: async (_id, raw) => {
       const p = raw as P;
       const noteId = p.noteId as string;
-      const dirHandle = directoryHandle.value;
-      if (!dirHandle) return err("No directory open.");
+      const backend = storageBackend.value;
+      if (!backend) return err("No directory open.");
 
       const note = getNote(noteId);
       if (!note) return err(`Note "${noteId}" not found.`);
 
-      await dirHandle.removeEntry(note.filename);
+      await backend.delete(note.filename);
       removeNote(noteId);
       removeFromIndex(noteId);
       return text(`Deleted note "${note.title}" (ID: ${noteId})`);

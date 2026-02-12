@@ -1,5 +1,6 @@
+import type { StorageBackend } from "./backend.ts";
 import type { Note } from "../notes/note.ts";
-import { scanDirectory, readNoteContent } from "./file-ops.ts";
+import { scanNotes } from "./scan.ts";
 import { getNote, upsertNote, removeNote, notesMap } from "../notes/note-store.ts";
 import { selectedNoteId } from "../lib/app-state.ts";
 import {
@@ -16,7 +17,7 @@ export interface FileChange {
   note: Note;
 }
 
-/** Compare previous note state with a fresh directory scan to detect changes. */
+/** Compare previous note state with a fresh scan to detect changes. */
 export function diffChanges(
   previous: Map<string, Note>,
   current: Note[],
@@ -52,12 +53,15 @@ export function diffChanges(
 }
 
 /** Apply detected changes to the note store and search index. */
-export async function applyChanges(changes: FileChange[]): Promise<void> {
+export async function applyChanges(
+  changes: FileChange[],
+  backend: StorageBackend,
+): Promise<void> {
   for (const change of changes) {
     switch (change.type) {
       case "added": {
         upsertNote(change.note);
-        const raw = await readNoteContent(change.note.fileHandle);
+        const raw = await backend.read(change.note.filename);
         const { body } = parseFrontMatter(raw);
         addToIndex({
           id: change.note.id,
@@ -80,7 +84,7 @@ export async function applyChanges(changes: FileChange[]): Promise<void> {
         if (existing) {
           upsertNote(change.note);
         }
-        const raw = await readNoteContent(change.note.fileHandle);
+        const raw = await backend.read(change.note.filename);
         const { body } = parseFrontMatter(raw);
         updateInIndex({
           id: change.note.id,
@@ -94,61 +98,51 @@ export async function applyChanges(changes: FileChange[]): Promise<void> {
   }
 }
 
-/** Perform a single poll: scan directory, diff, and apply changes. */
+/** Perform a single poll: scan backend, diff, and apply changes. */
 export async function poll(
-  dirHandle: FileSystemDirectoryHandle,
+  backend: StorageBackend,
 ): Promise<FileChange[]> {
-  const currentNotes = await scanDirectory(dirHandle);
+  const currentNotes = await scanNotes(backend);
   const previous = notesMap.value;
   const changes = diffChanges(previous, currentNotes);
   if (changes.length > 0) {
-    await applyChanges(changes);
+    await applyChanges(changes, backend);
   }
   return changes;
 }
 
-/** Start watching a directory for external changes. Returns a cleanup function. */
+/** Start watching a backend for external changes. Returns a cleanup function. */
 export function startWatcher(
-  dirHandle: FileSystemDirectoryHandle,
+  backend: StorageBackend,
 ): () => void {
   let stopped = false;
 
   // Polling timer
   const timer = setInterval(() => {
     if (!stopped) {
-      poll(dirHandle).catch(() => {});
+      poll(backend).catch(() => {});
     }
   }, POLL_INTERVAL);
 
   // Re-scan on window focus
   const handleFocus = () => {
     if (!stopped) {
-      poll(dirHandle).catch(() => {});
+      poll(backend).catch(() => {});
     }
   };
   window.addEventListener("focus", handleFocus);
 
-  // Progressive enhancement: use FileSystemObserver if available
-  let observer: FileSystemObserver | null = null;
-  if (typeof FileSystemObserver !== "undefined") {
-    try {
-      observer = new FileSystemObserver(() => {
-        if (!stopped) {
-          poll(dirHandle).catch(() => {});
-        }
-      });
-      observer.observe(dirHandle);
-    } catch {
-      observer = null;
+  // Progressive enhancement: use backend's native change events if available
+  const cleanupNative = backend.onExternalChange?.(() => {
+    if (!stopped) {
+      poll(backend).catch(() => {});
     }
-  }
+  });
 
   return () => {
     stopped = true;
     clearInterval(timer);
     window.removeEventListener("focus", handleFocus);
-    if (observer) {
-      observer.disconnect();
-    }
+    cleanupNative?.();
   };
 }

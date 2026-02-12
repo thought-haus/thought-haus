@@ -31,9 +31,27 @@ vi.mock("../fs/directory.ts", () => ({
   requestPermission: () => Promise.resolve(true),
 }));
 
-vi.mock("../fs/file-ops.ts", () => ({
-  scanDirectory: () => Promise.resolve([]),
-  readNoteContent: () => Promise.resolve(""),
+vi.mock("../storage/scan.ts", () => ({
+  scanNotes: () => Promise.resolve([]),
+}));
+
+vi.mock("../storage/local-backend.ts", () => {
+  function MockLocalBackend(this: Record<string, unknown>, handle: { name: string }) {
+    this.type = "local";
+    this.name = handle.name;
+    this.list = () => Promise.resolve([]);
+    this.read = () => Promise.resolve("");
+    this.write = () => Promise.resolve({ lastModified: Date.now(), size: 0 });
+    this.delete = () => Promise.resolve();
+    this.getMetadata = () => Promise.resolve({ lastModified: Date.now(), size: 0 });
+    this.disconnect = () => {};
+    this.getRawHandle = () => handle;
+  }
+  return { LocalBackend: MockLocalBackend };
+});
+
+vi.mock("../storage/file-watcher.ts", () => ({
+  startWatcher: () => () => {},
 }));
 
 vi.mock("../search/search-engine.ts", async () => {

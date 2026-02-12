@@ -1,9 +1,8 @@
-import { directoryHandle, selectedNoteId } from "../lib/app-state.ts";
+import { storageBackend, selectedNoteId } from "../lib/app-state.ts";
 import { formatTimestampId } from "../lib/date.ts";
 import { generateFilename } from "./filename.ts";
 import { parseFrontMatter, serializeFrontMatter } from "./frontmatter.ts";
 import { upsertNote, removeNote, getNote } from "./note-store.ts";
-import { readNoteContent, writeFile } from "../fs/file-ops.ts";
 import {
   addToIndex,
   removeFromIndex,
@@ -28,8 +27,8 @@ Happy writing!
 
 /** Create a new note and return it. */
 export async function createNote(): Promise<Note | null> {
-  const dirHandle = directoryHandle.value;
-  if (!dirHandle) return null;
+  const backend = storageBackend.value;
+  if (!backend) return null;
 
   const now = new Date();
   const id = formatTimestampId(now);
@@ -43,18 +42,15 @@ export async function createNote(): Promise<Note | null> {
   };
   const content = serializeFrontMatter(frontMatter, "\n");
 
-  const fileHandle = await dirHandle.getFileHandle(filename, { create: true });
-  await writeFile(fileHandle, content);
+  const meta = await backend.write(filename, content);
 
-  const file = await fileHandle.getFile();
   const note: Note = {
     id,
     title,
     tags: [],
     filename,
-    fileHandle,
-    lastModified: file.lastModified,
-    size: file.size,
+    lastModified: meta.lastModified,
+    size: meta.size,
     isNotiFormat: true,
     createdAt: now,
   };
@@ -67,14 +63,14 @@ export async function createNote(): Promise<Note | null> {
 
 /** Delete a note by ID. */
 export async function deleteNote(id: string): Promise<boolean> {
-  const dirHandle = directoryHandle.value;
-  if (!dirHandle) return false;
+  const backend = storageBackend.value;
+  if (!backend) return false;
 
   const note = getNote(id);
   if (!note) return false;
 
   try {
-    await dirHandle.removeEntry(note.filename);
+    await backend.delete(note.filename);
     removeNote(id);
     removeFromIndex(id);
     if (selectedNoteId.value === id) {
@@ -91,8 +87,8 @@ export async function renameNote(
   id: string,
   newTitle: string,
 ): Promise<boolean> {
-  const dirHandle = directoryHandle.value;
-  if (!dirHandle) return false;
+  const backend = storageBackend.value;
+  if (!backend) return false;
 
   const note = getNote(id);
   if (!note) return false;
@@ -104,7 +100,7 @@ export async function renameNote(
   const newFilename = generateFilename(note.createdAt, title);
 
   // Read current content and re-serialize with updated title
-  const rawContent = await readNoteContent(note.fileHandle);
+  const rawContent = await backend.read(note.filename);
   const { body } = parseFrontMatter(rawContent);
   const content = serializeFrontMatter(
     {
@@ -116,23 +112,18 @@ export async function renameNote(
   );
 
   // Write to new file, then delete old
-  const newFileHandle = await dirHandle.getFileHandle(newFilename, {
-    create: true,
-  });
-  await writeFile(newFileHandle, content);
+  const meta = await backend.write(newFilename, content);
 
   if (newFilename !== oldFilename) {
-    await dirHandle.removeEntry(oldFilename);
+    await backend.delete(oldFilename);
   }
 
-  const file = await newFileHandle.getFile();
   upsertNote({
     ...note,
     title,
     filename: newFilename,
-    fileHandle: newFileHandle,
-    lastModified: file.lastModified,
-    size: file.size,
+    lastModified: meta.lastModified,
+    size: meta.size,
   });
 
   updateInIndex({ id: note.id, title, tags: note.tags, body });
@@ -142,8 +133,8 @@ export async function renameNote(
 
 /** Create a welcome note in an empty folder. */
 export async function createWelcomeNote(): Promise<Note | null> {
-  const dirHandle = directoryHandle.value;
-  if (!dirHandle) return null;
+  const backend = storageBackend.value;
+  if (!backend) return null;
 
   const now = new Date();
   const id = formatTimestampId(now);
@@ -157,18 +148,15 @@ export async function createWelcomeNote(): Promise<Note | null> {
   };
   const content = serializeFrontMatter(frontMatter, WELCOME_BODY);
 
-  const fileHandle = await dirHandle.getFileHandle(filename, { create: true });
-  await writeFile(fileHandle, content);
+  const meta = await backend.write(filename, content);
 
-  const file = await fileHandle.getFile();
   const note: Note = {
     id,
     title,
     tags: ["getting-started"],
     filename,
-    fileHandle,
-    lastModified: file.lastModified,
-    size: file.size,
+    lastModified: meta.lastModified,
+    size: meta.size,
     isNotiFormat: true,
     createdAt: now,
   };

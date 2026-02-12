@@ -3,10 +3,11 @@ import {
   appView,
   isBrowserCompatible,
   folderName,
-  directoryHandle,
+  storageBackend,
   savedHandle,
   initTheme,
   initSort,
+  initSidebarWidth,
 } from "../lib/app-state.ts";
 import { isFileSystemAccessSupported } from "../lib/browser.ts";
 import {
@@ -16,19 +17,21 @@ import {
   checkPermission,
   requestPermission,
 } from "../fs/directory.ts";
-import { scanDirectory, readNoteContent } from "../fs/file-ops.ts";
+import { LocalBackend } from "../storage/local-backend.ts";
+import { scanNotes } from "../storage/scan.ts";
 import { setNotes } from "../notes/note-store.ts";
 import { createWelcomeNote } from "../notes/note-actions.ts";
 import { buildIndex } from "../search/search-engine.ts";
 import { parseFrontMatter } from "../notes/frontmatter.ts";
 import { saveSearchIndex } from "../search/search-persistence.ts";
 import { serializeIndex } from "../search/search-engine.ts";
-import { startWatcher } from "../fs/file-watcher.ts";
+import { startWatcher } from "../storage/file-watcher.ts";
 import { startRouter, applyPendingHash } from "../lib/router.ts";
 import { BrowserCheck } from "./browser-check.tsx";
 import { Onboarding } from "./onboarding.tsx";
 import { RePermission } from "./re-permission.tsx";
 import { Layout } from "./layout.tsx";
+import type { StorageBackend } from "../storage/backend.ts";
 
 if (!isFileSystemAccessSupported()) {
   isBrowserCompatible.value = false;
@@ -36,13 +39,17 @@ if (!isFileSystemAccessSupported()) {
 
 let stopWatcher: (() => void) | null = null;
 
-async function openFolderFromHandle(
-  handle: FileSystemDirectoryHandle,
-): Promise<void> {
-  directoryHandle.value = handle;
-  folderName.value = handle.name;
-  await saveDirectoryHandle(handle);
-  const notes = await scanDirectory(handle);
+async function openWithBackend(backend: StorageBackend): Promise<void> {
+  storageBackend.value = backend;
+  folderName.value = backend.name;
+
+  // Persist handle for session restore (Local-specific)
+  const raw = (backend as LocalBackend).getRawHandle?.();
+  if (raw) {
+    await saveDirectoryHandle(raw);
+  }
+
+  const notes = await scanNotes(backend);
   setNotes(notes);
   appView.value = "main";
   applyPendingHash();
@@ -53,7 +60,7 @@ async function openFolderFromHandle(
   // Build search index from all note content
   const docs = await Promise.all(
     notes.map(async (note) => {
-      const raw = await readNoteContent(note.fileHandle);
+      const raw = await backend.read(note.filename);
       const { body } = parseFrontMatter(raw);
       return { id: note.id, title: note.title, tags: note.tags, body };
     }),
@@ -63,13 +70,14 @@ async function openFolderFromHandle(
 
   // Start watching for external changes
   if (stopWatcher) stopWatcher();
-  stopWatcher = startWatcher(handle);
+  stopWatcher = startWatcher(backend);
 }
 
 async function openFolder(): Promise<void> {
   try {
     const handle = await pickDirectory();
-    await openFolderFromHandle(handle);
+    const backend = new LocalBackend(handle);
+    await openWithBackend(backend);
   } catch {
     // User cancelled the picker
   }
@@ -82,7 +90,8 @@ async function reRequestPermission(): Promise<void> {
   const granted = await requestPermission(handle);
   if (granted) {
     savedHandle.value = null;
-    await openFolderFromHandle(handle);
+    const backend = new LocalBackend(handle);
+    await openWithBackend(backend);
   } else {
     // Permission denied — fall back to full onboarding
     savedHandle.value = null;
@@ -96,7 +105,8 @@ async function tryRestoreSession(): Promise<void> {
     if (!handle) return;
 
     if (await checkPermission(handle)) {
-      await openFolderFromHandle(handle);
+      const backend = new LocalBackend(handle);
+      await openWithBackend(backend);
     } else {
       // Permission expired — show one-click re-permission
       savedHandle.value = handle;
@@ -112,6 +122,7 @@ export function App() {
   useEffect(() => {
     initTheme();
     initSort();
+    initSidebarWidth();
     startRouter();
     tryRestoreSession();
   }, []);
