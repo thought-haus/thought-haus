@@ -127,7 +127,16 @@
 .tiptap a {
   color: var(--color-accent);
   text-decoration: underline;
+  text-decoration-color: var(--color-link-underline);
+  text-underline-offset: 2px;
   cursor: pointer;
+  border-radius: 2px;
+  padding: 0 1px;
+  transition: text-decoration-color 0.15s ease, background 0.15s ease;
+}
+.tiptap a:hover {
+  text-decoration-color: var(--color-accent);
+  background: var(--color-accent-subtle);
 }
 
 /* Horizontal rules */
