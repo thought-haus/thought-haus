@@ -191,7 +191,7 @@ export function createTools(): AgentTool[] {
     name: "run_javascript",
     label: "Run JavaScript",
     description:
-      "Execute JavaScript code in the browser. The code runs in the page context with full access to browser APIs: document, window, fetch, localStorage, navigator, Canvas, Web Audio, and all other Web APIs. Supports async/await. The return value of the last expression is converted to a string.",
+      "Execute JavaScript code in the browser. The code runs in the page context with full access to browser APIs: document, window, fetch, localStorage, navigator, Canvas, Web Audio, and all other Web APIs. Supports async/await. Simple expressions (e.g. `crypto.randomUUID()`) auto-return their value. For multi-statement code, use `return` to return a value.",
     parameters: Type.Object({
       code: Type.String({ description: "JavaScript code to execute" }),
     }),
@@ -199,11 +199,19 @@ export function createTools(): AgentTool[] {
       const p = raw as P;
       const code = p.code as string;
       try {
-        const fn = new Function(`return (async () => { ${code} })();`);
-        const result = await fn();
+        // Try as expression first (like a REPL) — handles `crypto.randomUUID()`, `1+1`, etc.
+        const exprFn = new Function(`return (async () => { return (${code}); })();`);
+        const result = await exprFn();
         return text(String(result ?? "undefined"));
-      } catch (e) {
-        return err(`Error: ${e instanceof Error ? e.message : String(e)}`);
+      } catch {
+        // Fall back to statement mode — handles multi-line code with `return`
+        try {
+          const stmtFn = new Function(`return (async () => { ${code} })();`);
+          const result = await stmtFn();
+          return text(String(result ?? "undefined"));
+        } catch (e) {
+          return err(`Error: ${e instanceof Error ? e.message : String(e)}`);
+        }
       }
     },
   };
