@@ -12,7 +12,12 @@ import {
 import { sendMessage, cancelStreaming, newConversation } from "../agent/agent-runner.ts";
 import { listConversations, switchConversation } from "../agent/conversation-persistence.ts";
 import { AgentSettingsPanel } from "./agent-settings-panel.tsx";
+import { getCommandNotes } from "../agent/command-loader.ts";
+import { notesMap } from "../notes/note-store.ts";
+import { slugify } from "../lib/slug.ts";
+import type { Note } from "../notes/note.ts";
 import styles from "./agent-panel.module.css";
+import "../agent/slash-command-suggest.css";
 
 export function AgentPanel() {
   if (agentPanelView.value === "settings") {
@@ -262,11 +267,65 @@ function AgentInput() {
   const streaming = isAgentStreaming.value;
   const [error, setError] = useState<string | null>(null);
 
+  // Slash command autocomplete state
+  const [commandNotes, setCommandNotes] = useState<Note[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestions, setSuggestions] = useState<Note[]>([]);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const popupRef = useRef<HTMLDivElement>(null);
+
+  // Load command notes on mount and when notesMap changes
+  useEffect(() => {
+    setCommandNotes(getCommandNotes());
+  }, [notesMap.value]);
+
+  // Close popup on outside click
+  useEffect(() => {
+    if (!showSuggestions) return;
+    const handler = (e: MouseEvent) => {
+      if (
+        popupRef.current &&
+        !popupRef.current.contains(e.target as Node) &&
+        e.target !== textareaRef.current
+      ) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [showSuggestions]);
+
+  const updateSuggestions = (value: string) => {
+    const trimmed = value.trim();
+    // Show popup when typing `/` at start, before any space
+    if (trimmed.startsWith("/") && !trimmed.includes(" ")) {
+      const query = trimmed.slice(1).toLowerCase();
+      const filtered = query
+        ? commandNotes.filter((n) =>
+            slugify(n.title).includes(query),
+          )
+        : commandNotes;
+      setSuggestions(filtered);
+      setSelectedIndex(0);
+      setShowSuggestions(true);
+    } else {
+      setShowSuggestions(false);
+    }
+  };
+
+  const selectCommand = (note: Note) => {
+    const slug = slugify(note.title);
+    setText(`/${slug} `);
+    setShowSuggestions(false);
+    textareaRef.current?.focus();
+  };
+
   const handleSend = async () => {
     const trimmed = text.trim();
     if (!trimmed || streaming) return;
     setText("");
     setError(null);
+    setShowSuggestions(false);
 
     // Reset textarea height
     if (textareaRef.current) {
@@ -281,6 +340,33 @@ function AgentInput() {
   };
 
   const handleKeyDown = (e: KeyboardEvent) => {
+    if (showSuggestions && suggestions.length > 0) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setSelectedIndex((i) =>
+          i < suggestions.length - 1 ? i + 1 : 0,
+        );
+        return;
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setSelectedIndex((i) =>
+          i > 0 ? i - 1 : suggestions.length - 1,
+        );
+        return;
+      }
+      if (e.key === "Enter") {
+        e.preventDefault();
+        selectCommand(suggestions[selectedIndex]);
+        return;
+      }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setShowSuggestions(false);
+        return;
+      }
+    }
+
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
@@ -290,6 +376,7 @@ function AgentInput() {
   const handleInput = (e: Event) => {
     const target = e.target as HTMLTextAreaElement;
     setText(target.value);
+    updateSuggestions(target.value);
     // Auto-resize
     target.style.height = "auto";
     target.style.height = Math.min(target.scrollHeight, 128) + "px";
@@ -298,11 +385,37 @@ function AgentInput() {
   return (
     <div class={styles.inputArea}>
       {error && <div class={styles.errorMessage}>{error}</div>}
+      {showSuggestions && (
+        <div ref={popupRef} class="slash-command-suggest">
+          {suggestions.length === 0 ? (
+            <div class="slash-command-suggest-empty">
+              No matching commands
+            </div>
+          ) : (
+            suggestions.map((note, i) => (
+              <button
+                key={note.id}
+                class={`slash-command-suggest-item${i === selectedIndex ? " is-selected" : ""}`}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  selectCommand(note);
+                }}
+                onMouseEnter={() => setSelectedIndex(i)}
+              >
+                <span class="slash-command-slug">
+                  /{slugify(note.title)}
+                </span>
+                <span class="slash-command-title">{note.title}</span>
+              </button>
+            ))
+          )}
+        </div>
+      )}
       <div class={styles.inputRow}>
         <textarea
           ref={textareaRef}
           class={styles.inputField}
-          placeholder="Ask about your notes..."
+          placeholder="Ask about your notes... (/ for commands)"
           value={text}
           onInput={handleInput}
           onKeyDown={handleKeyDown}

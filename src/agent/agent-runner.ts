@@ -15,6 +15,12 @@ import {
   createConversationNote,
   saveConversation,
 } from "./conversation-persistence.ts";
+import {
+  parseSlashCommand,
+  getCommandNotes,
+  loadCommandBody,
+} from "./command-loader.ts";
+import { slugify } from "../lib/slug.ts";
 
 let agent: Agent | null = null;
 
@@ -39,7 +45,20 @@ export async function sendMessage(userText: string): Promise<void> {
     activeConversationId.value = id;
   }
 
-  const systemPrompt = await buildSystemPrompt();
+  // Resolve slash command
+  let commandBody: string | undefined;
+  const parsed = parseSlashCommand(userText);
+  if (parsed) {
+    const commandNotes = getCommandNotes();
+    const match = commandNotes.find(
+      (n) => slugify(n.title) === parsed.commandSlug,
+    );
+    if (match) {
+      commandBody = await loadCommandBody(match);
+    }
+  }
+
+  const systemPrompt = await buildSystemPrompt(commandBody);
   const model = resolveModel(settings.activeProvider, settings.activeModel);
   const tools = createTools();
 

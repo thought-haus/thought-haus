@@ -4,6 +4,7 @@ import type { Message } from "@mariozechner/pi-ai";
 
 export const CONVERSATION_TAG = "noti-agent-conversation";
 export const MEMORY_TAG = "noti-agent-memory";
+export const COMMAND_TAG = "noti-command";
 
 const JSON_BLOCK_RE = /```json\s*\n([\s\S]*?)\n```/;
 

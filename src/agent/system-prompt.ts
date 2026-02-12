@@ -7,7 +7,7 @@ import { CONVERSATION_TAG, MEMORY_TAG } from "./conversation-format.ts";
 const MAX_MEMORY_CHARS = 8000;
 const MAX_NOTE_CHARS = 12000;
 
-export async function buildSystemPrompt(): Promise<string> {
+export async function buildSystemPrompt(commandBody?: string): Promise<string> {
   const parts: string[] = [];
 
   // Date/time
@@ -44,6 +44,14 @@ Available tools:
   const noteContext = await loadCurrentNoteContext();
   if (noteContext) {
     parts.push(`## Currently Open Note\n${noteContext}`);
+  }
+
+  // Slash command instructions
+  if (commandBody) {
+    parts.push(`## Slash Command Instructions
+The user's message starts with a slash command (e.g. "/command-name"). This means they are invoking a reusable command. Follow the instructions below, and treat any text after the command name as the user's input for this command.
+
+${commandBody}`);
   }
 
   // Guidelines
