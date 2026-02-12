@@ -282,7 +282,7 @@
   color: var(--color-text);
   outline: none;
   resize: none;
-  min-height: 2.25rem;
+  min-height: 3.5rem;
   max-height: 8rem;
   line-height: 1.4;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
