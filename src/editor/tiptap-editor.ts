@@ -1,11 +1,13 @@
 import { Editor } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
 import { Markdown } from "@tiptap/markdown";
+import Link from "@tiptap/extension-link";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
 import Placeholder from "@tiptap/extension-placeholder";
 import Typography from "@tiptap/extension-typography";
 import { NoteLink } from "./extensions/note-link.ts";
+import { LinkEdit } from "./extensions/link-edit.ts";
 import "./tiptap-theme.css";
 
 export interface EditorConfig {
@@ -21,13 +23,21 @@ export function createEditor({ parent, content, onChange }: EditorConfig): Edito
     content,
     contentType: "markdown",
     extensions: [
-      StarterKit,
+      StarterKit.configure({ link: false }),
       Markdown,
+      Link.configure({
+        openOnClick: false,
+        linkOnPaste: true,
+        autolink: true,
+        shouldAutoLink: (url: string) => /^https?:\/\//i.test(url),
+        HTMLAttributes: { rel: "noopener noreferrer" },
+      }),
       TaskList,
       TaskItem.configure({ nested: true }),
       Placeholder.configure({ placeholder: "Start writing..." }),
       Typography,
       NoteLink,
+      LinkEdit,
     ],
     onUpdate({ editor }) {
       onChange(editor.getText());
