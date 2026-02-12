@@ -4,6 +4,8 @@ import {
   sidebarCollapsed,
   sidebarWidth,
   setSidebarWidth,
+  agentPanelWidth,
+  setAgentPanelWidth,
 } from "../lib/app-state.ts";
 import { agentPanelOpen } from "../agent/agent-state.ts";
 import { getNote } from "../notes/note-store.ts";
@@ -15,17 +17,31 @@ import styles from "./layout.module.css";
 
 const MIN_SIDEBAR_WIDTH = 200;
 const MAX_SIDEBAR_WIDTH = 800;
+const MIN_AGENT_PANEL_WIDTH = 280;
+const MAX_AGENT_PANEL_WIDTH = 900;
+
+type ResizeTarget = "sidebar" | "agentPanel" | null;
 
 export function Layout() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const resizeTargetRef = useRef<ResizeTarget>(null);
   const [isResizing, setIsResizing] = useState(false);
   const startXRef = useRef(0);
   const startWidthRef = useRef(0);
 
-  const handleResizeStart = useCallback((e: MouseEvent) => {
+  const handleSidebarResizeStart = useCallback((e: MouseEvent) => {
     e.preventDefault();
     startXRef.current = e.clientX;
     startWidthRef.current = sidebarWidth.value;
+    resizeTargetRef.current = "sidebar";
+    setIsResizing(true);
+  }, []);
+
+  const handleAgentPanelResizeStart = useCallback((e: MouseEvent) => {
+    e.preventDefault();
+    startXRef.current = e.clientX;
+    startWidthRef.current = agentPanelWidth.value;
+    resizeTargetRef.current = "agentPanel";
     setIsResizing(true);
   }, []);
 
@@ -33,14 +49,26 @@ export function Layout() {
     if (!isResizing) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      const delta = e.clientX - startXRef.current;
-      const newWidth = Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, startWidthRef.current + delta));
-      sidebarWidth.value = newWidth;
+      if (resizeTargetRef.current === "sidebar") {
+        const delta = e.clientX - startXRef.current;
+        const newWidth = Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, startWidthRef.current + delta));
+        sidebarWidth.value = newWidth;
+      } else if (resizeTargetRef.current === "agentPanel") {
+        // Dragging left increases width for the right panel
+        const delta = startXRef.current - e.clientX;
+        const newWidth = Math.min(MAX_AGENT_PANEL_WIDTH, Math.max(MIN_AGENT_PANEL_WIDTH, startWidthRef.current + delta));
+        agentPanelWidth.value = newWidth;
+      }
     };
 
     const handleMouseUp = () => {
+      if (resizeTargetRef.current === "sidebar") {
+        setSidebarWidth(sidebarWidth.value);
+      } else if (resizeTargetRef.current === "agentPanel") {
+        setAgentPanelWidth(agentPanelWidth.value);
+      }
+      resizeTargetRef.current = null;
       setIsResizing(false);
-      setSidebarWidth(sidebarWidth.value);
     };
 
     document.addEventListener("mousemove", handleMouseMove);
@@ -104,15 +132,25 @@ export function Layout() {
             />
           </div>
           <div
-            class={`${styles.resizeHandle} ${isResizing ? styles.resizeHandleActive : ""}`}
-            onMouseDown={handleResizeStart}
+            class={`${styles.resizeHandle} ${isResizing && resizeTargetRef.current === "sidebar" ? styles.resizeHandleActive : ""}`}
+            onMouseDown={handleSidebarResizeStart}
           />
         </>
       )}
       <div class={styles.editorPane}>
         <EditorView onDelete={handleDeleteNote} />
       </div>
-      {agentPanelOpen.value && <AgentPanel />}
+      {agentPanelOpen.value && (
+        <>
+          <div
+            class={`${styles.resizeHandle} ${isResizing && resizeTargetRef.current === "agentPanel" ? styles.resizeHandleActive : ""}`}
+            onMouseDown={handleAgentPanelResizeStart}
+          />
+          <div style={{ width: `${agentPanelWidth.value}px`, minWidth: `${agentPanelWidth.value}px` }}>
+            <AgentPanel />
+          </div>
+        </>
+      )}
       {showDeleteConfirm && (
         <div class={styles.overlay} role="dialog" aria-label="Confirm deletion">
           <div class={styles.dialog}>

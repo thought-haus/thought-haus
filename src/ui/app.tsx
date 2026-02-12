@@ -8,6 +8,7 @@ import {
   initTheme,
   initSort,
   initSidebarWidth,
+  initAgentPanelWidth,
 } from "../lib/app-state.ts";
 import { isFileSystemAccessSupported } from "../lib/browser.ts";
 import {
@@ -123,6 +124,7 @@ export function App() {
     initTheme();
     initSort();
     initSidebarWidth();
+    initAgentPanelWidth();
     startRouter();
     tryRestoreSession();
   }, []);

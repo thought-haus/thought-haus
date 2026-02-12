@@ -145,6 +145,33 @@ export function initSidebarWidth(): void {
   } catch { /* corrupt or unavailable */ }
 }
 
+/** The agent panel width in pixels. */
+const AGENT_PANEL_WIDTH_KEY = "noti-agent-panel-width";
+const DEFAULT_AGENT_PANEL_WIDTH = 420;
+
+export const agentPanelWidth = signal(DEFAULT_AGENT_PANEL_WIDTH);
+
+/** Set the agent panel width and persist it. */
+export function setAgentPanelWidth(width: number) {
+  agentPanelWidth.value = width;
+  try {
+    localStorage.setItem(AGENT_PANEL_WIDTH_KEY, String(width));
+  } catch { /* localStorage unavailable */ }
+}
+
+/** Initialize agent panel width from localStorage. */
+export function initAgentPanelWidth(): void {
+  try {
+    const saved = localStorage.getItem(AGENT_PANEL_WIDTH_KEY);
+    if (saved) {
+      const width = Number(saved);
+      if (width >= 280 && width <= 900) {
+        agentPanelWidth.value = width;
+      }
+    }
+  } catch { /* corrupt or unavailable */ }
+}
+
 /** Derived: should we show the main editor layout? */
 export const showMainLayout = computed(
   () => appView.value === "main" && isBrowserCompatible.value,
