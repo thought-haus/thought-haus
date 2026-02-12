@@ -106,29 +106,31 @@ function buildViewMode(container: HTMLDivElement, config: PopoverConfig): void {
   container.appendChild(urlSpan);
 
   // Edit button
-  const editBtn = makeButton("✎", "Edit link URL", () => {
+  const editBtn = makeButton(icon(ICON_PENCIL), "Edit link URL", () => {
     buildEditMode(container, config);
   });
   container.appendChild(editBtn);
 
   // Copy button
-  const copyBtn = makeButton("📋", "Copy link URL", () => {
+  const copyBtn = makeButton(icon(ICON_COPY), "Copy link URL", () => {
     navigator.clipboard.writeText(config.href);
-    copyBtn.textContent = "✓";
+    copyBtn.innerHTML = "";
+    copyBtn.appendChild(icon(ICON_CHECK));
     setTimeout(() => {
-      copyBtn.textContent = "📋";
+      copyBtn.innerHTML = "";
+      copyBtn.appendChild(icon(ICON_COPY));
     }, 1500);
   });
   container.appendChild(copyBtn);
 
   // Open button
-  const openBtn = makeButton("↗", "Open link in new tab", () => {
+  const openBtn = makeButton(icon(ICON_EXTERNAL_LINK), "Open link in new tab", () => {
     window.open(config.href, "_blank", "noopener");
   });
   container.appendChild(openBtn);
 
   // Unlink button
-  const unlinkBtn = makeButton("✕", "Remove link", () => {
+  const unlinkBtn = makeButton(icon(ICON_UNLINK), "Remove link", () => {
     config.editor.chain().focus().extendMarkRange("link").unsetLink().run();
     hideLinkPopover();
   });
@@ -170,11 +172,11 @@ function buildEditMode(
   };
 
   // Apply button
-  const applyBtn = makeButton("✓", "Apply URL change", applyUrl);
+  const applyBtn = makeButton(icon(ICON_CHECK), "Apply URL change", applyUrl);
   container.appendChild(applyBtn);
 
   // Cancel button
-  const cancelBtn = makeButton("✕", "Cancel editing", cancel);
+  const cancelBtn = makeButton(icon(ICON_X), "Cancel editing", cancel);
   container.appendChild(cancelBtn);
 
   // Key handlers on input
@@ -200,16 +202,39 @@ function buildEditMode(
   });
 }
 
+// ── Icons ───────────────────────────────────────────────────────────
+
+const ICON_PENCIL = '<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/>';
+const ICON_COPY = '<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>';
+const ICON_CHECK = '<path d="M20 6 9 17l-5-5"/>';
+const ICON_EXTERNAL_LINK = '<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>';
+const ICON_UNLINK = '<path d="m18.84 12.25 1.72-1.71h-.02a5.004 5.004 0 0 0-.12-7.07 5.006 5.006 0 0 0-6.95 0l-1.72 1.71"/><path d="m5.17 11.75-1.71 1.71a5.004 5.004 0 0 0 .12 7.07 5.006 5.006 0 0 0 6.95 0l1.71-1.71"/><line x1="8" x2="8" y1="2" y2="5"/><line x1="2" x2="5" y1="8" y2="8"/><line x1="16" x2="16" y1="19" y2="22"/><line x1="19" x2="22" y1="16" y2="16"/>';
+const ICON_X = '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>';
+
+function icon(paths: string): SVGSVGElement {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("width", "16");
+  svg.setAttribute("height", "16");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("fill", "none");
+  svg.setAttribute("stroke", "currentColor");
+  svg.setAttribute("stroke-width", "2");
+  svg.setAttribute("stroke-linecap", "round");
+  svg.setAttribute("stroke-linejoin", "round");
+  svg.innerHTML = paths;
+  return svg;
+}
+
 // ── Helpers ─────────────────────────────────────────────────────────
 
 function makeButton(
-  label: string,
+  child: SVGSVGElement,
   ariaLabel: string,
   onClick: () => void,
 ): HTMLButtonElement {
   const btn = document.createElement("button");
   btn.type = "button";
-  btn.textContent = label;
+  btn.appendChild(child);
   btn.setAttribute("aria-label", ariaLabel);
   btn.addEventListener("mousedown", (e) => e.preventDefault());
   btn.addEventListener("click", onClick);

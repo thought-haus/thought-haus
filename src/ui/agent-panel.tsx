@@ -15,6 +15,7 @@ import { AgentSettingsPanel } from "./agent-settings-panel.tsx";
 import { getCommandNotes } from "../agent/command-loader.ts";
 import { notesMap } from "../notes/note-store.ts";
 import { slugify } from "../lib/slug.ts";
+import { Settings, X, Plus, ChevronRight } from "lucide-preact";
 import type { Note } from "../notes/note.ts";
 import styles from "./agent-panel.module.css";
 import "../agent/slash-command-suggest.css";
@@ -60,14 +61,14 @@ function Header() {
               agentPanelView.value === "settings" ? "chat" : "settings")
           }
         >
-          {"\u2699"}
+          <Settings size={14} />
         </button>
         <button
           class={styles.iconBtn}
           title="Close (Cmd+Shift+A)"
           onClick={() => (agentPanelOpen.value = false)}
         >
-          {"\u2715"}
+          <X size={14} />
         </button>
       </div>
     </div>
@@ -105,7 +106,7 @@ function ConversationSwitcher() {
         title="New conversation"
         onClick={() => newConversation()}
       >
-        +
+        <Plus size={14} />
       </button>
     </div>
   );
@@ -221,7 +222,7 @@ function ToolCallBubble({ toolCall }: { toolCall: ToolCall }) {
         <span
           class={`${styles.toolToggle} ${expanded ? styles.toolToggleOpen : ""}`}
         >
-          {"\u25B6"}
+          <ChevronRight size={12} />
         </span>
         <span class={styles.toolName}>{toolCall.name}</span>
       </div>
@@ -247,7 +248,7 @@ function ToolResultBubble({ result }: { result: ToolResultMessage }) {
         <span
           class={`${styles.toolToggle} ${expanded ? styles.toolToggleOpen : ""}`}
         >
-          {"\u25B6"}
+          <ChevronRight size={12} />
         </span>
         <span class={styles.toolName}>{result.toolName} result</span>
         {result.isError && <span class={styles.toolError}>(error)</span>}

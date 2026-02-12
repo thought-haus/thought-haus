@@ -24,6 +24,19 @@ import {
   SORT_DEFAULTS,
 } from "../lib/app-state.ts";
 import { agentPanelOpen } from "../agent/agent-state.ts";
+import {
+  Sun,
+  Moon,
+  Monitor,
+  Clock,
+  ArrowDownAZ,
+  PenLine,
+  ChevronUp,
+  ChevronDown,
+  Plus,
+  X,
+  Bot,
+} from "lucide-preact";
 import type { ThemeMode, SortMode } from "../lib/app-state.ts";
 import type { Note } from "../notes/note.ts";
 import styles from "./sidebar.module.css";
@@ -72,31 +85,9 @@ function ThemeToggle() {
       title={`Theme: ${THEME_LABELS[mode]} (click for ${THEME_LABELS[next]})`}
       aria-label={`Switch theme to ${THEME_LABELS[next]}`}
     >
-      {mode === "light" && (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="5" />
-          <line x1="12" y1="1" x2="12" y2="3" />
-          <line x1="12" y1="21" x2="12" y2="23" />
-          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-          <line x1="1" y1="12" x2="3" y2="12" />
-          <line x1="21" y1="12" x2="23" y2="12" />
-          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-        </svg>
-      )}
-      {mode === "dark" && (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-        </svg>
-      )}
-      {mode === "system" && (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-          <line x1="8" y1="21" x2="16" y2="21" />
-          <line x1="12" y1="17" x2="12" y2="21" />
-        </svg>
-      )}
+      {mode === "light" && <Sun size={14} />}
+      {mode === "dark" && <Moon size={14} />}
+      {mode === "system" && <Monitor size={14} />}
       <span>{THEME_LABELS[mode]}</span>
     </button>
   );
@@ -143,35 +134,13 @@ function SortButton() {
       title={`Sort: ${SORT_LABELS[mode]} (${getSortDirLabel(mode, dir)}) · Right-click to reverse`}
       aria-label={`Sort by ${SORT_LABELS[mode]}`}
     >
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        {mode === "created" && (
-          <>
-            <circle cx="12" cy="12" r="10" />
-            <polyline points="12 6 12 12 16 14" />
-          </>
-        )}
-        {mode === "title" && (
-          <>
-            <line x1="4" y1="6" x2="16" y2="6" />
-            <line x1="4" y1="12" x2="13" y2="12" />
-            <line x1="4" y1="18" x2="10" y2="18" />
-          </>
-        )}
-        {mode === "modified" && (
-          <>
-            <path d="M12 20h9" />
-            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-          </>
-        )}
-      </svg>
+      {mode === "created" && <Clock size={14} />}
+      {mode === "title" && <ArrowDownAZ size={14} />}
+      {mode === "modified" && <PenLine size={14} />}
       {dir === "asc" ? (
-        <svg width="6" height="6" viewBox="0 0 12 12" fill="currentColor" style="position:absolute;bottom:2px;right:2px;">
-          <path d="M6 2L10 8H2z" />
-        </svg>
+        <ChevronUp size={8} style="position:absolute;bottom:1px;right:1px;" />
       ) : (
-        <svg width="6" height="6" viewBox="0 0 12 12" fill="currentColor" style="position:absolute;bottom:2px;right:2px;">
-          <path d="M6 10L2 4H10z" />
-        </svg>
+        <ChevronDown size={8} style="position:absolute;bottom:1px;right:1px;" />
       )}
     </button>
   );
@@ -310,7 +279,7 @@ export function Sidebar({ selectedNoteId, onSelectNote, onNewNote }: SidebarProp
             onClick={handleSearchClear}
             aria-label="Clear search"
           >
-            ×
+            <X size={14} />
           </button>
         )}
       </div>
@@ -353,7 +322,7 @@ export function Sidebar({ selectedNoteId, onSelectNote, onNewNote }: SidebarProp
                   title="New note (Cmd/Ctrl+N)"
                   aria-label="New note"
                 >
-                  +
+                  <Plus size={16} />
                 </button>
               </div>
             </div>
@@ -411,13 +380,7 @@ export function Sidebar({ selectedNoteId, onSelectNote, onNewNote }: SidebarProp
           title="AI Assistant (Cmd+Shift+A)"
           aria-label="Toggle AI assistant"
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2a4 4 0 0 1 4 4v1a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2V6a4 4 0 0 1 4-4z" />
-            <circle cx="9" cy="9" r="1" />
-            <circle cx="15" cy="9" r="1" />
-            <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-            <path d="M6 18h12v2a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-2z" />
-          </svg>
+          <Bot size={14} />
           <span>AI</span>
         </button>
       </div>

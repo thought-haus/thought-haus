@@ -157,7 +157,7 @@
 }
 
 .toolToggle {
-  font-size: 0.625rem;
+  display: inline-flex;
   color: var(--color-text-secondary);
   transition: transform 0.15s ease;
 }

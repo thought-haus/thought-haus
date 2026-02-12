@@ -7,6 +7,7 @@ import { saveStatus, wordCount, countWords } from "../editor/editor-state.ts";
 import { debounce } from "../lib/debounce.ts";
 import { updateInIndex } from "../search/search-engine.ts";
 import { renameNote } from "../notes/note-actions.ts";
+import { X } from "lucide-preact";
 import type { Editor } from "@tiptap/core";
 import styles from "./editor-view.module.css";
 
@@ -253,7 +254,7 @@ export function EditorView_({ onDelete }: EditorViewProps) {
                   onClick={() => removeTag(tag)}
                   aria-label={`Remove tag ${tag}`}
                 >
-                  ×
+                  <X size={12} />
                 </button>
               </span>
             ))}
