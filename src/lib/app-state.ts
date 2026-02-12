@@ -2,6 +2,9 @@ import { signal, computed } from "@preact/signals";
 
 export type AppView = "onboarding" | "re-permission" | "main";
 
+export type SortMode = "created" | "title" | "modified";
+export type SortDirection = "asc" | "desc";
+
 export type ThemeMode = "light" | "dark" | "system";
 
 const THEME_KEY = "noti-theme";
@@ -54,6 +57,43 @@ export function initTheme() {
         if (themeMode.value === "system") applyTheme();
       });
   }
+}
+
+/** The current sort mode for the note list. */
+export const sortMode = signal<SortMode>("created");
+
+/** The current sort direction. */
+export const sortDirection = signal<SortDirection>("desc");
+
+const SORT_KEY = "noti-sort";
+
+export const SORT_DEFAULTS: Record<SortMode, SortDirection> = {
+  created: "desc",
+  title: "asc",
+  modified: "desc",
+};
+
+/** Set the sort mode and direction, persisting to localStorage. */
+export function setSort(mode: SortMode, direction: SortDirection): void {
+  sortMode.value = mode;
+  sortDirection.value = direction;
+  try {
+    localStorage.setItem(SORT_KEY, JSON.stringify({ field: mode, direction }));
+  } catch { /* localStorage unavailable */ }
+}
+
+/** Initialize sort from localStorage. */
+export function initSort(): void {
+  try {
+    const raw = localStorage.getItem(SORT_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed.field in SORT_DEFAULTS) {
+        sortMode.value = parsed.field;
+        sortDirection.value = parsed.direction === "asc" ? "asc" : "desc";
+      }
+    }
+  } catch { /* corrupt or unavailable */ }
 }
 
 /** The current top-level view of the app. */

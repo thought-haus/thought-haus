@@ -6,6 +6,7 @@ import {
   directoryHandle,
   savedHandle,
   initTheme,
+  initSort,
 } from "../lib/app-state.ts";
 import { isFileSystemAccessSupported } from "../lib/browser.ts";
 import {
@@ -110,6 +111,7 @@ async function tryRestoreSession(): Promise<void> {
 export function App() {
   useEffect(() => {
     initTheme();
+    initSort();
     startRouter();
     tryRestoreSession();
   }, []);
