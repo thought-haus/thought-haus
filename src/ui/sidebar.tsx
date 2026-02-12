@@ -7,7 +7,7 @@ import {
   activeTagFilter,
   getNote,
 } from "../notes/note-store.ts";
-import { getDateGroup } from "../lib/date.ts";
+import { getDateGroup, getModifiedDateGroup } from "../lib/date.ts";
 import {
   executeSearch,
   clearSearch,
@@ -15,9 +15,16 @@ import {
   searchResults,
   isSearchActive,
 } from "../search/search-engine.ts";
-import { themeMode, setTheme } from "../lib/app-state.ts";
+import {
+  themeMode,
+  setTheme,
+  sortMode,
+  sortDirection,
+  setSort,
+  SORT_DEFAULTS,
+} from "../lib/app-state.ts";
 import { agentPanelOpen } from "../agent/agent-state.ts";
-import type { ThemeMode } from "../lib/app-state.ts";
+import type { ThemeMode, SortMode } from "../lib/app-state.ts";
 import type { Note } from "../notes/note.ts";
 import styles from "./sidebar.module.css";
 
@@ -95,6 +102,81 @@ function ThemeToggle() {
   );
 }
 
+const SORT_CYCLE: SortMode[] = ["created", "title", "modified"];
+const SORT_LABELS: Record<SortMode, string> = {
+  created: "Date created",
+  title: "Title",
+  modified: "Last modified",
+};
+const DIR_LABELS: Record<string, string> = {
+  asc: "oldest first",
+  desc: "newest first",
+  "title-asc": "A → Z",
+  "title-desc": "Z → A",
+};
+
+function getSortDirLabel(mode: SortMode, dir: string): string {
+  if (mode === "title") return DIR_LABELS[`title-${dir}`];
+  return DIR_LABELS[dir];
+}
+
+function SortButton() {
+  const mode = sortMode.value;
+  const dir = sortDirection.value;
+  const next = SORT_CYCLE[(SORT_CYCLE.indexOf(mode) + 1) % SORT_CYCLE.length];
+  const isNonDefault = mode !== "created" || dir !== "desc";
+
+  const handleClick = () => {
+    setSort(next, SORT_DEFAULTS[next]);
+  };
+
+  const handleContextMenu = (e: MouseEvent) => {
+    e.preventDefault();
+    setSort(mode, dir === "asc" ? "desc" : "asc");
+  };
+
+  return (
+    <button
+      class={`${styles.sortBtn} ${isNonDefault ? styles.sortBtnActive : ""}`}
+      onClick={handleClick}
+      onContextMenu={handleContextMenu}
+      title={`Sort: ${SORT_LABELS[mode]} (${getSortDirLabel(mode, dir)}) · Right-click to reverse`}
+      aria-label={`Sort by ${SORT_LABELS[mode]}`}
+    >
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        {mode === "created" && (
+          <>
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </>
+        )}
+        {mode === "title" && (
+          <>
+            <line x1="4" y1="6" x2="16" y2="6" />
+            <line x1="4" y1="12" x2="13" y2="12" />
+            <line x1="4" y1="18" x2="10" y2="18" />
+          </>
+        )}
+        {mode === "modified" && (
+          <>
+            <path d="M12 20h9" />
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+          </>
+        )}
+      </svg>
+      {dir === "asc" ? (
+        <svg width="6" height="6" viewBox="0 0 12 12" fill="currentColor" style="position:absolute;bottom:2px;right:2px;">
+          <path d="M6 2L10 8H2z" />
+        </svg>
+      ) : (
+        <svg width="6" height="6" viewBox="0 0 12 12" fill="currentColor" style="position:absolute;bottom:2px;right:2px;">
+          <path d="M6 10L2 4H10z" />
+        </svg>
+      )}
+    </button>
+  );
+}
+
 interface SidebarProps {
   selectedNoteId: string | null;
   onSelectNote: (id: string) => void;
@@ -112,12 +194,19 @@ export function Sidebar({ selectedNoteId, onSelectNote, onNewNote }: SidebarProp
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
 
-  // Group notes by date
+  // Group notes by date (or flat for title sort)
   const grouped = useComputed(() => {
+    const mode = sortMode.value;
+    if (mode === "title") {
+      return [{ label: "", notes: filteredNotes.value }];
+    }
+
     const groups: { label: string; notes: Note[] }[] = [];
     let currentLabel = "";
     for (const note of filteredNotes.value) {
-      const label = getDateGroup(note.createdAt);
+      const label = mode === "modified"
+        ? getModifiedDateGroup(new Date(note.lastModified))
+        : getDateGroup(note.createdAt);
       if (label !== currentLabel) {
         currentLabel = label;
         groups.push({ label, notes: [] });
@@ -256,14 +345,17 @@ export function Sidebar({ selectedNoteId, onSelectNote, onNewNote }: SidebarProp
               >
                 All Notes ({count})
               </button>
-              <button
-                class={styles.newNoteBtn}
-                onClick={onNewNote}
-                title="New note (Cmd/Ctrl+N)"
-                aria-label="New note"
-              >
-                +
-              </button>
+              <div class={styles.sectionActions}>
+                <SortButton />
+                <button
+                  class={styles.newNoteBtn}
+                  onClick={onNewNote}
+                  title="New note (Cmd/Ctrl+N)"
+                  aria-label="New note"
+                >
+                  +
+                </button>
+              </div>
             </div>
           </div>
 
@@ -294,8 +386,8 @@ export function Sidebar({ selectedNoteId, onSelectNote, onNewNote }: SidebarProp
               <div class={styles.emptyState}>No notes yet</div>
             ) : (
               grouped.value.map((group) => (
-                <div key={group.label}>
-                  <div class={styles.dateGroup}>{group.label}</div>
+                <div key={group.label || "_flat"}>
+                  {group.label && <div class={styles.dateGroup}>{group.label}</div>}
                   {group.notes.map((note) => (
                     <NoteItem
                       key={note.id}
