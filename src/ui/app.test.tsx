@@ -91,7 +91,7 @@ describe("App", () => {
   it("shows main layout when view is main", () => {
     appView.value = "main";
     render(<App />);
-    expect(screen.getByPlaceholderText("Search notes... (Cmd+K)")).toBeInTheDocument();
+    expect(screen.getByLabelText("Search notes")).toBeInTheDocument();
     expect(
       screen.getByText("Select a note or create a new one"),
     ).toBeInTheDocument();

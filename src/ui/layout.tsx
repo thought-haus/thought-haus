@@ -11,17 +11,19 @@ import { agentPanelOpen } from "../agent/agent-state.ts";
 import { getNote } from "../notes/note-store.ts";
 import { createNote, deleteNote } from "../notes/note-actions.ts";
 import { toggleFavorite } from "../favorites/favorite-store.ts";
-import { Sidebar } from "./sidebar.tsx";
+import { NavSidebar } from "./nav-sidebar.tsx";
+import { NotesList } from "./sidebar.tsx";
 import { EditorView } from "./editor-view.tsx";
 import { AgentPanel } from "./agent-panel.tsx";
 import styles from "./layout.module.css";
 
-const MIN_SIDEBAR_WIDTH = 200;
-const MAX_SIDEBAR_WIDTH = 800;
+const NAV_SIDEBAR_WIDTH = 220;
+const MIN_NOTES_LIST_WIDTH = 200;
+const MAX_NOTES_LIST_WIDTH = 800;
 const MIN_AGENT_PANEL_WIDTH = 280;
 const MAX_AGENT_PANEL_WIDTH = 900;
 
-type ResizeTarget = "sidebar" | "agentPanel" | null;
+type ResizeTarget = "notesList" | "agentPanel" | null;
 
 export function Layout() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -30,11 +32,11 @@ export function Layout() {
   const startXRef = useRef(0);
   const startWidthRef = useRef(0);
 
-  const handleSidebarResizeStart = useCallback((e: MouseEvent) => {
+  const handleNotesListResizeStart = useCallback((e: MouseEvent) => {
     e.preventDefault();
     startXRef.current = e.clientX;
     startWidthRef.current = sidebarWidth.value;
-    resizeTargetRef.current = "sidebar";
+    resizeTargetRef.current = "notesList";
     setIsResizing(true);
   }, []);
 
@@ -50,9 +52,9 @@ export function Layout() {
     if (!isResizing) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (resizeTargetRef.current === "sidebar") {
+      if (resizeTargetRef.current === "notesList") {
         const delta = e.clientX - startXRef.current;
-        const newWidth = Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, startWidthRef.current + delta));
+        const newWidth = Math.min(MAX_NOTES_LIST_WIDTH, Math.max(MIN_NOTES_LIST_WIDTH, startWidthRef.current + delta));
         sidebarWidth.value = newWidth;
       } else if (resizeTargetRef.current === "agentPanel") {
         // Dragging left increases width for the right panel
@@ -63,7 +65,7 @@ export function Layout() {
     };
 
     const handleMouseUp = () => {
-      if (resizeTargetRef.current === "sidebar") {
+      if (resizeTargetRef.current === "notesList") {
         setSidebarWidth(sidebarWidth.value);
       } else if (resizeTargetRef.current === "agentPanel") {
         setAgentPanelWidth(agentPanelWidth.value);
@@ -130,16 +132,22 @@ export function Layout() {
     <div class={`${styles.layout} ${isResizing ? styles.layoutResizing : ""}`}>
       {!sidebarCollapsed.value && (
         <>
-          <div style={{ width: `${sidebarWidth.value}px`, minWidth: `${sidebarWidth.value}px` }}>
-            <Sidebar
+          <div style={{ width: `${NAV_SIDEBAR_WIDTH}px`, minWidth: `${NAV_SIDEBAR_WIDTH}px` }}>
+            <NavSidebar
               selectedNoteId={selectedNoteId.value}
-              onSelectNote={(id) => (selectedNoteId.value = id)}
+              onSelectNote={(id: string) => (selectedNoteId.value = id)}
+            />
+          </div>
+          <div style={{ width: `${sidebarWidth.value}px`, minWidth: `${sidebarWidth.value}px` }}>
+            <NotesList
+              selectedNoteId={selectedNoteId.value}
+              onSelectNote={(id: string) => (selectedNoteId.value = id)}
               onNewNote={handleNewNote}
             />
           </div>
           <div
-            class={`${styles.resizeHandle} ${isResizing && resizeTargetRef.current === "sidebar" ? styles.resizeHandleActive : ""}`}
-            onMouseDown={handleSidebarResizeStart}
+            class={`${styles.resizeHandle} ${isResizing && resizeTargetRef.current === "notesList" ? styles.resizeHandleActive : ""}`}
+            onMouseDown={handleNotesListResizeStart}
           />
         </>
       )}

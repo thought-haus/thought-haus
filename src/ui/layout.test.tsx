@@ -21,7 +21,7 @@ describe("Layout", () => {
 
   it("renders the sidebar with search bar", () => {
     render(<Layout />);
-    expect(screen.getByPlaceholderText("Search notes... (Cmd+K)")).toBeInTheDocument();
+    expect(screen.getByLabelText("Search notes")).toBeInTheDocument();
   });
 
   it("renders the editor placeholder when no note selected", () => {
@@ -44,18 +44,18 @@ describe("Layout", () => {
   it("hides sidebar when sidebarCollapsed is true", () => {
     sidebarCollapsed.value = true;
     render(<Layout />);
-    expect(screen.queryByPlaceholderText("Search notes... (Cmd+K)")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Search notes")).not.toBeInTheDocument();
   });
 
   it("shows sidebar when sidebarCollapsed is false", () => {
     sidebarCollapsed.value = false;
     render(<Layout />);
-    expect(screen.getByPlaceholderText("Search notes... (Cmd+K)")).toBeInTheDocument();
+    expect(screen.getByLabelText("Search notes")).toBeInTheDocument();
   });
 
   it("toggles sidebar with Cmd+\\", () => {
     render(<Layout />);
-    expect(screen.getByPlaceholderText("Search notes... (Cmd+K)")).toBeInTheDocument();
+    expect(screen.getByLabelText("Search notes")).toBeInTheDocument();
 
     fireEvent.keyDown(window, { key: "\\", metaKey: true });
     expect(sidebarCollapsed.value).toBe(true);

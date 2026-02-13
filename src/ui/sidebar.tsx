@@ -3,7 +3,6 @@ import { useRef, useEffect, useState } from "preact/hooks";
 import {
   filteredNotes,
   noteCount,
-  tagCounts,
   activeTagFilter,
   getNote,
 } from "../notes/note-store.ts";
@@ -16,37 +15,21 @@ import {
   isSearchActive,
 } from "../search/search-engine.ts";
 import {
-  themeMode,
-  setTheme,
   sortMode,
   sortDirection,
   setSort,
   SORT_DEFAULTS,
 } from "../lib/app-state.ts";
-import { agentPanelOpen } from "../agent/agent-state.ts";
 import {
-  favoriteNotes,
-  favoritesCollapsed,
-  setFavoritesCollapsed,
-  moveFavorite,
-  removeFavorite,
-} from "../favorites/favorite-store.ts";
-import {
-  Sun,
-  Moon,
-  Monitor,
   Clock,
   ArrowDownAZ,
   PenLine,
   ChevronUp,
   ChevronDown,
-  ChevronRight,
   Plus,
   X,
-  Bot,
-  Star,
 } from "lucide-preact";
-import type { ThemeMode, SortMode } from "../lib/app-state.ts";
+import type { SortMode } from "../lib/app-state.ts";
 import type { Note } from "../notes/note.ts";
 import styles from "./sidebar.module.css";
 
@@ -76,207 +59,6 @@ function NoteItem({ note, isSelected, onSelect }: NoteItemProps) {
   );
 }
 
-// Module-level DnD state (not reactive — avoids re-renders during drag)
-let dragFromIndex = -1;
-
-interface FavoriteItemProps {
-  note: Note;
-  index: number;
-  isSelected: boolean;
-  onSelect: (id: string) => void;
-  onRemove: (id: string) => void;
-}
-
-function FavoriteItem({ note, index, isSelected, onSelect, onRemove }: FavoriteItemProps) {
-  const [dropPosition, setDropPosition] = useState<"above" | "below" | null>(null);
-  const totalCount = favoriteNotes.value.length;
-
-  return (
-    <button
-      class={`${styles.favoriteItem} ${isSelected ? styles.favoriteItemSelected : ""}`}
-      draggable
-      role="listitem"
-      aria-label={`${note.title}, favorited`}
-      onDragStart={() => { dragFromIndex = index; }}
-      onDragOver={(e) => {
-        e.preventDefault();
-        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-        setDropPosition(e.clientY < rect.top + rect.height / 2 ? "above" : "below");
-      }}
-      onDragLeave={() => setDropPosition(null)}
-      onDrop={(e) => {
-        e.preventDefault();
-        setDropPosition(null);
-        const toIndex = dropPosition === "above" ? index : index + 1;
-        if (dragFromIndex !== -1 && dragFromIndex !== toIndex) {
-          moveFavorite(dragFromIndex, toIndex > dragFromIndex ? toIndex - 1 : toIndex);
-        }
-        dragFromIndex = -1;
-      }}
-      onDragEnd={() => { dragFromIndex = -1; setDropPosition(null); }}
-      onClick={() => onSelect(note.id)}
-      onKeyDown={(e) => {
-        if (e.key === "Delete" || e.key === "Backspace") {
-          e.preventDefault();
-          onRemove(note.id);
-        }
-        if (e.ctrlKey && e.key === "ArrowUp" && index > 0) {
-          e.preventDefault();
-          moveFavorite(index, index - 1);
-        }
-        if (e.ctrlKey && e.key === "ArrowDown" && index < totalCount - 1) {
-          e.preventDefault();
-          moveFavorite(index, index + 1);
-        }
-      }}
-    >
-      {dropPosition === "above" && <div class={styles.dropIndicator} />}
-      <Star size={12} fill="currentColor" class={styles.favoriteStar} />
-      <div class={styles.favoriteContent}>
-        <div class={styles.noteTitle}>{note.title}</div>
-        {note.tags.length > 0 && (
-          <div class={styles.noteTags}>
-            {note.tags.map((tag) => (
-              <span key={tag} class={styles.tagPill}>{tag}</span>
-            ))}
-          </div>
-        )}
-      </div>
-      <button
-        class={styles.favoriteRemove}
-        onClick={(e) => { e.stopPropagation(); onRemove(note.id); }}
-        aria-label={`Remove ${note.title} from favorites`}
-      >
-        <X size={12} />
-      </button>
-      {dropPosition === "below" && <div class={styles.dropIndicator} />}
-    </button>
-  );
-}
-
-interface FavoritesSectionProps {
-  selectedNoteId: string | null;
-  onSelectNote: (id: string) => void;
-}
-
-function FavoritesSection({ selectedNoteId, onSelectNote }: FavoritesSectionProps) {
-  const favorites = favoriteNotes.value;
-  const collapsed = favoritesCollapsed.value;
-
-  if (favorites.length === 0) return null;
-
-  return (
-    <section class={styles.collapsibleSection} aria-label="Favorites">
-      <button
-        class={styles.collapsibleHeader}
-        onClick={() => setFavoritesCollapsed(!collapsed)}
-        aria-expanded={!collapsed}
-        aria-controls="favorites-list"
-      >
-        {collapsed
-          ? <ChevronRight size={10} />
-          : <ChevronDown size={10} />}
-        <span>Favorites ({favorites.length})</span>
-      </button>
-      {!collapsed && (
-        <div id="favorites-list" role="list" class={styles.favoritesList}>
-          {favorites.map((note, i) => (
-            <FavoriteItem
-              key={note.id}
-              note={note}
-              index={i}
-              isSelected={note.id === selectedNoteId}
-              onSelect={onSelectNote}
-              onRemove={removeFavorite}
-            />
-          ))}
-        </div>
-      )}
-    </section>
-  );
-}
-
-const TAGS_COLLAPSED_KEY = "noti-tags-collapsed";
-
-interface TagsSectionProps {
-  tags: Map<string, number>;
-  activeTag: string | null;
-}
-
-function TagsSection({ tags, activeTag }: TagsSectionProps) {
-  const [collapsed, setCollapsed] = useState(() => {
-    try {
-      return localStorage.getItem(TAGS_COLLAPSED_KEY) === "true";
-    } catch { return false; }
-  });
-
-  const toggle = () => {
-    const next = !collapsed;
-    setCollapsed(next);
-    try { localStorage.setItem(TAGS_COLLAPSED_KEY, String(next)); } catch { /* */ }
-  };
-
-  return (
-    <section class={styles.collapsibleSection} aria-label="Tags">
-      <button
-        class={styles.collapsibleHeader}
-        onClick={toggle}
-        aria-expanded={!collapsed}
-        aria-controls="tags-list"
-      >
-        {collapsed
-          ? <ChevronRight size={10} />
-          : <ChevronDown size={10} />}
-        <span>Tags ({tags.size})</span>
-      </button>
-      {!collapsed && (
-        <div id="tags-list" class={styles.tagList}>
-          {Array.from(tags.entries())
-            .sort((a, b) => a[0].localeCompare(b[0]))
-            .map(([tag, tagCount]) => (
-              <button
-                key={tag}
-                class={`${styles.tagFilter} ${activeTag === tag ? styles.tagFilterActive : ""}`}
-                onClick={() =>
-                  (activeTagFilter.value =
-                    activeTag === tag ? null : tag)
-                }
-              >
-                {tag} ({tagCount})
-              </button>
-            ))}
-        </div>
-      )}
-    </section>
-  );
-}
-
-const THEME_CYCLE: ThemeMode[] = ["light", "dark", "system"];
-const THEME_LABELS: Record<ThemeMode, string> = {
-  light: "Light",
-  dark: "Dark",
-  system: "System",
-};
-
-function ThemeToggle() {
-  const mode = themeMode.value;
-  const next = THEME_CYCLE[(THEME_CYCLE.indexOf(mode) + 1) % THEME_CYCLE.length];
-
-  return (
-    <button
-      class={styles.themeToggle}
-      onClick={() => setTheme(next)}
-      title={`Theme: ${THEME_LABELS[mode]} (click for ${THEME_LABELS[next]})`}
-      aria-label={`Switch theme to ${THEME_LABELS[next]}`}
-    >
-      {mode === "light" && <Sun size={14} />}
-      {mode === "dark" && <Moon size={14} />}
-      {mode === "system" && <Monitor size={14} />}
-      <span>{THEME_LABELS[mode]}</span>
-    </button>
-  );
-}
-
 const SORT_CYCLE: SortMode[] = ["created", "title", "modified"];
 const SORT_LABELS: Record<SortMode, string> = {
   created: "Date created",
@@ -286,8 +68,8 @@ const SORT_LABELS: Record<SortMode, string> = {
 const DIR_LABELS: Record<string, string> = {
   asc: "oldest first",
   desc: "newest first",
-  "title-asc": "A → Z",
-  "title-desc": "Z → A",
+  "title-asc": "A \u2192 Z",
+  "title-desc": "Z \u2192 A",
 };
 
 function getSortDirLabel(mode: SortMode, dir: string): string {
@@ -315,7 +97,7 @@ function SortButton() {
       class={`${styles.sortBtn} ${isNonDefault ? styles.sortBtnActive : ""}`}
       onClick={handleClick}
       onContextMenu={handleContextMenu}
-      title={`Sort: ${SORT_LABELS[mode]} (${getSortDirLabel(mode, dir)}) · Right-click to reverse`}
+      title={`Sort: ${SORT_LABELS[mode]} (${getSortDirLabel(mode, dir)}) \u00b7 Right-click to reverse`}
       aria-label={`Sort by ${SORT_LABELS[mode]}`}
     >
       {mode === "created" && <Clock size={14} />}
@@ -330,16 +112,15 @@ function SortButton() {
   );
 }
 
-interface SidebarProps {
+interface NotesListProps {
   selectedNoteId: string | null;
   onSelectNote: (id: string) => void;
   onNewNote: () => void;
 }
 
-export function Sidebar({ selectedNoteId, onSelectNote, onNewNote }: SidebarProps) {
+export function NotesList({ selectedNoteId, onSelectNote, onNewNote }: NotesListProps) {
   const notes = filteredNotes.value;
   const count = noteCount.value;
-  const tags = tagCounts.value;
   const activeTag = activeTagFilter.value;
   const query = searchQuery.value;
   const results = searchResults.value;
@@ -427,7 +208,7 @@ export function Sidebar({ selectedNoteId, onSelectNote, onNewNote }: SidebarProp
           class={styles.searchInput}
           type="text"
           value={query}
-          placeholder="Search notes... (Cmd+K)"
+          placeholder="Search... (⌘K)"
           aria-label="Search notes"
           onInput={handleSearchInput}
           onKeyDown={(e) => {
@@ -489,78 +270,54 @@ export function Sidebar({ selectedNoteId, onSelectNote, onNewNote }: SidebarProp
           )}
         </div>
       ) : (
-        <>
-          {/* Zone 1: Navigation & filtering */}
-          <div class={styles.navZone}>
-            {tags.size > 0 && (
-              <TagsSection tags={tags} activeTag={activeTag} />
-            )}
-            <FavoritesSection selectedNoteId={selectedNoteId} onSelectNote={onSelectNote} />
-          </div>
-
-          {/* Zone 2: Note list */}
-          <div class={styles.noteList} aria-label="Note list">
-            <div class={styles.listHeader}>
-              {activeTag ? (
-                <button
-                  class={styles.listLabelBtn}
-                  onClick={() => (activeTagFilter.value = null)}
-                  title="Click to show all notes"
-                >
-                  <span class={styles.listLabel}>{activeTag}</span>
-                  <span class={styles.listCount}>({notes.length})</span>
-                  <X size={10} class={styles.listClearIcon} />
-                </button>
-              ) : (
-                <span class={styles.listLabel}>
-                  All Notes <span class={styles.listCount}>({count})</span>
-                </span>
-              )}
-              <div class={styles.listActions}>
-                <SortButton />
-                <button
-                  class={styles.newNoteBtn}
-                  onClick={onNewNote}
-                  title="New note (Cmd/Ctrl+N)"
-                  aria-label="New note"
-                >
-                  <Plus size={16} />
-                </button>
-              </div>
-            </div>
-            {notes.length === 0 ? (
-              <div class={styles.emptyState}>No notes yet</div>
+        <div class={styles.noteList} aria-label="Note list">
+          <div class={styles.listHeader}>
+            {activeTag ? (
+              <button
+                class={styles.listLabelBtn}
+                onClick={() => (activeTagFilter.value = null)}
+                title="Click to show all notes"
+              >
+                <span class={styles.listLabel}>{activeTag}</span>
+                <span class={styles.listCount}>({notes.length})</span>
+                <X size={10} class={styles.listClearIcon} />
+              </button>
             ) : (
-              grouped.value.map((group) => (
-                <div key={group.label || "_flat"}>
-                  {group.label && <div class={styles.dateGroup}>{group.label}</div>}
-                  {group.notes.map((note) => (
-                    <NoteItem
-                      key={note.id}
-                      note={note}
-                      isSelected={note.id === selectedNoteId}
-                      onSelect={onSelectNote}
-                    />
-                  ))}
-                </div>
-              ))
+              <span class={styles.listLabel}>
+                All Notes <span class={styles.listCount}>({count})</span>
+              </span>
             )}
+            <div class={styles.listActions}>
+              <SortButton />
+              <button
+                class={styles.newNoteBtn}
+                onClick={onNewNote}
+                title="New note (Cmd/Ctrl+N)"
+                aria-label="New note"
+              >
+                <Plus size={16} />
+              </button>
+            </div>
           </div>
-        </>
+          {notes.length === 0 ? (
+            <div class={styles.emptyState}>No notes yet</div>
+          ) : (
+            grouped.value.map((group) => (
+              <div key={group.label || "_flat"}>
+                {group.label && <div class={styles.dateGroup}>{group.label}</div>}
+                {group.notes.map((note) => (
+                  <NoteItem
+                    key={note.id}
+                    note={note}
+                    isSelected={note.id === selectedNoteId}
+                    onSelect={onSelectNote}
+                  />
+                ))}
+              </div>
+            ))
+          )}
+        </div>
       )}
-
-      <div class={styles.sidebarFooter}>
-        <ThemeToggle />
-        <button
-          class={styles.aiToggle}
-          onClick={() => (agentPanelOpen.value = !agentPanelOpen.value)}
-          title="AI Assistant (Cmd+Shift+A)"
-          aria-label="Toggle AI assistant"
-        >
-          <Bot size={14} />
-          <span>AI</span>
-        </button>
-      </div>
     </aside>
   );
 }
