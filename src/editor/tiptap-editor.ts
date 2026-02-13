@@ -8,16 +8,20 @@ import Placeholder from "@tiptap/extension-placeholder";
 import Typography from "@tiptap/extension-typography";
 import { NoteLink } from "./extensions/note-link.ts";
 import { LinkEdit } from "./extensions/link-edit.ts";
+import { AttachmentImage } from "./extensions/attachment-image.ts";
+import { AttachmentCard } from "./extensions/attachment-card.ts";
+import { FileDrop } from "./extensions/file-drop.ts";
 import "./tiptap-theme.css";
 
 export interface EditorConfig {
   parent: HTMLElement;
   content: string;
   onChange: (text: string) => void;
+  onFileDrop?: (files: File[], pos: number) => void;
 }
 
 /** Create a TipTap editor instance with Markdown support. */
-export function createEditor({ parent, content, onChange }: EditorConfig): Editor {
+export function createEditor({ parent, content, onChange, onFileDrop }: EditorConfig): Editor {
   return new Editor({
     element: parent,
     content,
@@ -32,6 +36,9 @@ export function createEditor({ parent, content, onChange }: EditorConfig): Edito
         shouldAutoLink: (url: string) => /^https?:\/\//i.test(url),
         HTMLAttributes: { rel: "noopener noreferrer" },
       }),
+      AttachmentImage,
+      AttachmentCard,
+      FileDrop.configure({ onFileDrop: onFileDrop ?? (() => {}) }),
       TaskList,
       TaskItem.configure({ nested: true }),
       Placeholder.configure({ placeholder: "Start writing..." }),
