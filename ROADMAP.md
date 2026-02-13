@@ -53,7 +53,7 @@ _User stories: US-2, US-4, US-6_
 The core loop: create a note, write in it, have it saved, delete what you don't
 need. This is where the app becomes genuinely useful.
 
-- [x] Set up CodeMirror 6 with Markdown syntax highlighting
+- [x] Set up TipTap with Markdown editing
 - [x] Click note in sidebar loads its content into the editor
 - [x] Track selected note in app state; highlight in sidebar
 - [x] New note creation via `+` button and `Cmd/Ctrl+N`

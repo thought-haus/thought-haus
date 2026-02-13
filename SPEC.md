@@ -118,7 +118,7 @@ files are ignored.
    modal dialogs. Auto-generate filename from timestamp + title. File written to
    disk on first save with front matter.
 
-4. **Markdown editing with auto-save** — CodeMirror 6 editor with Markdown
+4. **Markdown editing with auto-save** — TipTap editor with Markdown
    syntax highlighting. Debounced auto-save (1–2s after last keystroke). Save on
    blur for minimal data loss. Best-effort save on `beforeunload`. Visual save
    status indicator.
@@ -274,7 +274,7 @@ new/deleted/modified files._
 
 1. Title — large, editable, changes sync to filename on save
 2. Metadata bar — editable tag pills + creation date, subtle
-3. Editor body — CodeMirror 6 with Markdown syntax highlighting
+3. Editor body — TipTap with Markdown editing
 4. Status bar — word count, save status, minimal
 
 **Sidebar:** Default 280px, resizable, collapsible via `Cmd/Ctrl+\`. On narrow
@@ -308,7 +308,7 @@ viewports (<768px), overlays as slide-out panel.
 
 **Editing:**
 
-- Standard Markdown syntax highlighting via CodeMirror 6
+- Standard Markdown editing via TipTap
 - Minimal formatting toolbar for non-Markdown users
 - No split pane, no mode switching
 
@@ -323,16 +323,15 @@ viewports (<768px), overlays as slide-out panel.
 | Build        | Vite + TypeScript | —           | Given requirement. Fast HMR, ESM-native.                              |
 | UI Framework | Preact + Signals  | ~5 KB       | React-compatible API, fine-grained reactivity, tiny footprint         |
 | CSS          | CSS Modules       | 0 KB        | Scoped styles via Vite, zero runtime cost                             |
-| Editor       | CodeMirror 6      | ~50 KB      | Markdown-native, modular, used by Obsidian, virtual viewport for perf |
+| Editor       | TipTap            | ~50 KB      | ProseMirror-based, extensible, rich-text Markdown editing             |
 | Search       | MiniSearch        | ~8 KB       | Full-text indexing, fuzzy search, prefix search, field boosting       |
 | **Total JS** |                   | **~100 KB** | Well under 150 KB budget                                              |
 
 **Why Preact:** 3 KB vs React's 40+ KB. React-compat layer available. Signals
 provide fine-grained reactivity without Redux/Zustand boilerplate.
 
-**Why CodeMirror 6:** Markdown-first, composable extensions, virtual viewport
-(handles large docs), TypeScript-native, battle-tested (Obsidian, Replit, Chrome
-DevTools). Extensible for future features.
+**Why TipTap:** ProseMirror-based, rich extension ecosystem, structured document
+model, TypeScript-native, widely adopted. Extensible for future features.
 
 **Why MiniSearch:** 8 KB gzipped, zero dependencies. True full-text search with
 fuzzy matching, prefix search, and field-weighted boosting. Supports incremental
@@ -365,7 +364,7 @@ src/
     search-index.ts       # Index lifecycle: build, update, persist to IndexedDB
 
   editor/                 # Editor Layer
-    editor.ts             # CodeMirror 6 setup and configuration
+    editor.ts             # TipTap editor setup and configuration
     keybindings.ts        # Custom keybindings
 
   ui/                     # UI Layer (Preact)
@@ -402,7 +401,7 @@ src/
 [UI Layer] ── renders note list, search results, tags from store
        │
        ▼
-[Editor Layer] ── loads note content into CodeMirror, emits changes
+[Editor Layer] ── loads note content into TipTap, emits changes
        │
        ▼
 [FS Layer] ── debounced write back to file (1–2s)
