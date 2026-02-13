@@ -22,6 +22,8 @@ function mockBackend(
     readBinaryURL: vi.fn(() => Promise.resolve("blob:test")),
     listDir: vi.fn(() => Promise.resolve([])),
     deleteDir: vi.fn(() => Promise.resolve()),
+    readFromDir: vi.fn(() => Promise.reject(new Error("not found"))),
+    writeToDir: vi.fn(() => Promise.resolve()),
     disconnect: vi.fn(),
   };
 }

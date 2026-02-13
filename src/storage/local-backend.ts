@@ -98,6 +98,21 @@ export class LocalBackend implements StorageBackend {
     }
   }
 
+  async readFromDir(dir: string, filename: string): Promise<string> {
+    const subDir = await this.dirHandle.getDirectoryHandle(dir);
+    const fileHandle = await subDir.getFileHandle(filename);
+    const file = await fileHandle.getFile();
+    return file.text();
+  }
+
+  async writeToDir(dir: string, filename: string, content: string): Promise<void> {
+    const subDir = await this.dirHandle.getDirectoryHandle(dir, { create: true });
+    const fileHandle = await subDir.getFileHandle(filename, { create: true });
+    const writable = await fileHandle.createWritable();
+    await writable.write(content);
+    await writable.close();
+  }
+
   disconnect(): void {
     this.handleCache.clear();
   }

@@ -29,6 +29,11 @@ export interface StorageBackend {
   /** Recursively delete a subdirectory. Silently no-ops if not found. */
   deleteDir(dir: string): Promise<void>;
 
+  /** Read a text file from a subdirectory. */
+  readFromDir(dir: string, filename: string): Promise<string>;
+  /** Write a text file to a subdirectory (creates dir if needed). */
+  writeToDir(dir: string, filename: string, content: string): Promise<void>;
+
   /** Optional: native FS change events (e.g. FileSystemObserver). Returns cleanup. */
   onExternalChange?(callback: () => void): () => void;
 }
