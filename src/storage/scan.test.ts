@@ -18,6 +18,10 @@ function mockBackend(
     getMetadata: vi.fn(() =>
       Promise.resolve({ lastModified: Date.now(), size: 0 }),
     ),
+    writeBinary: vi.fn(() => Promise.resolve()),
+    readBinaryURL: vi.fn(() => Promise.resolve("blob:test")),
+    listDir: vi.fn(() => Promise.resolve([])),
+    deleteDir: vi.fn(() => Promise.resolve()),
     disconnect: vi.fn(),
   };
 }

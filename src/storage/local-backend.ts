@@ -60,6 +60,44 @@ export class LocalBackend implements StorageBackend {
     return { lastModified: file.lastModified, size: file.size };
   }
 
+  async writeBinary(dir: string, filename: string, data: Blob): Promise<void> {
+    const subDir = await this.dirHandle.getDirectoryHandle(dir, { create: true });
+    const fileHandle = await subDir.getFileHandle(filename, { create: true });
+    const writable = await fileHandle.createWritable();
+    await writable.write(data);
+    await writable.close();
+  }
+
+  async readBinaryURL(dir: string, filename: string): Promise<string> {
+    const subDir = await this.dirHandle.getDirectoryHandle(dir);
+    const fileHandle = await subDir.getFileHandle(filename);
+    const file = await fileHandle.getFile();
+    return URL.createObjectURL(file);
+  }
+
+  async listDir(dir: string): Promise<FileEntry[]> {
+    try {
+      const subDir = await this.dirHandle.getDirectoryHandle(dir);
+      const entries: FileEntry[] = [];
+      for await (const [name, handle] of subDir.entries()) {
+        if (handle.kind !== "file") continue;
+        const file = await (handle as FileSystemFileHandle).getFile();
+        entries.push({ filename: name, lastModified: file.lastModified, size: file.size });
+      }
+      return entries;
+    } catch {
+      return [];
+    }
+  }
+
+  async deleteDir(dir: string): Promise<void> {
+    try {
+      await this.dirHandle.removeEntry(dir, { recursive: true });
+    } catch {
+      // silently ignore if not found
+    }
+  }
+
   disconnect(): void {
     this.handleCache.clear();
   }
