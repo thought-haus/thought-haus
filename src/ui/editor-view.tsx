@@ -7,7 +7,8 @@ import { saveStatus, wordCount, countWords } from "../editor/editor-state.ts";
 import { debounce } from "../lib/debounce.ts";
 import { updateInIndex } from "../search/search-engine.ts";
 import { renameNote } from "../notes/note-actions.ts";
-import { X } from "lucide-preact";
+import { saveAttachment } from "../attachments/attachment-service.ts";
+import { X, Paperclip } from "lucide-preact";
 import type { Editor } from "@tiptap/core";
 import styles from "./editor-view.module.css";
 
@@ -20,9 +21,39 @@ export function EditorView_({ onDelete }: EditorViewProps) {
   const editorInstanceRef = useRef<Editor | null>(null);
   const bodyRef = useRef("");
   const noteIdRef = useRef<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [tagInput, setTagInput] = useState("");
   const [showTagInput, setShowTagInput] = useState(false);
   const [titleDraft, setTitleDraft] = useState("");
+
+  const handleFiles = useCallback(async (files: File[], pos?: number) => {
+    const noteId = noteIdRef.current;
+    if (!noteId) return;
+    const note = getNote(noteId);
+    if (!note) return;
+    const editor = editorInstanceRef.current;
+    if (!editor) return;
+
+    for (const file of files) {
+      try {
+        const result = await saveAttachment(note, file);
+        const insertPos = pos ?? editor.state.selection.from;
+        if (result.isImage) {
+          editor.chain().focus().insertContentAt(insertPos, {
+            type: "image",
+            attrs: { src: result.relativePath, alt: result.originalName },
+          }).run();
+        } else {
+          editor.chain().focus().insertContentAt(insertPos, {
+            type: "attachmentCard",
+            attrs: { href: result.relativePath, label: result.originalName },
+          }).run();
+        }
+      } catch {
+        // ignore individual file errors
+      }
+    }
+  }, []);
 
   const saveNote = useCallback(async () => {
     const noteId = noteIdRef.current;
@@ -109,6 +140,7 @@ export function EditorView_({ onDelete }: EditorViewProps) {
           saveStatus.value = "unsaved";
           debouncedSave.current();
         },
+        onFileDrop: (files, pos) => handleFiles(files, pos),
       });
     })();
 
@@ -231,8 +263,28 @@ export function EditorView_({ onDelete }: EditorViewProps) {
             }}
             aria-label="Note title"
           />
-          {onDelete && (
-            <div class={styles.headerActions}>
+          <div class={styles.headerActions}>
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              class={styles.hiddenFileInput}
+              onChange={(e) => {
+                const files = Array.from((e.target as HTMLInputElement).files ?? []);
+                if (files.length > 0) handleFiles(files);
+                (e.target as HTMLInputElement).value = "";
+              }}
+            />
+            <button
+              class={styles.attachBtn}
+              onClick={() => fileInputRef.current?.click()}
+              title="Attach file"
+              aria-label="Attach file"
+            >
+              <Paperclip size={14} />
+              Attach
+            </button>
+            {onDelete && (
               <button
                 class={styles.deleteBtn}
                 onClick={onDelete}
@@ -241,8 +293,8 @@ export function EditorView_({ onDelete }: EditorViewProps) {
               >
                 Delete
               </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
         <div class={styles.metadata}>
           <div class={styles.tags}>
