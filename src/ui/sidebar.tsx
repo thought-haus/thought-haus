@@ -470,10 +470,10 @@ export function Sidebar({ selectedNoteId, onSelectNote, onNewNote }: SidebarProp
 
       {searching ? (
         <div class={styles.noteList} aria-label="Search results">
-          <div class={styles.section}>
-            <div class={styles.sectionLabel}>
+          <div class={styles.listHeader}>
+            <span class={styles.listLabel}>
               {results.length} result{results.length !== 1 ? "s" : ""}
-            </div>
+            </span>
           </div>
           {searchNotes.length === 0 ? (
             <div class={styles.emptyState}>No matching notes</div>
@@ -490,15 +490,33 @@ export function Sidebar({ selectedNoteId, onSelectNote, onNewNote }: SidebarProp
         </div>
       ) : (
         <>
-          <div class={styles.section}>
-            <div class={styles.sectionRow}>
-              <button
-                class={`${styles.sectionHeader} ${styles.allNotesBtn} ${!activeTag ? styles.allNotesBtnActive : ""}`}
-                onClick={() => (activeTagFilter.value = null)}
-              >
-                All Notes ({count})
-              </button>
-              <div class={styles.sectionActions}>
+          {/* Zone 1: Navigation & filtering */}
+          <div class={styles.navZone}>
+            {tags.size > 0 && (
+              <TagsSection tags={tags} activeTag={activeTag} />
+            )}
+            <FavoritesSection selectedNoteId={selectedNoteId} onSelectNote={onSelectNote} />
+          </div>
+
+          {/* Zone 2: Note list */}
+          <div class={styles.noteList} aria-label="Note list">
+            <div class={styles.listHeader}>
+              {activeTag ? (
+                <button
+                  class={styles.listLabelBtn}
+                  onClick={() => (activeTagFilter.value = null)}
+                  title="Click to show all notes"
+                >
+                  <span class={styles.listLabel}>{activeTag}</span>
+                  <span class={styles.listCount}>({notes.length})</span>
+                  <X size={10} class={styles.listClearIcon} />
+                </button>
+              ) : (
+                <span class={styles.listLabel}>
+                  All Notes <span class={styles.listCount}>({count})</span>
+                </span>
+              )}
+              <div class={styles.listActions}>
                 <SortButton />
                 <button
                   class={styles.newNoteBtn}
@@ -510,15 +528,6 @@ export function Sidebar({ selectedNoteId, onSelectNote, onNewNote }: SidebarProp
                 </button>
               </div>
             </div>
-          </div>
-
-          {tags.size > 0 && (
-            <TagsSection tags={tags} activeTag={activeTag} />
-          )}
-
-          <FavoritesSection selectedNoteId={selectedNoteId} onSelectNote={onSelectNote} />
-
-          <div class={styles.noteList} aria-label="Note list">
             {notes.length === 0 ? (
               <div class={styles.emptyState}>No notes yet</div>
             ) : (

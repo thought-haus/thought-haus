@@ -58,7 +58,8 @@ describe("Sidebar", () => {
         onNewNote={() => {}}
       />,
     );
-    expect(screen.getByText("All Notes (2)")).toBeInTheDocument();
+    expect(screen.getByText(/All Notes/)).toBeInTheDocument();
+    expect(screen.getByText("(2)")).toBeInTheDocument();
   });
 
   it("renders note titles in the list", () => {
@@ -171,7 +172,7 @@ describe("Sidebar", () => {
     expect(activeTagFilter.value).toBe("work");
   });
 
-  it("clears tag filter when All Notes is clicked", () => {
+  it("clears tag filter when active tag label is clicked", () => {
     activeTagFilter.value = "work";
     setNotes([makeNote({ id: "1", tags: ["work"] })]);
     render(
@@ -181,7 +182,8 @@ describe("Sidebar", () => {
         onNewNote={() => {}}
       />,
     );
-    fireEvent.click(screen.getByText(/All Notes/));
+    // When a tag is active, the list header shows the tag name as a clickable button
+    fireEvent.click(screen.getByTitle("Click to show all notes"));
     expect(activeTagFilter.value).toBeNull();
   });
 
