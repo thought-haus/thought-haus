@@ -8,6 +8,7 @@ import {
   setAgentPanelWidth,
 } from "../lib/app-state.ts";
 import { agentPanelOpen } from "../agent/agent-state.ts";
+import { openCommandPalette } from "../lib/command-palette-state.ts";
 import { getNote } from "../notes/note-store.ts";
 import { createNote, deleteNote } from "../notes/note-actions.ts";
 import { toggleFavorite } from "../favorites/favorite-store.ts";
@@ -15,6 +16,7 @@ import { NavSidebar } from "./nav-sidebar.tsx";
 import { NotesList } from "./sidebar.tsx";
 import { EditorView } from "./editor-view.tsx";
 import { AgentPanel } from "./agent-panel.tsx";
+import { CommandPalette } from "./command-palette.tsx";
 import styles from "./layout.module.css";
 
 const NAV_SIDEBAR_WIDTH = 220;
@@ -107,6 +109,10 @@ export function Layout() {
         e.preventDefault();
         createNote();
       }
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        openCommandPalette();
+      }
       if ((e.metaKey || e.ctrlKey) && e.key === "\\") {
         e.preventDefault();
         sidebarCollapsed.value = !sidebarCollapsed.value;
@@ -184,6 +190,7 @@ export function Layout() {
           </div>
         </div>
       )}
+      <CommandPalette />
     </div>
   );
 }

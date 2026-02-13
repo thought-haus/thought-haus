@@ -1,5 +1,5 @@
 import { useComputed } from "@preact/signals";
-import { useRef, useEffect, useState } from "preact/hooks";
+import { useRef, useState } from "preact/hooks";
 import {
   filteredNotes,
   noteCount,
@@ -150,17 +150,6 @@ export function NotesList({ selectedNoteId, onSelectNote, onNewNote }: NotesList
     return groups;
   });
 
-  // Cmd/Ctrl+K to focus search
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault();
-        searchInputRef.current?.focus();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
 
   const handleSearchInput = (e: Event) => {
     const value = (e.target as HTMLInputElement).value;
