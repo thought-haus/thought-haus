@@ -25,6 +25,13 @@ import {
 } from "../lib/app-state.ts";
 import { agentPanelOpen } from "../agent/agent-state.ts";
 import {
+  favoriteNotes,
+  favoritesCollapsed,
+  setFavoritesCollapsed,
+  moveFavorite,
+  removeFavorite,
+} from "../favorites/favorite-store.ts";
+import {
   Sun,
   Moon,
   Monitor,
@@ -33,9 +40,11 @@ import {
   PenLine,
   ChevronUp,
   ChevronDown,
+  ChevronRight,
   Plus,
   X,
   Bot,
+  Star,
 } from "lucide-preact";
 import type { ThemeMode, SortMode } from "../lib/app-state.ts";
 import type { Note } from "../notes/note.ts";
@@ -64,6 +73,181 @@ function NoteItem({ note, isSelected, onSelect }: NoteItemProps) {
         </div>
       )}
     </button>
+  );
+}
+
+// Module-level DnD state (not reactive — avoids re-renders during drag)
+let dragFromIndex = -1;
+
+interface FavoriteItemProps {
+  note: Note;
+  index: number;
+  isSelected: boolean;
+  onSelect: (id: string) => void;
+  onRemove: (id: string) => void;
+}
+
+function FavoriteItem({ note, index, isSelected, onSelect, onRemove }: FavoriteItemProps) {
+  const [dropPosition, setDropPosition] = useState<"above" | "below" | null>(null);
+  const totalCount = favoriteNotes.value.length;
+
+  return (
+    <button
+      class={`${styles.favoriteItem} ${isSelected ? styles.favoriteItemSelected : ""}`}
+      draggable
+      role="listitem"
+      aria-label={`${note.title}, favorited`}
+      onDragStart={() => { dragFromIndex = index; }}
+      onDragOver={(e) => {
+        e.preventDefault();
+        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+        setDropPosition(e.clientY < rect.top + rect.height / 2 ? "above" : "below");
+      }}
+      onDragLeave={() => setDropPosition(null)}
+      onDrop={(e) => {
+        e.preventDefault();
+        setDropPosition(null);
+        const toIndex = dropPosition === "above" ? index : index + 1;
+        if (dragFromIndex !== -1 && dragFromIndex !== toIndex) {
+          moveFavorite(dragFromIndex, toIndex > dragFromIndex ? toIndex - 1 : toIndex);
+        }
+        dragFromIndex = -1;
+      }}
+      onDragEnd={() => { dragFromIndex = -1; setDropPosition(null); }}
+      onClick={() => onSelect(note.id)}
+      onKeyDown={(e) => {
+        if (e.key === "Delete" || e.key === "Backspace") {
+          e.preventDefault();
+          onRemove(note.id);
+        }
+        if (e.ctrlKey && e.key === "ArrowUp" && index > 0) {
+          e.preventDefault();
+          moveFavorite(index, index - 1);
+        }
+        if (e.ctrlKey && e.key === "ArrowDown" && index < totalCount - 1) {
+          e.preventDefault();
+          moveFavorite(index, index + 1);
+        }
+      }}
+    >
+      {dropPosition === "above" && <div class={styles.dropIndicator} />}
+      <Star size={12} fill="currentColor" class={styles.favoriteStar} />
+      <div class={styles.favoriteContent}>
+        <div class={styles.noteTitle}>{note.title}</div>
+        {note.tags.length > 0 && (
+          <div class={styles.noteTags}>
+            {note.tags.map((tag) => (
+              <span key={tag} class={styles.tagPill}>{tag}</span>
+            ))}
+          </div>
+        )}
+      </div>
+      <button
+        class={styles.favoriteRemove}
+        onClick={(e) => { e.stopPropagation(); onRemove(note.id); }}
+        aria-label={`Remove ${note.title} from favorites`}
+      >
+        <X size={12} />
+      </button>
+      {dropPosition === "below" && <div class={styles.dropIndicator} />}
+    </button>
+  );
+}
+
+interface FavoritesSectionProps {
+  selectedNoteId: string | null;
+  onSelectNote: (id: string) => void;
+}
+
+function FavoritesSection({ selectedNoteId, onSelectNote }: FavoritesSectionProps) {
+  const favorites = favoriteNotes.value;
+  const collapsed = favoritesCollapsed.value;
+
+  if (favorites.length === 0) return null;
+
+  return (
+    <section class={styles.collapsibleSection} aria-label="Favorites">
+      <button
+        class={styles.collapsibleHeader}
+        onClick={() => setFavoritesCollapsed(!collapsed)}
+        aria-expanded={!collapsed}
+        aria-controls="favorites-list"
+      >
+        {collapsed
+          ? <ChevronRight size={10} />
+          : <ChevronDown size={10} />}
+        <span>Favorites ({favorites.length})</span>
+      </button>
+      {!collapsed && (
+        <div id="favorites-list" role="list" class={styles.favoritesList}>
+          {favorites.map((note, i) => (
+            <FavoriteItem
+              key={note.id}
+              note={note}
+              index={i}
+              isSelected={note.id === selectedNoteId}
+              onSelect={onSelectNote}
+              onRemove={removeFavorite}
+            />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+const TAGS_COLLAPSED_KEY = "noti-tags-collapsed";
+
+interface TagsSectionProps {
+  tags: Map<string, number>;
+  activeTag: string | null;
+}
+
+function TagsSection({ tags, activeTag }: TagsSectionProps) {
+  const [collapsed, setCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem(TAGS_COLLAPSED_KEY) === "true";
+    } catch { return false; }
+  });
+
+  const toggle = () => {
+    const next = !collapsed;
+    setCollapsed(next);
+    try { localStorage.setItem(TAGS_COLLAPSED_KEY, String(next)); } catch { /* */ }
+  };
+
+  return (
+    <section class={styles.collapsibleSection} aria-label="Tags">
+      <button
+        class={styles.collapsibleHeader}
+        onClick={toggle}
+        aria-expanded={!collapsed}
+        aria-controls="tags-list"
+      >
+        {collapsed
+          ? <ChevronRight size={10} />
+          : <ChevronDown size={10} />}
+        <span>Tags ({tags.size})</span>
+      </button>
+      {!collapsed && (
+        <div id="tags-list" class={styles.tagList}>
+          {Array.from(tags.entries())
+            .sort((a, b) => a[0].localeCompare(b[0]))
+            .map(([tag, tagCount]) => (
+              <button
+                key={tag}
+                class={`${styles.tagFilter} ${activeTag === tag ? styles.tagFilterActive : ""}`}
+                onClick={() =>
+                  (activeTagFilter.value =
+                    activeTag === tag ? null : tag)
+                }
+              >
+                {tag} ({tagCount})
+              </button>
+            ))}
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -329,26 +513,10 @@ export function Sidebar({ selectedNoteId, onSelectNote, onNewNote }: SidebarProp
           </div>
 
           {tags.size > 0 && (
-            <div class={styles.section}>
-              <div class={styles.sectionLabel}>Tags</div>
-              <div class={styles.tagList}>
-                {Array.from(tags.entries())
-                  .sort((a, b) => a[0].localeCompare(b[0]))
-                  .map(([tag, tagCount]) => (
-                    <button
-                      key={tag}
-                      class={`${styles.tagFilter} ${activeTag === tag ? styles.tagFilterActive : ""}`}
-                      onClick={() =>
-                        (activeTagFilter.value =
-                          activeTag === tag ? null : tag)
-                      }
-                    >
-                      {tag} ({tagCount})
-                    </button>
-                  ))}
-              </div>
-            </div>
+            <TagsSection tags={tags} activeTag={activeTag} />
           )}
+
+          <FavoritesSection selectedNoteId={selectedNoteId} onSelectNote={onSelectNote} />
 
           <div class={styles.noteList} aria-label="Note list">
             {notes.length === 0 ? (
