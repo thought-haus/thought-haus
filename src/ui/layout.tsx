@@ -10,6 +10,7 @@ import {
 import { agentPanelOpen } from "../agent/agent-state.ts";
 import { getNote } from "../notes/note-store.ts";
 import { createNote, deleteNote } from "../notes/note-actions.ts";
+import { toggleFavorite } from "../favorites/favorite-store.ts";
 import { Sidebar } from "./sidebar.tsx";
 import { EditorView } from "./editor-view.tsx";
 import { AgentPanel } from "./agent-panel.tsx";
@@ -111,6 +112,11 @@ export function Layout() {
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "a") {
         e.preventDefault();
         agentPanelOpen.value = !agentPanelOpen.value;
+      }
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "f") {
+        e.preventDefault();
+        const id = selectedNoteId.value;
+        if (id) toggleFavorite(id);
       }
     };
     window.addEventListener("keydown", handleKeyDown);

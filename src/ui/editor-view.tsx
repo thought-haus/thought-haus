@@ -8,7 +8,8 @@ import { debounce } from "../lib/debounce.ts";
 import { updateInIndex } from "../search/search-engine.ts";
 import { renameNote } from "../notes/note-actions.ts";
 import { saveAttachment } from "../attachments/attachment-service.ts";
-import { X, Paperclip } from "lucide-preact";
+import { isFavorite, toggleFavorite } from "../favorites/favorite-store.ts";
+import { X, Paperclip, Star } from "lucide-preact";
 import type { Editor } from "@tiptap/core";
 import styles from "./editor-view.module.css";
 
@@ -244,10 +245,21 @@ export function EditorView_({ onDelete }: EditorViewProps) {
     );
   }
 
+  const favorited = isFavorite(note.id);
+
   return (
     <main class={styles.editor}>
       <div class={styles.header}>
         <div class={styles.titleRow}>
+          <button
+            class={`${styles.starBtn} ${favorited ? styles.starBtnActive : ""}`}
+            onClick={() => toggleFavorite(note.id)}
+            aria-label={favorited ? "Remove from favorites" : "Add to favorites"}
+            aria-pressed={favorited}
+            title={`${favorited ? "Remove from" : "Add to"} favorites (${navigator.platform.includes("Mac") ? "Cmd" : "Ctrl"}+Shift+F)`}
+          >
+            <Star size={16} fill={favorited ? "currentColor" : "none"} />
+          </button>
           <input
             class={styles.titleInput}
             type="text"
