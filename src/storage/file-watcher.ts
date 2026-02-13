@@ -8,6 +8,7 @@ import {
   removeFromIndex,
   updateInIndex,
 } from "../search/search-engine.ts";
+import { removeFavorite } from "../favorites/favorite-store.ts";
 import { parseFrontMatter } from "../notes/frontmatter.ts";
 
 const POLL_INTERVAL = 7000; // 7 seconds
@@ -74,6 +75,7 @@ export async function applyChanges(
       case "deleted": {
         removeNote(change.note.id);
         removeFromIndex(change.note.id);
+        removeFavorite(change.note.id);
         if (selectedNoteId.value === change.note.id) {
           selectedNoteId.value = null;
         }

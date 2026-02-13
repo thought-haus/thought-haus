@@ -9,6 +9,7 @@ import {
   updateInIndex,
 } from "../search/search-engine.ts";
 import { deleteNoteAttachments } from "../attachments/attachment-service.ts";
+import { removeFavorite } from "../favorites/favorite-store.ts";
 import type { Note } from "./note.ts";
 
 const WELCOME_BODY = `Welcome to Noti! This is your first note.
@@ -75,6 +76,7 @@ export async function deleteNote(id: string): Promise<boolean> {
     await deleteNoteAttachments(note);
     removeNote(id);
     removeFromIndex(id);
+    removeFavorite(id);
     if (selectedNoteId.value === id) {
       selectedNoteId.value = null;
     }

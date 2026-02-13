@@ -27,6 +27,8 @@ import { parseFrontMatter } from "../notes/frontmatter.ts";
 import { saveSearchIndex } from "../search/search-persistence.ts";
 import { serializeIndex } from "../search/search-engine.ts";
 import { startWatcher } from "../storage/file-watcher.ts";
+import { loadFavorites } from "../favorites/favorite-persistence.ts";
+import { initFavoritesCollapsed } from "../favorites/favorite-store.ts";
 import { startRouter, applyPendingHash } from "../lib/router.ts";
 import { BrowserCheck } from "./browser-check.tsx";
 import { Onboarding } from "./onboarding.tsx";
@@ -52,6 +54,7 @@ async function openWithBackend(backend: StorageBackend): Promise<void> {
 
   const notes = await scanNotes(backend);
   setNotes(notes);
+  await loadFavorites(backend);
   appView.value = "main";
   applyPendingHash();
   if (notes.length === 0) {
@@ -125,6 +128,7 @@ export function App() {
     initSort();
     initSidebarWidth();
     initAgentPanelWidth();
+    initFavoritesCollapsed();
     startRouter();
     tryRestoreSession();
   }, []);
