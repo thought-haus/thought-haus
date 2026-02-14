@@ -8,6 +8,7 @@ import {
   serializeFrontMatter,
 } from "../notes/frontmatter.ts";
 import { upsertNote, removeNote, getNote, notesMap } from "../notes/note-store.ts";
+import { SKILL_TAG } from "./conversation-format.ts";
 import {
   addToIndex,
   updateInIndex,
@@ -189,6 +190,29 @@ export function createTools(): AgentTool[] {
     },
   };
 
+  const loadSkill: AgentTool = {
+    name: "load_skill",
+    label: "Load Skill",
+    description: "Load the full content of a skill note by its ID. Use this when a skill is relevant to the user's request.",
+    parameters: Type.Object({
+      noteId: Type.String({ description: "The skill note ID to load" }),
+    }),
+    execute: async (_id, raw) => {
+      const p = raw as P;
+      const noteId = p.noteId as string;
+      const note = getNote(noteId);
+      if (!note) return err(`Note "${noteId}" not found.`);
+      if (!note.tags.includes(SKILL_TAG)) return err(`Note "${noteId}" is not a skill (missing "${SKILL_TAG}" tag).`);
+
+      const backend = storageBackend.value;
+      if (!backend) return err("No directory open.");
+
+      const content = await backend.read(note.filename);
+      const { body } = parseFrontMatter(content);
+      return text(`# Skill: ${note.title}\n\n${body.trim()}`);
+    },
+  };
+
   const runJavascript: AgentTool = {
     name: "run_javascript",
     label: "Run JavaScript",
@@ -218,5 +242,5 @@ export function createTools(): AgentTool[] {
     },
   };
 
-  return [readNote, createNote, editNote, deleteNote, searchNotes, listNotes, runJavascript];
+  return [readNote, createNote, editNote, deleteNote, searchNotes, listNotes, loadSkill, runJavascript];
 }

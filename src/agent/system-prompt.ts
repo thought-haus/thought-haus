@@ -1,7 +1,7 @@
 import { selectedNoteId, storageBackend } from "../lib/app-state.ts";
 import { notesMap, getNote } from "../notes/note-store.ts";
 import { parseFrontMatter } from "../notes/frontmatter.ts";
-import { CONVERSATION_TAG, MEMORY_TAG } from "./conversation-format.ts";
+import { CONVERSATION_TAG, MEMORY_TAG, SKILL_TAG } from "./conversation-format.ts";
 
 const MAX_MEMORY_CHARS = 8000;
 const MAX_NOTE_CHARS = 12000;
@@ -31,12 +31,19 @@ Available tools:
 - delete_note: Delete a note by ID
 - search_notes: Full-text search across all notes
 - list_notes: List notes, optionally filtered by tag
+- load_skill: Load the full content of a skill note by ID (use when a skill is relevant to the user's request)
 - run_javascript: Execute JavaScript code in the browser. Has full access to browser APIs including document/DOM, window, fetch, localStorage, navigator, Canvas, Web APIs, etc. Code runs in the page context of the Noti app. Supports async/await. Simple expressions auto-return their value. For multi-statement code, use \`return\` to return a value.`);
 
   // Memory notes
   const memoryNotes = await loadMemoryNotes();
   if (memoryNotes) {
     parts.push(`## Your Memory\nThe following are your persistent memory notes:\n\n${memoryNotes}`);
+  }
+
+  // Skill descriptions
+  const skillDescriptions = loadSkillDescriptions();
+  if (skillDescriptions) {
+    parts.push(`## Available Skills\nThe following skills are available. Use \`load_skill\` with the skill's ID to load its full instructions when relevant to the user's request. If a loaded skill contains \`[[note ID]]\` links, use \`read_note\` to also read those linked notes for full context.\n\n${skillDescriptions}`);
   }
 
   // Currently open note
@@ -101,6 +108,24 @@ async function loadMemoryNotes(): Promise<string | null> {
   }
 
   return result.trim() || null;
+}
+
+function loadSkillDescriptions(): string | null {
+  const skills: { title: string; id: string; description: string }[] = [];
+  for (const note of notesMap.value.values()) {
+    if (note.tags.includes(SKILL_TAG) && note.properties.description) {
+      skills.push({
+        title: note.title,
+        id: note.id,
+        description: note.properties.description,
+      });
+    }
+  }
+
+  if (skills.length === 0) return null;
+
+  skills.sort((a, b) => a.title.localeCompare(b.title));
+  return skills.map((s) => `- **${s.title}** (ID: ${s.id}): ${s.description}`).join("\n");
 }
 
 async function loadCurrentNoteContext(): Promise<string | null> {
