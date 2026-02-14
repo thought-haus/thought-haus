@@ -63,7 +63,7 @@ tags:
     expect(body).toBe("");
   });
 
-  it("handles front matter with extra unknown fields", () => {
+  it("captures unknown fields as properties", () => {
     const content = `---
 title: Note
 custom_field: value
@@ -75,7 +75,39 @@ Body`;
     const { frontMatter, body } = parseFrontMatter(content);
     expect(frontMatter.title).toBe("Note");
     expect(frontMatter.tags).toEqual(["test"]);
+    expect(frontMatter.properties).toEqual({ custom_field: "value" });
     expect(body).toBe("Body");
+  });
+
+  it("parses description property for skill notes", () => {
+    const content = `---
+title: My Skill
+description: Helps format code blocks
+tags:
+  - noti-skill
+---
+Skill body`;
+
+    const { frontMatter } = parseFrontMatter(content);
+    expect(frontMatter.title).toBe("My Skill");
+    expect(frontMatter.properties.description).toBe("Helps format code blocks");
+    expect(frontMatter.tags).toEqual(["noti-skill"]);
+  });
+
+  it("returns empty properties when no unknown fields", () => {
+    const content = `---
+title: Simple
+tags:
+---
+Body`;
+
+    const { frontMatter } = parseFrontMatter(content);
+    expect(frontMatter.properties).toEqual({});
+  });
+
+  it("returns empty properties for content without front matter", () => {
+    const { frontMatter } = parseFrontMatter("Just text");
+    expect(frontMatter.properties).toEqual({});
   });
 
   it("handles Windows-style line endings", () => {
@@ -119,7 +151,7 @@ Content`;
 describe("serializeFrontMatter", () => {
   it("serializes front matter and body", () => {
     const result = serializeFrontMatter(
-      { title: "My Note", date: "2024-03-22T13:18:56", tags: ["work"] },
+      { title: "My Note", date: "2024-03-22T13:18:56", tags: ["work"], properties: {} },
       "Hello",
     );
     expect(result).toBe(
@@ -129,9 +161,35 @@ describe("serializeFrontMatter", () => {
 
   it("serializes with empty tags", () => {
     const result = serializeFrontMatter(
-      { title: "Note", date: "2024-01-01", tags: [] },
+      { title: "Note", date: "2024-01-01", tags: [], properties: {} },
       "Body",
     );
     expect(result).toContain("tags:\n---");
+  });
+
+  it("serializes properties between date and tags", () => {
+    const result = serializeFrontMatter(
+      { title: "Skill", date: "2024-01-01", tags: ["noti-skill"], properties: { description: "My description" } },
+      "Body",
+    );
+    expect(result).toBe(
+      `---\ntitle: Skill\ndate: 2024-01-01\ndescription: My description\ntags:\n  - noti-skill\n---\nBody`,
+    );
+  });
+
+  it("round-trips arbitrary properties through serialize/parse", () => {
+    const original = {
+      title: "Round Trip",
+      date: "2024-06-15",
+      tags: ["test"],
+      properties: { description: "A skill", priority: "high" },
+    };
+    const serialized = serializeFrontMatter(original, "Content");
+    const { frontMatter, body } = parseFrontMatter(serialized);
+    expect(frontMatter.title).toBe("Round Trip");
+    expect(frontMatter.date).toBe("2024-06-15");
+    expect(frontMatter.tags).toEqual(["test"]);
+    expect(frontMatter.properties).toEqual({ description: "A skill", priority: "high" });
+    expect(body).toBe("Content");
   });
 });

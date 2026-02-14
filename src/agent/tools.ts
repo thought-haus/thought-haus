@@ -71,13 +71,13 @@ export function createTools(): AgentTool[] {
       const id = formatTimestampId(now);
       const filename = generateFilename(now, title);
 
-      const frontMatter = { title, date: now.toISOString().replace("Z", ""), tags };
+      const frontMatter = { title, date: now.toISOString().replace("Z", ""), tags, properties: {} };
       const content = serializeFrontMatter(frontMatter, body + "\n");
 
       const meta = await backend.write(filename, content);
 
       const note: Note = {
-        id, title, tags, filename,
+        id, title, tags, properties: {}, filename,
         lastModified: meta.lastModified, size: meta.size,
         isNotiFormat: true, createdAt: now,
       };

@@ -49,6 +49,7 @@ function makeNote(overrides: Partial<Note> & { id: string }): Note {
   return {
     title: "Test Note",
     tags: [],
+    properties: {},
     filename: `${overrides.id}--test-note.md`,
     lastModified: 1000,
     size: 100,

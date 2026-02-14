@@ -9,6 +9,7 @@ function makeNote(id: string): Note {
     id,
     title: id,
     tags: [],
+    properties: {},
     filename: `${id}.md`,
     createdAt: new Date(),
     lastModified: Date.now(),

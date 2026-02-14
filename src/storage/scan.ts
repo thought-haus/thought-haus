@@ -40,6 +40,7 @@ export async function scanNotes(backend: StorageBackend): Promise<Note[]> {
       id: parsed.id,
       title,
       tags: frontMatter.tags,
+      properties: frontMatter.properties,
       filename: entry.filename,
       lastModified: entry.lastModified,
       size: entry.size,

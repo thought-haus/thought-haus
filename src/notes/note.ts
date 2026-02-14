@@ -5,6 +5,8 @@ export interface Note {
   title: string;
   /** Tags from front matter. */
   tags: string[];
+  /** Arbitrary frontmatter properties beyond title/date/tags. */
+  properties: Record<string, string>;
   /** Full filename on disk. */
   filename: string;
   /** Last modified timestamp for conflict detection. */

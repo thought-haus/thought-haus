@@ -34,6 +34,7 @@ export async function createConversationNote(): Promise<string | null> {
     title,
     date: now.toISOString().replace("Z", ""),
     tags: [CONVERSATION_TAG],
+    properties: {},
   };
 
   const content = serializeConversationNote(frontMatter, []);
@@ -43,6 +44,7 @@ export async function createConversationNote(): Promise<string | null> {
     id,
     title,
     tags: [CONVERSATION_TAG],
+    properties: {},
     filename,
     lastModified: meta.lastModified,
     size: meta.size,

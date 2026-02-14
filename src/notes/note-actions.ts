@@ -41,6 +41,7 @@ export async function createNote(): Promise<Note | null> {
     title,
     date: now.toISOString().replace("Z", ""),
     tags: [],
+    properties: {},
   };
   const content = serializeFrontMatter(frontMatter, "\n");
 
@@ -50,6 +51,7 @@ export async function createNote(): Promise<Note | null> {
     id,
     title,
     tags: [],
+    properties: {},
     filename,
     lastModified: meta.lastModified,
     size: meta.size,
@@ -105,9 +107,10 @@ export async function renameNote(
 
   // Read current content and re-serialize with updated title
   const rawContent = await backend.read(note.filename);
-  const { body } = parseFrontMatter(rawContent);
+  const { frontMatter: parsed, body } = parseFrontMatter(rawContent);
   const content = serializeFrontMatter(
     {
+      ...parsed,
       title,
       date: note.createdAt.toISOString().replace("Z", ""),
       tags: note.tags,
@@ -149,6 +152,7 @@ export async function createWelcomeNote(): Promise<Note | null> {
     title,
     date: now.toISOString().replace("Z", ""),
     tags: ["getting-started"],
+    properties: {},
   };
   const content = serializeFrontMatter(frontMatter, WELCOME_BODY);
 
@@ -158,6 +162,7 @@ export async function createWelcomeNote(): Promise<Note | null> {
     id,
     title,
     tags: ["getting-started"],
+    properties: {},
     filename,
     lastModified: meta.lastModified,
     size: meta.size,

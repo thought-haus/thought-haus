@@ -18,6 +18,7 @@ function makeNote(overrides: Partial<Note> & { id: string }): Note {
   return {
     title: "Test Note",
     tags: [],
+    properties: {},
     filename: `${overrides.id}.md`,
     lastModified: Date.now(),
     size: 100,

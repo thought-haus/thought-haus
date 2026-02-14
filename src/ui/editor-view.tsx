@@ -77,6 +77,7 @@ export function EditorView_({ onDelete }: EditorViewProps) {
           title: note.title,
           date: note.createdAt.toISOString().replace("Z", ""),
           tags: note.tags,
+          properties: note.properties,
         },
         bodyRef.current,
       );

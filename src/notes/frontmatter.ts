@@ -4,6 +4,7 @@ export interface FrontMatter {
   title?: string;
   date?: string;
   tags: string[];
+  properties: Record<string, string>;
 }
 
 /** Parse YAML front matter from markdown content. Simple parser, no library needed. */
@@ -13,12 +14,12 @@ export function parseFrontMatter(content: string): {
 } {
   const match = content.match(FRONT_MATTER_RE);
   if (!match) {
-    return { frontMatter: { tags: [] }, body: content };
+    return { frontMatter: { tags: [], properties: {} }, body: content };
   }
 
   const yaml = match[1];
   const body = content.slice(match[0].length);
-  const frontMatter: FrontMatter = { tags: [] };
+  const frontMatter: FrontMatter = { tags: [], properties: {} };
 
   let inTags = false;
   for (const line of yaml.split("\n")) {
@@ -53,6 +54,8 @@ export function parseFrontMatter(content: string): {
       } else if (!value) {
         inTags = true;
       }
+    } else if (key && value) {
+      frontMatter.properties[key] = value;
     }
   }
 
@@ -70,6 +73,9 @@ export function serializeFrontMatter(
   }
   if (frontMatter.date !== undefined) {
     yaml += `date: ${frontMatter.date}\n`;
+  }
+  for (const [key, value] of Object.entries(frontMatter.properties)) {
+    yaml += `${key}: ${value}\n`;
   }
   yaml += "tags:\n";
   for (const tag of frontMatter.tags) {
