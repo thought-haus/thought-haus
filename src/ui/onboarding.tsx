@@ -31,7 +31,7 @@ export function Onboarding({ onOpenFolder, onConnectWebDav, showLocalTab }: Onbo
       <div class={styles.card}>
         <h1 class={styles.title}>Thought.Haus</h1>
         <p class={styles.subtitle}>
-          A local-first note-taking app. Your notes never leave your device.
+          A local-first note-taking app. Your notes, your storage.
         </p>
         <div class={styles.tabs}>
           <button

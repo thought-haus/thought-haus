@@ -49,7 +49,7 @@ export default defineConfig({
         name: "Thought.Haus",
         short_name: "Thought.Haus",
         description:
-          "A local-first note-taking app. Your notes never leave your device.",
+          "A local-first note-taking app. Your notes, your storage.",
         display: "standalone",
         theme_color: "#151413",
         background_color: "#fdfcfa",
