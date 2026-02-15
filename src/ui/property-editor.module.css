@@ -180,37 +180,6 @@
   box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
-.autocomplete {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(26, 26, 24, 0.08);
-  max-height: 10rem;
-  overflow-y: auto;
-  z-index: 10;
-  margin-top: 2px;
-}
-
-.autocompleteItem {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.8125rem;
-  cursor: pointer;
-}
-
-.autocompleteItem:hover {
-  background: var(--color-accent-subtle);
-  color: var(--color-accent);
-}
-
-.autocompleteItemActive {
-  background: var(--color-accent-subtle);
-  color: var(--color-accent);
-}
-
 .keyValidation {
   font-size: 0.625rem;
   color: var(--color-text-secondary);

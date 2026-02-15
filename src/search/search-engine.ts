@@ -6,6 +6,7 @@ export interface SearchDocument {
   title: string;
   tags: string;
   body: string;
+  lastModified: number;
 }
 
 export interface SearchResult {
@@ -58,7 +59,7 @@ function prefix(term: string): boolean {
 
 const MINISEARCH_OPTIONS = {
   fields: ["title", "tags", "body"],
-  storeFields: ["title"],
+  storeFields: ["title", "lastModified"],
   tokenize,
   searchOptions: {
     boost: { title: 2, tags: 1.5 },
@@ -104,7 +105,7 @@ export const isSearchActive = signal(false);
 
 /** Build the search index from all notes. Requires reading file content. */
 export function buildIndex(
-  docs: { id: string; title: string; tags: string[]; body: string }[],
+  docs: { id: string; title: string; tags: string[]; body: string; lastModified: number }[],
 ): void {
   miniSearch = new MiniSearch<SearchDocument>(MINISEARCH_OPTIONS);
   for (const doc of docs) {
@@ -113,6 +114,7 @@ export function buildIndex(
       title: doc.title,
       tags: doc.tags.join(" "),
       body: preprocessBody(doc.body),
+      lastModified: doc.lastModified,
     });
   }
 }
@@ -123,12 +125,14 @@ export function addToIndex(doc: {
   title: string;
   tags: string[];
   body: string;
+  lastModified: number;
 }): void {
   miniSearch.add({
     id: doc.id,
     title: doc.title,
     tags: doc.tags.join(" "),
     body: preprocessBody(doc.body),
+    lastModified: doc.lastModified,
   });
 }
 
@@ -138,6 +142,7 @@ export function updateInIndex(doc: {
   title: string;
   tags: string[];
   body: string;
+  lastModified: number;
 }): void {
   try {
     miniSearch.discard(doc.id);
@@ -145,6 +150,27 @@ export function updateInIndex(doc: {
     // Document might not exist yet
   }
   addToIndex(doc);
+}
+
+/** Extract document metadata from the serialized index for incremental diffing. */
+export function getIndexedDocumentMeta(): { id: string; lastModified: number }[] {
+  // MiniSearch stores stored fields accessible via search with empty query trick,
+  // but we need raw access. Use the internal _storedFields map.
+  const stored = (miniSearch as unknown as { _storedFields: Map<number, Record<string, unknown>> })._storedFields;
+  const idMap = (miniSearch as unknown as { _documentIds: Map<number, string> })._documentIds;
+  if (!stored || !idMap) return [];
+
+  const result: { id: string; lastModified: number }[] = [];
+  for (const [internalId, fields] of stored) {
+    const docId = idMap.get(internalId);
+    if (docId) {
+      result.push({
+        id: docId,
+        lastModified: (fields.lastModified as number) ?? 0,
+      });
+    }
+  }
+  return result;
 }
 
 /** Remove a document from the index. */

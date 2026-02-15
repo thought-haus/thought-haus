@@ -61,7 +61,7 @@ export async function createNote(): Promise<Note | null> {
 
   upsertNote(note);
   selectedNoteId.value = note.id;
-  addToIndex({ id: note.id, title: note.title, tags: note.tags, body: "\n" });
+  addToIndex({ id: note.id, title: note.title, tags: note.tags, body: "\n", lastModified: note.lastModified });
   return note;
 }
 
@@ -133,7 +133,7 @@ export async function renameNote(
     size: meta.size,
   });
 
-  updateInIndex({ id: note.id, title, tags: note.tags, body });
+  updateInIndex({ id: note.id, title, tags: note.tags, body, lastModified: meta.lastModified });
 
   return true;
 }
@@ -177,6 +177,7 @@ export async function createWelcomeNote(): Promise<Note | null> {
     title: note.title,
     tags: note.tags,
     body: WELCOME_BODY,
+    lastModified: note.lastModified,
   });
   return note;
 }

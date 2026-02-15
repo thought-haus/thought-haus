@@ -84,7 +84,7 @@ export function createTools(): AgentTool[] {
       };
 
       upsertNote(note);
-      addToIndex({ id: note.id, title, tags, body });
+      addToIndex({ id: note.id, title, tags, body, lastModified: meta.lastModified });
       return text(`Created note "${title}" (ID: ${id})`);
     },
   };
@@ -113,7 +113,7 @@ export function createTools(): AgentTool[] {
       const meta = await backend.write(note.filename, content);
 
       upsertNote({ ...note, lastModified: meta.lastModified, size: meta.size });
-      updateInIndex({ id: note.id, title: note.title, tags: note.tags, body });
+      updateInIndex({ id: note.id, title: note.title, tags: note.tags, body, lastModified: meta.lastModified });
       return text(`Updated note "${note.title}" (ID: ${noteId})`);
     },
   };

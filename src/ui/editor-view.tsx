@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback, useState } from "preact/hooks";
 import { selectedNoteId, storageBackend } from "../lib/app-state.ts";
-import { getNote, upsertNote } from "../notes/note-store.ts";
+import { getNote, upsertNote, tagCounts } from "../notes/note-store.ts";
 import { parseFrontMatter, serializeFrontMatter } from "../notes/frontmatter.ts";
 import { createEditor } from "../editor/tiptap-editor.ts";
 import { saveStatus, wordCount, countWords } from "../editor/editor-state.ts";
@@ -9,6 +9,7 @@ import { updateInIndex } from "../search/search-engine.ts";
 import { renameNote } from "../notes/note-actions.ts";
 import { saveAttachment } from "../attachments/attachment-service.ts";
 import { isFavorite, toggleFavorite } from "../favorites/favorite-store.ts";
+import { InlineAutocomplete, handleAutocompleteKeyDown } from "./inline-autocomplete.tsx";
 import { X, Paperclip, Star } from "lucide-preact";
 import type { Editor } from "@tiptap/core";
 import styles from "./editor-view.module.css";
@@ -26,6 +27,7 @@ export function EditorView_({ onDelete }: EditorViewProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [tagInput, setTagInput] = useState("");
   const [showTagInput, setShowTagInput] = useState(false);
+  const [tagHighlight, setTagHighlight] = useState(-1);
   const [titleDraft, setTitleDraft] = useState("");
   const [triggerAddProperty, setTriggerAddProperty] = useState(false);
 
@@ -90,6 +92,7 @@ export function EditorView_({ onDelete }: EditorViewProps) {
         title: note.title,
         tags: note.tags,
         body: bodyRef.current,
+        lastModified: meta.lastModified,
       });
       saveStatus.value = "saved";
     } catch {
@@ -190,6 +193,7 @@ export function EditorView_({ onDelete }: EditorViewProps) {
       upsertNote({ ...note, tags: [...note.tags, tag] });
       setTagInput("");
       setShowTagInput(false);
+      setTagHighlight(-1);
       saveNote();
     },
     [saveNote],
@@ -234,18 +238,7 @@ export function EditorView_({ onDelete }: EditorViewProps) {
     setTitleDraft(trimmed);
   }, [titleDraft]);
 
-  const handleTagKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        addTag((e.target as HTMLInputElement).value);
-      } else if (e.key === "Escape") {
-        setTagInput("");
-        setShowTagInput(false);
-      }
-    },
-    [addTag],
-  );
+  // handleTagKeyDown is defined inline in JSX to capture tagSuggestions from render scope
 
   // Cmd/Ctrl+; to add property
   useEffect(() => {
@@ -273,6 +266,18 @@ export function EditorView_({ onDelete }: EditorViewProps) {
   }
 
   const favorited = isFavorite(note.id);
+
+  const tagSuggestions =
+    showTagInput && tagInput.length > 0
+      ? Array.from(tagCounts.value.keys())
+          .sort()
+          .filter(
+            (t) =>
+              t.startsWith(tagInput.toLowerCase()) && !note.tags.includes(t),
+          )
+          .slice(0, 20)
+          .map((t) => ({ label: t, detail: `${tagCounts.value.get(t)}` }))
+      : [];
 
   return (
     <main class={styles.editor}>
@@ -350,25 +355,55 @@ export function EditorView_({ onDelete }: EditorViewProps) {
               </span>
             ))}
             {showTagInput ? (
-              <input
-                class={styles.tagInput}
-                type="text"
-                value={tagInput}
-                placeholder="tag name"
-                aria-label="Add tag"
-                autoFocus
-                onInput={(e) =>
-                  setTagInput((e.target as HTMLInputElement).value)
-                }
-                onKeyDown={handleTagKeyDown}
-                onBlur={() => {
-                  if (tagInput.trim()) {
-                    addTag(tagInput);
-                  } else {
-                    setShowTagInput(false);
-                  }
-                }}
-              />
+              <div class={styles.tagInputWrapper}>
+                <input
+                  class={styles.tagInput}
+                  type="text"
+                  value={tagInput}
+                  placeholder="tag name"
+                  aria-label="Add tag"
+                  autoFocus
+                  onInput={(e) => {
+                    setTagInput((e.target as HTMLInputElement).value);
+                    setTagHighlight(-1);
+                  }}
+                  onKeyDown={(e) => {
+                    if (tagSuggestions.length > 0) {
+                      const consumed = handleAutocompleteKeyDown(e, {
+                        items: tagSuggestions,
+                        highlightedIndex: tagHighlight,
+                        onHighlightChange: setTagHighlight,
+                        onSelect: (item) => addTag(item.label),
+                      });
+                      if (consumed) {
+                        e.preventDefault();
+                        return;
+                      }
+                    }
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addTag((e.target as HTMLInputElement).value);
+                    } else if (e.key === "Escape") {
+                      setTagInput("");
+                      setShowTagInput(false);
+                      setTagHighlight(-1);
+                    }
+                  }}
+                  onBlur={() => {
+                    if (tagInput.trim()) {
+                      addTag(tagInput);
+                    } else {
+                      setShowTagInput(false);
+                    }
+                  }}
+                />
+                <InlineAutocomplete
+                  items={tagSuggestions}
+                  highlightedIndex={tagHighlight}
+                  onSelect={(item) => addTag(item.label)}
+                  onHighlightChange={setTagHighlight}
+                />
+              </div>
             ) : (
               <button
                 class={styles.addTagBtn}

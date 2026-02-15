@@ -69,6 +69,7 @@ export async function applyChanges(
           title: change.note.title,
           tags: change.note.tags,
           body,
+          lastModified: change.note.lastModified,
         });
         break;
       }
@@ -93,6 +94,7 @@ export async function applyChanges(
           title: change.note.title,
           tags: change.note.tags,
           body,
+          lastModified: change.note.lastModified,
         });
         break;
       }

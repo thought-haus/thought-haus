@@ -197,6 +197,11 @@
   width: 80px;
 }
 
+.tagInputWrapper {
+  position: relative;
+  display: inline-flex;
+}
+
 .addTagBtn {
   font-size: 0.6875rem;
   padding: 0.125rem 0.5rem;

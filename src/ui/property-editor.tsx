@@ -1,7 +1,10 @@
 import { useState, useRef, useCallback, useEffect } from "preact/hooks";
 import { allPropertyKeys } from "../notes/note-store.ts";
 import { X, ChevronDown, ChevronRight } from "lucide-preact";
+import { InlineAutocomplete, handleAutocompleteKeyDown } from "./inline-autocomplete.tsx";
+import type { AutocompleteItem } from "./inline-autocomplete.tsx";
 import styles from "./property-editor.module.css";
+import autocompleteStyles from "./inline-autocomplete.module.css";
 
 const RESERVED_KEYS = ["title", "date", "tags"];
 
@@ -172,20 +175,18 @@ export function PropertyEditor({
     [properties],
   );
 
-  // Autocomplete suggestions
+  // Autocomplete suggestions — only when typing (not on empty input)
   const allKeys = allPropertyKeys.value;
-  const autocompleteSuggestions =
+  const propertySuggestions: AutocompleteItem[] =
     addingProperty && newKey.length > 0
-      ? allKeys.filter(
-          (k) =>
-            k.toLowerCase().startsWith(newKey.toLowerCase()) &&
-            !(k in properties),
-        )
-      : addingProperty
-        ? allKeys.filter((k) => !(k in properties))
-        : [];
-
-  const showAutocomplete = addingProperty && autocompleteSuggestions.length > 0;
+      ? allKeys
+          .filter(
+            (k) =>
+              k.toLowerCase().startsWith(newKey.toLowerCase()) &&
+              !(k in properties),
+          )
+          .map((k) => ({ label: k }))
+      : [];
 
   const selectAutocompleteSuggestion = useCallback(
     (suggestion: string) => {
@@ -204,30 +205,27 @@ export function PropertyEditor({
         cancelAdding();
         return;
       }
-      if (e.key === "ArrowDown" && showAutocomplete) {
-        e.preventDefault();
-        setAutocompleteIndex((i) =>
-          Math.min(i + 1, autocompleteSuggestions.length - 1),
-        );
-        return;
-      }
-      if (e.key === "ArrowUp" && showAutocomplete) {
-        e.preventDefault();
-        setAutocompleteIndex((i) => Math.max(i - 1, -1));
-        return;
+      // Delegate to shared autocomplete handler when suggestions exist
+      if (propertySuggestions.length > 0) {
+        const consumed = handleAutocompleteKeyDown(e, {
+          items: propertySuggestions,
+          highlightedIndex: autocompleteIndex,
+          onHighlightChange: setAutocompleteIndex,
+          onSelect: (item) => selectAutocompleteSuggestion(item.label),
+        });
+        if (consumed) {
+          e.preventDefault();
+          return;
+        }
       }
       if (e.key === "Enter") {
         e.preventDefault();
-        if (autocompleteIndex >= 0 && autocompleteSuggestions[autocompleteIndex]) {
-          selectAutocompleteSuggestion(autocompleteSuggestions[autocompleteIndex]);
-        } else {
-          const trimmed = newKey.trim().replace(/:/g, "");
-          const validation = validateKey(trimmed);
-          if (trimmed && !validation) {
-            valueInputRef.current?.focus();
-          } else if (validation) {
-            setKeyValidation(validation);
-          }
+        const trimmed = newKey.trim().replace(/:/g, "");
+        const validation = validateKey(trimmed);
+        if (trimmed && !validation) {
+          valueInputRef.current?.focus();
+        } else if (validation) {
+          setKeyValidation(validation);
         }
         return;
       }
@@ -245,8 +243,7 @@ export function PropertyEditor({
     },
     [
       cancelAdding,
-      showAutocomplete,
-      autocompleteSuggestions,
+      propertySuggestions,
       autocompleteIndex,
       newKey,
       validateKey,
@@ -388,7 +385,7 @@ export function PropertyEditor({
                   if (
                     related &&
                     (related === valueInputRef.current ||
-                      related.closest(`.${styles.autocomplete}`))
+                      related.closest(`.${autocompleteStyles.autocomplete}`))
                   ) {
                     return;
                   }
@@ -397,24 +394,12 @@ export function PropertyEditor({
                   }
                 }}
               />
-              {showAutocomplete && (
-                <div class={styles.autocomplete} role="listbox">
-                  {autocompleteSuggestions.map((suggestion, i) => (
-                    <div
-                      key={suggestion}
-                      class={`${styles.autocompleteItem} ${i === autocompleteIndex ? styles.autocompleteItemActive : ""}`}
-                      role="option"
-                      aria-selected={i === autocompleteIndex}
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        selectAutocompleteSuggestion(suggestion);
-                      }}
-                    >
-                      {suggestion}
-                    </div>
-                  ))}
-                </div>
-              )}
+              <InlineAutocomplete
+                items={propertySuggestions}
+                highlightedIndex={autocompleteIndex}
+                onSelect={(item) => selectAutocompleteSuggestion(item.label)}
+                onHighlightChange={setAutocompleteIndex}
+              />
               {keyValidation && (
                 <div class={styles.keyValidation}>{keyValidation}</div>
               )}

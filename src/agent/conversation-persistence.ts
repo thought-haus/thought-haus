@@ -53,7 +53,7 @@ export async function createConversationNote(): Promise<string | null> {
   };
 
   upsertNote(note);
-  addToIndex({ id: note.id, title: note.title, tags: note.tags, body: "" });
+  addToIndex({ id: note.id, title: note.title, tags: note.tags, body: "", lastModified: note.lastModified });
   return id;
 }
 
@@ -84,6 +84,7 @@ export async function saveConversation(
       title: note.title,
       tags: note.tags,
       body: "",
+      lastModified: meta.lastModified,
     });
   } catch {
     // Note may have been deleted externally
