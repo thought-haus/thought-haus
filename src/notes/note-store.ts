@@ -82,6 +82,11 @@ export function removeNote(id: string): void {
   notesMap.value = map;
 }
 
+/** Clear all notes. */
+export function clearNotes(): void {
+  notesMap.value = new Map();
+}
+
 /** Get a note by ID. */
 export function getNote(id: string): Note | undefined {
   return notesMap.value.get(id);

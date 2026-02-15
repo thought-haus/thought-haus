@@ -39,16 +39,156 @@
   transition: background 0.15s ease, transform 0.1s ease;
 }
 
-.cta:hover {
+.cta:hover:not(:disabled) {
   background: var(--color-accent-hover);
 }
 
-.cta:active {
+.cta:active:not(:disabled) {
   transform: scale(0.98);
+}
+
+.cta:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 
 .hint {
   margin-top: 1.25rem;
   color: var(--color-text-secondary);
   font-size: 0.8125rem;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.tab {
+  flex: 1;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: inherit;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.tab:hover {
+  color: var(--color-text-primary);
+}
+
+.tabActive {
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+}
+
+/* WebDAV form */
+.webdavForm {
+  text-align: left;
+}
+
+.formLabel {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.formInput {
+  display: block;
+  width: 100%;
+  margin-top: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  font-family: inherit;
+  color: var(--color-text-primary);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  outline: none;
+  transition: border-color 0.15s ease;
+  box-sizing: border-box;
+}
+
+.formInput:focus {
+  border-color: var(--color-accent);
+}
+
+.passwordRow {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.passwordRow .formInput {
+  flex: 1;
+}
+
+.togglePassword {
+  padding: 0.5rem 0.75rem;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  font-family: inherit;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.formActions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  justify-content: center;
+}
+
+.testBtn {
+  padding: 0.625rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--color-text-primary);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.testBtn:hover:not(:disabled) {
+  background: var(--color-bg-tertiary, var(--color-border));
+}
+
+.testBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.formError {
+  margin-top: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--color-error, #c0392b);
+  background: var(--color-error-bg, rgba(192, 57, 43, 0.08));
+  border-radius: 6px;
+  text-align: left;
+}
+
+.formSuccess {
+  margin-top: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--color-success, #27ae60);
+  background: var(--color-success-bg, rgba(39, 174, 96, 0.08));
+  border-radius: 6px;
 }

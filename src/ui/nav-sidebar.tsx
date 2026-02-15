@@ -27,6 +27,7 @@ import {
   X,
   Bot,
   Hash,
+  FolderSync,
 } from "lucide-preact";
 import type { ThemeMode } from "../lib/app-state.ts";
 import type { Note } from "../notes/note.ts";
@@ -47,9 +48,10 @@ const THEME_LABELS: Record<ThemeMode, string> = {
 interface NavSidebarProps {
   selectedNoteId: string | null;
   onSelectNote: (id: string) => void;
+  onChangeStorage?: () => void;
 }
 
-export function NavSidebar({ selectedNoteId, onSelectNote }: NavSidebarProps) {
+export function NavSidebar({ selectedNoteId, onSelectNote, onChangeStorage }: NavSidebarProps) {
   const count = noteCount.value;
   const tags = tagCounts.value;
   const activeTag = activeTagFilter.value;
@@ -167,6 +169,16 @@ export function NavSidebar({ selectedNoteId, onSelectNote }: NavSidebarProps) {
           {mode === "system" && <Monitor size={14} />}
           <span>{THEME_LABELS[mode]}</span>
         </button>
+        {onChangeStorage && (
+          <button
+            class={styles.footerBtn}
+            onClick={onChangeStorage}
+            title="Change storage location"
+            aria-label="Change storage"
+          >
+            <FolderSync size={14} />
+          </button>
+        )}
         <button
           class={styles.footerBtn}
           onClick={() => (agentPanelOpen.value = !agentPanelOpen.value)}

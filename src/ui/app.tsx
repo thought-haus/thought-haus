@@ -1,10 +1,11 @@
 import { useEffect } from "preact/hooks";
 import {
   appView,
-  isBrowserCompatible,
   folderName,
   storageBackend,
   savedHandle,
+  savedWebDavConfig,
+  selectedNoteId,
   initTheme,
   initSort,
   initSidebarWidth,
@@ -19,26 +20,34 @@ import {
   requestPermission,
 } from "../fs/directory.ts";
 import { LocalBackend } from "../storage/local-backend.ts";
+import { WebDavBackend } from "../storage/webdav-backend.ts";
+import type { WebDavConfig } from "../storage/webdav-backend.ts";
+import { testWebDavConnection } from "../storage/webdav-connection.ts";
+import {
+  saveWebDavConfig,
+  loadWebDavConfig,
+  saveActiveBackendType,
+  loadActiveBackendType,
+  clearBackendConfig,
+} from "../storage/backend-persistence.ts";
 import { scanNotes } from "../storage/scan.ts";
-import { setNotes } from "../notes/note-store.ts";
+import { setNotes, clearNotes } from "../notes/note-store.ts";
 import { createWelcomeNote } from "../notes/note-actions.ts";
-import { buildIndex } from "../search/search-engine.ts";
+import { buildIndex, clearSearch } from "../search/search-engine.ts";
 import { parseFrontMatter } from "../notes/frontmatter.ts";
 import { saveSearchIndex } from "../search/search-persistence.ts";
 import { serializeIndex } from "../search/search-engine.ts";
 import { startWatcher } from "../storage/file-watcher.ts";
 import { loadFavorites } from "../favorites/favorite-persistence.ts";
-import { initFavoritesCollapsed } from "../favorites/favorite-store.ts";
+import { favoriteIds, initFavoritesCollapsed } from "../favorites/favorite-store.ts";
 import { startRouter, applyPendingHash } from "../lib/router.ts";
-import { BrowserCheck } from "./browser-check.tsx";
 import { Onboarding } from "./onboarding.tsx";
 import { RePermission } from "./re-permission.tsx";
+import { WebDavReconnect } from "./webdav-reconnect.tsx";
 import { Layout } from "./layout.tsx";
 import type { StorageBackend } from "../storage/backend.ts";
 
-if (!isFileSystemAccessSupported()) {
-  isBrowserCompatible.value = false;
-}
+const fsAccessSupported = isFileSystemAccessSupported();
 
 let stopWatcher: (() => void) | null = null;
 
@@ -46,10 +55,15 @@ async function openWithBackend(backend: StorageBackend): Promise<void> {
   storageBackend.value = backend;
   folderName.value = backend.name;
 
-  // Persist handle for session restore (Local-specific)
-  const raw = (backend as LocalBackend).getRawHandle?.();
-  if (raw) {
-    await saveDirectoryHandle(raw);
+  // Persist backend config
+  if (backend.type === "local") {
+    const raw = (backend as LocalBackend).getRawHandle?.();
+    if (raw) {
+      await saveDirectoryHandle(raw);
+    }
+    await saveActiveBackendType("local");
+  } else if (backend.type === "webdav") {
+    await saveActiveBackendType("webdav");
   }
 
   const notes = await scanNotes(backend);
@@ -66,7 +80,7 @@ async function openWithBackend(backend: StorageBackend): Promise<void> {
     notes.map(async (note) => {
       const raw = await backend.read(note.filename);
       const { body } = parseFrontMatter(raw);
-      return { id: note.id, title: note.title, tags: note.tags, body };
+      return { id: note.id, title: note.title, tags: note.tags, body, lastModified: note.lastModified };
     }),
   );
   buildIndex(docs);
@@ -87,6 +101,28 @@ async function openFolder(): Promise<void> {
   }
 }
 
+async function connectWebDav(config: WebDavConfig): Promise<void> {
+  const backend = new WebDavBackend(config);
+  await saveWebDavConfig(config);
+  await openWithBackend(backend);
+}
+
+async function disconnectBackend(): Promise<void> {
+  if (stopWatcher) {
+    stopWatcher();
+    stopWatcher = null;
+  }
+  storageBackend.value?.disconnect();
+  storageBackend.value = null;
+  folderName.value = null;
+  selectedNoteId.value = null;
+  clearNotes();
+  clearSearch();
+  favoriteIds.value = [];
+  await clearBackendConfig();
+  appView.value = "onboarding";
+}
+
 async function reRequestPermission(): Promise<void> {
   const handle = savedHandle.value;
   if (!handle) return;
@@ -105,6 +141,26 @@ async function reRequestPermission(): Promise<void> {
 
 async function tryRestoreSession(): Promise<void> {
   try {
+    const backendType = await loadActiveBackendType();
+
+    if (!backendType) return; // Fresh install → onboarding
+
+    if (backendType === "webdav") {
+      const config = await loadWebDavConfig();
+      if (!config) return;
+
+      const result = await testWebDavConnection(config.url, config.username, config.password);
+      if (result.ok) {
+        const backend = new WebDavBackend(config);
+        await openWithBackend(backend);
+      } else {
+        savedWebDavConfig.value = config;
+        appView.value = "webdav-reconnect";
+      }
+      return;
+    }
+
+    // backendType === "local"
     const handle = await loadDirectoryHandle();
     if (!handle) return;
 
@@ -122,6 +178,27 @@ async function tryRestoreSession(): Promise<void> {
   }
 }
 
+async function retryWebDavConnection(): Promise<void> {
+  const config = savedWebDavConfig.value;
+  if (!config) return;
+
+  const result = await testWebDavConnection(config.url, config.username, config.password);
+  if (result.ok) {
+    savedWebDavConfig.value = null;
+    const backend = new WebDavBackend(config);
+    await openWithBackend(backend);
+  }
+}
+
+function changeServer(): void {
+  savedWebDavConfig.value = null;
+  clearBackendConfig().catch(() => {});
+  appView.value = "onboarding";
+}
+
+// Export for nav sidebar "Change Storage" action
+export { disconnectBackend };
+
 export function App() {
   useEffect(() => {
     initTheme();
@@ -133,10 +210,6 @@ export function App() {
     tryRestoreSession();
   }, []);
 
-  if (!isBrowserCompatible.value) {
-    return <BrowserCheck />;
-  }
-
   if (appView.value === "re-permission") {
     return (
       <RePermission
@@ -147,8 +220,24 @@ export function App() {
     );
   }
 
+  if (appView.value === "webdav-reconnect") {
+    return (
+      <WebDavReconnect
+        serverUrl={savedWebDavConfig.value?.url ?? ""}
+        onReconnect={retryWebDavConnection}
+        onChangeServer={changeServer}
+      />
+    );
+  }
+
   if (appView.value === "onboarding") {
-    return <Onboarding onOpenFolder={openFolder} />;
+    return (
+      <Onboarding
+        onOpenFolder={fsAccessSupported ? openFolder : undefined}
+        onConnectWebDav={connectWebDav}
+        showLocalTab={fsAccessSupported}
+      />
+    );
   }
 
   return <Layout />;

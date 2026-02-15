@@ -1,7 +1,7 @@
 import { signal, computed } from "@preact/signals";
 import type { StorageBackend } from "../storage/backend.ts";
 
-export type AppView = "onboarding" | "re-permission" | "main";
+export type AppView = "onboarding" | "re-permission" | "webdav-reconnect" | "main";
 
 export type SortMode = "created" | "title" | "modified";
 export type SortDirection = "asc" | "desc";
@@ -111,6 +111,9 @@ export const storageBackend = signal<StorageBackend | null>(null);
 
 /** A saved directory handle that needs re-permission from the user. */
 export const savedHandle = signal<FileSystemDirectoryHandle | null>(null);
+
+/** Saved WebDAV config for reconnection screen. */
+export const savedWebDavConfig = signal<{ url: string; username: string; password: string } | null>(null);
 
 /** The currently selected note ID. */
 export const selectedNoteId = signal<string | null>(null);

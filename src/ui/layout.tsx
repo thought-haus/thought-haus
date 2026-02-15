@@ -12,6 +12,7 @@ import { openCommandPalette } from "../lib/command-palette-state.ts";
 import { getNote } from "../notes/note-store.ts";
 import { createNote, deleteNote } from "../notes/note-actions.ts";
 import { toggleFavorite } from "../favorites/favorite-store.ts";
+import { disconnectBackend } from "./app.tsx";
 import { NavSidebar } from "./nav-sidebar.tsx";
 import { NotesList } from "./sidebar.tsx";
 import { EditorView } from "./editor-view.tsx";
@@ -142,6 +143,7 @@ export function Layout() {
             <NavSidebar
               selectedNoteId={selectedNoteId.value}
               onSelectNote={(id: string) => (selectedNoteId.value = id)}
+              onChangeStorage={disconnectBackend}
             />
           </div>
           <div style={{ width: `${sidebarWidth.value}px`, minWidth: `${sidebarWidth.value}px` }}>
