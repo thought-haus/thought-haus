@@ -58,6 +58,7 @@ vi.mock("../search/search-engine.ts", async () => {
   const { signal } = await import("@preact/signals");
   return {
     buildIndex: vi.fn(),
+    addToIndex: vi.fn(),
     serializeIndex: () => "{}",
     executeSearch: vi.fn(),
     clearSearch: vi.fn(),

@@ -92,13 +92,14 @@ async function openWithBackend(backend: StorageBackend): Promise<void> {
 }
 
 async function openFolder(): Promise<void> {
+  let handle: FileSystemDirectoryHandle;
   try {
-    const handle = await pickDirectory();
-    const backend = new LocalBackend(handle);
-    await openWithBackend(backend);
+    handle = await pickDirectory();
   } catch {
-    // User cancelled the picker
+    return; // User cancelled the picker
   }
+  const backend = new LocalBackend(handle);
+  await openWithBackend(backend);
 }
 
 async function connectWebDav(config: WebDavConfig): Promise<void> {
