@@ -17,13 +17,13 @@ export interface SearchResult {
 
 // Synthetic tokens injected into the index for structural markdown patterns
 // that MiniSearch's default tokenizer would otherwise discard.
-const TASK_UNDONE_TOKEN = "__noti.task.undone__";
-const TASK_DONE_TOKEN = "__noti.task.done__";
+const TASK_UNDONE_TOKEN = "__th.task.undone__";
+const TASK_DONE_TOKEN = "__th.task.done__";
 
-const SYNTHETIC_TOKEN_RE = /__noti\.[a-z.]+__/g;
+const SYNTHETIC_TOKEN_RE = /__th\.[a-z.]+__/g;
 const DEFAULT_SPLIT_RE = /[\n\r\p{Z}\p{P}]+/u;
 
-/** Tokenizer that preserves __noti.*__ synthetic tokens as single terms. */
+/** Tokenizer that preserves __th.*__ synthetic tokens as single terms. */
 function tokenize(text: string): string[] {
   const tokens: string[] = [];
   let lastIndex = 0;

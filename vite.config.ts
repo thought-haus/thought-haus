@@ -46,8 +46,8 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       manifest: {
-        name: "Noti",
-        short_name: "Noti",
+        name: "Thought.Haus",
+        short_name: "Thought.Haus",
         description:
           "A local-first note-taking app. Your notes never leave your device.",
         display: "standalone",

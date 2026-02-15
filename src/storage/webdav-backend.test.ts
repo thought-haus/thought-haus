@@ -301,10 +301,10 @@ describe("WebDavBackend", () => {
       const backend = new WebDavBackend(CONFIG);
       mockFetch.mockResolvedValueOnce(mockResponse('{"key": "value"}'));
 
-      const content = await backend.readFromDir(".noti", "favorites.json");
+      const content = await backend.readFromDir(".thoughthouse", "favorites.json");
 
       expect(mockFetch).toHaveBeenCalledWith(
-        "http://localhost:8080/webdav/.noti/favorites.json",
+        "http://localhost:8080/webdav/.thoughthouse/favorites.json",
         expect.objectContaining({ method: "GET" }),
       );
       expect(content).toBe('{"key": "value"}');
@@ -318,7 +318,7 @@ describe("WebDavBackend", () => {
         .mockResolvedValueOnce(mockResponse("", 201)) // MKCOL
         .mockResolvedValueOnce(mockResponse("", 201)); // PUT
 
-      await backend.writeToDir(".noti", "favorites.json", '{"ids":[]}');
+      await backend.writeToDir(".thoughthouse", "favorites.json", '{"ids":[]}');
 
       expect(mockFetch).toHaveBeenCalledTimes(2);
       expect((mockFetch.mock.calls[0]![1] as RequestInit).method).toBe("MKCOL");

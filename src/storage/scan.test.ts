@@ -29,7 +29,7 @@ function mockBackend(
 }
 
 describe("scanNotes", () => {
-  it("parses Noti-format .md files", async () => {
+  it("parses timestamp-format .md files", async () => {
     const content =
       "---\ntitle: My Note\ndate: 2024-03-22T13:18:56\ntags:\n  - work\n---\nBody";
     const backend = mockBackend(
@@ -48,10 +48,10 @@ describe("scanNotes", () => {
     expect(notes[0].id).toBe("20240322T131856");
     expect(notes[0].title).toBe("My Note");
     expect(notes[0].tags).toEqual(["work"]);
-    expect(notes[0].isNotiFormat).toBe(true);
+    expect(notes[0].isTimestampFormat).toBe(true);
   });
 
-  it("handles non-Noti .md files gracefully", async () => {
+  it("handles plain .md files gracefully", async () => {
     const content = "Just plain markdown";
     const backend = mockBackend(
       [{ filename: "README.md", lastModified: 1000, size: content.length }],
@@ -62,7 +62,7 @@ describe("scanNotes", () => {
     expect(notes).toHaveLength(1);
     expect(notes[0].title).toBe("README");
     expect(notes[0].tags).toEqual([]);
-    expect(notes[0].isNotiFormat).toBe(false);
+    expect(notes[0].isTimestampFormat).toBe(false);
   });
 
   it("ignores non-.md files", async () => {
@@ -102,7 +102,7 @@ describe("scanNotes", () => {
     expect(notes[0].title).toBe("Meeting Notes");
   });
 
-  it("uses 'Untitled' for Noti files with no title slug and no front matter title", async () => {
+  it("uses 'Untitled' for timestamp files with no title slug and no front matter title", async () => {
     const content = "---\ntags:\n---\nBody";
     const backend = mockBackend(
       [
@@ -125,7 +125,7 @@ describe("scanNotes", () => {
     expect(notes).toEqual([]);
   });
 
-  it("parses createdAt from Noti timestamp ID", async () => {
+  it("parses createdAt from timestamp ID", async () => {
     const content = "---\ntitle: Test\ntags:\n---\n";
     const backend = mockBackend(
       [
@@ -144,7 +144,7 @@ describe("scanNotes", () => {
     expect(notes[0].createdAt.getDate()).toBe(22);
   });
 
-  it("uses lastModified as createdAt for non-Noti files", async () => {
+  it("uses lastModified as createdAt for plain .md files", async () => {
     const content = "Just markdown";
     const ts = new Date("2025-01-15T10:30:00").getTime();
     const backend = mockBackend(

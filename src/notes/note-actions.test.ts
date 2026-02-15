@@ -52,7 +52,7 @@ describe("note-actions", () => {
       const note = await createNote();
       expect(note).not.toBeNull();
       expect(note!.title).toBe("Untitled");
-      expect(note!.isNotiFormat).toBe(true);
+      expect(note!.isTimestampFormat).toBe(true);
       expect(noteCount.value).toBe(1);
     });
 
@@ -104,14 +104,14 @@ describe("note-actions", () => {
     it("creates a welcome note with getting-started tag", async () => {
       const note = await createWelcomeNote();
       expect(note).not.toBeNull();
-      expect(note!.title).toBe("Welcome to Noti");
+      expect(note!.title).toBe("Welcome to Thought.Haus");
       expect(note!.tags).toContain("getting-started");
     });
 
     it("writes welcome content to file", async () => {
       await createWelcomeNote();
       const content = String((mockBackend.write as ReturnType<typeof vi.fn>).mock.lastCall?.[1]);
-      expect(content).toContain("Welcome to Noti");
+      expect(content).toContain("Welcome to Thought.Haus");
       expect(content).toContain("Getting Started");
     });
   });

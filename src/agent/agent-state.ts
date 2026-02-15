@@ -11,7 +11,7 @@ export interface AgentSettings {
   activeModel: string;
 }
 
-const SETTINGS_KEY = "noti-agent-settings";
+const SETTINGS_KEY = "th-agent-settings";
 
 const DEFAULT_SETTINGS: AgentSettings = {
   providers: {

@@ -21,16 +21,16 @@ export async function scanNotes(backend: StorageBackend): Promise<Note[]> {
     let title: string;
     if (frontMatter.title) {
       title = frontMatter.title;
-    } else if (parsed.isNotiFormat && parsed.titleSlug) {
+    } else if (parsed.isTimestampFormat && parsed.titleSlug) {
       title = slugToTitle(parsed.titleSlug);
-    } else if (!parsed.isNotiFormat) {
+    } else if (!parsed.isTimestampFormat) {
       title = entry.filename.replace(/\.md$/, "");
     } else {
       title = "Untitled";
     }
 
     let createdAt: Date;
-    if (parsed.isNotiFormat) {
+    if (parsed.isTimestampFormat) {
       createdAt = parseTimestampId(parsed.id) ?? new Date(entry.lastModified);
     } else {
       createdAt = new Date(entry.lastModified);
@@ -44,7 +44,7 @@ export async function scanNotes(backend: StorageBackend): Promise<Note[]> {
       filename: entry.filename,
       lastModified: entry.lastModified,
       size: entry.size,
-      isNotiFormat: parsed.isNotiFormat,
+      isTimestampFormat: parsed.isTimestampFormat,
       createdAt,
     });
   }

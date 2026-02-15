@@ -22,7 +22,7 @@ export const favoriteNotes = computed<Note[]>(() => {
 /** Whether favorites section is collapsed in sidebar. */
 export const favoritesCollapsed = signal(false);
 
-const COLLAPSED_KEY = "noti-favorites-collapsed";
+const COLLAPSED_KEY = "th-favorites-collapsed";
 
 export function initFavoritesCollapsed(): void {
   try {

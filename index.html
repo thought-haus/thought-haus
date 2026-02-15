@@ -6,18 +6,18 @@
     <meta name="theme-color" content="#151413" />
     <meta name="description" content="A local-first note-taking app. Your notes never leave your device." />
     <link rel="icon" href="/favicon.ico" sizes="any" />
-    <link rel="icon" href="/noti-icon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/th-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Iosevka/6.0.0/iosevka-aile/iosevka-aile.min.css" />
     <script>
       (function() {
-        var t = localStorage.getItem('noti-theme');
+        var t = localStorage.getItem('th-theme');
         if (t === 'dark' || (t !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)) {
           document.documentElement.dataset.theme = 'dark';
         }
       })();
     </script>
-    <title>Noti</title>
+    <title>Thought.Haus</title>
   </head>
   <body>
     <div id="app"></div>

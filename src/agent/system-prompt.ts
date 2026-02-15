@@ -22,7 +22,7 @@ export async function buildSystemPrompt(commandBody?: string): Promise<string> {
   );
 
   // Capabilities
-  parts.push(`You are the Noti AI assistant, embedded in a local-first note-taking app. You help users manage their notes.
+  parts.push(`You are the Thought.Haus AI assistant, embedded in a local-first note-taking app. You help users manage their notes.
 
 Available tools:
 - read_note: Read a note's full content by ID
@@ -32,7 +32,7 @@ Available tools:
 - search_notes: Full-text search across all notes
 - list_notes: List notes, optionally filtered by tag
 - load_skill: Load the full content of a skill note by ID (use when a skill is relevant to the user's request)
-- run_javascript: Execute JavaScript code in the browser. Has full access to browser APIs including document/DOM, window, fetch, localStorage, navigator, Canvas, Web APIs, etc. Code runs in the page context of the Noti app. Supports async/await. Simple expressions auto-return their value. For multi-statement code, use \`return\` to return a value.`);
+- run_javascript: Execute JavaScript code in the browser. Has full access to browser APIs including document/DOM, window, fetch, localStorage, navigator, Canvas, Web APIs, etc. Code runs in the page context of the Thought.Haus app. Supports async/await. Simple expressions auto-return their value. For multi-statement code, use \`return\` to return a value.`);
 
   // Memory notes
   const memoryNotes = await loadMemoryNotes();
@@ -69,7 +69,7 @@ ${commandBody}`);
 - When searching, use specific keywords for better results
 - If a user asks about their notes, search first before answering
 - User messages may contain @-mentions like @"Note Title" referencing notes whose content is provided inline. Refer to the note by its title.
-- You can create memory notes (tagged "noti-agent-memory") to remember things across conversations`);
+- You can create memory notes (tagged "th-agent-memory") to remember things across conversations`);
 
   return parts.join("\n\n");
 }

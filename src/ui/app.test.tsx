@@ -110,7 +110,7 @@ describe("App", () => {
 
   it("shows onboarding by default", () => {
     render(<App />);
-    expect(screen.getByText("Noti")).toBeInTheDocument();
+    expect(screen.getByText("Thought.Haus")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Open a Folder" }),
     ).toBeInTheDocument();

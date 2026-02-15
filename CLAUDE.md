@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Noti is a local-first, browser-based note-taking app. Notes are stored as plain Markdown files in a user-selected local folder using the browser File System Access API. No server, no accounts, no sync. **Chromium-only** (Chrome, Edge, Brave, Arc).
+Thought.Haus is a local-first, browser-based note-taking app. Notes are stored as plain Markdown files in a user-selected local folder using the browser File System Access API. No server, no accounts, no sync. **Chromium-only** (Chrome, Edge, Brave, Arc).
 
 ## Commands
 
@@ -37,7 +37,7 @@ src/notes/        → Note model: Note type, filename parsing, frontmatter, stor
 src/search/       → MiniSearch index: build, query, persist to IndexedDB
 src/editor/       → TipTap editor setup, extensions/ (note links, attachments, link edit), editor state
 src/attachments/  → Attachment service: save/read/delete files in per-note subdirectories
-src/favorites/    → Favorites store + persistence to .noti/favorites.json
+src/favorites/    → Favorites store + persistence to .thoughthouse/favorites.json
 src/agent/        → AI assistant: runner, tools, conversation persistence, system prompt
 src/ui/           → Preact components: App, Layout, NavSidebar, Sidebar, EditorView, AgentPanel, CommandPalette
 src/lib/          → Shared: app-state signals, command-palette state, router, IndexedDB wrapper, utils
@@ -58,7 +58,7 @@ State is mutated through plain functions (`setNotes`, `upsertNote`, `removeNote`
 
 ### File naming scheme
 
-Notes follow `YYYYMMDDTHHMMSS--slugified-title.md` (e.g., `20240322T131856--meeting-notes.md`). The timestamp ID is immutable. Non-Noti `.md` files are supported using their raw filename as ID.
+Notes follow `YYYYMMDDTHHMMSS--slugified-title.md` (e.g., `20240322T131856--meeting-notes.md`). The timestamp ID is immutable. Plain `.md` files without the timestamp prefix are also supported, using their raw filename as ID.
 
 ### Key patterns
 
@@ -70,9 +70,9 @@ Notes follow `YYYYMMDDTHHMMSS--slugified-title.md` (e.g., `20240322T131856--meet
 - **Router** is hash-based (`#noteId`), syncing `selectedNoteId` signal with `window.location.hash`.
 - **Note linking** uses `[[YYYYMMDDTHHMMSS]]` syntax, rendered as clickable widgets via a TipTap extension with autocomplete suggestions.
 - **Attachments** are stored in per-note subdirectories (`.attachments/<noteId>/`). Images render inline; other files render as download cards.
-- **Favorites** are persisted to `.noti/favorites.json` in the notes folder via the storage backend. Drag-and-drop reordering in the NavSidebar.
+- **Favorites** are persisted to `.thoughthouse/favorites.json` in the notes folder via the storage backend. Drag-and-drop reordering in the NavSidebar.
 - **Command palette** (Cmd/Ctrl+K) is a centered overlay for note search with keyboard navigation. Uses `queryIndex()` for non-mutating search.
-- **AI agent** uses Pi AI to chat with notes context. Conversations are persisted to `.noti/conversations/`. Agent has tools to read/search/create notes.
+- **AI agent** uses Pi AI to chat with notes context. Conversations are persisted as notes tagged `th-agent-conversation`. Agent has tools to read/search/create notes.
 
 ### UI layout
 

@@ -2,30 +2,30 @@ import { describe, it, expect } from "vitest";
 import { parseFilename, slugToTitle, generateFilename } from "./filename.ts";
 
 describe("parseFilename", () => {
-  it("parses a standard Noti filename", () => {
+  it("parses a standard timestamp filename", () => {
     const result = parseFilename("20240322T131856--meeting-notes.md");
     expect(result).toEqual({
       id: "20240322T131856",
       titleSlug: "meeting-notes",
-      isNotiFormat: true,
+      isTimestampFormat: true,
     });
   });
 
-  it("parses an untitled Noti file", () => {
+  it("parses an untitled timestamp file", () => {
     const result = parseFilename("20240322T131856.md");
     expect(result).toEqual({
       id: "20240322T131856",
       titleSlug: null,
-      isNotiFormat: true,
+      isTimestampFormat: true,
     });
   });
 
-  it("parses a non-Noti .md file", () => {
+  it("parses a plain .md file", () => {
     const result = parseFilename("README.md");
     expect(result).toEqual({
       id: "README.md",
       titleSlug: null,
-      isNotiFormat: false,
+      isTimestampFormat: false,
     });
   });
 
@@ -41,7 +41,7 @@ describe("parseFilename", () => {
     expect(result).toEqual({
       id: "20240101T000000",
       titleSlug: "my-long-note-title",
-      isNotiFormat: true,
+      isTimestampFormat: true,
     });
   });
 });

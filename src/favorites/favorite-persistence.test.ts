@@ -13,7 +13,7 @@ function makeNote(overrides: Partial<Note> & { id: string }): Note {
     filename: `${overrides.id}.md`,
     lastModified: Date.now(),
     size: 100,
-    isNotiFormat: true,
+    isTimestampFormat: true,
     createdAt: new Date(2024, 2, 22),
     ...overrides,
   };
@@ -55,7 +55,7 @@ describe("favorite-persistence", () => {
       });
       await loadFavorites(backend);
       expect(favoriteIds.value).toEqual(["a", "b"]);
-      expect(backend.readFromDir).toHaveBeenCalledWith(".noti", "favorites.json");
+      expect(backend.readFromDir).toHaveBeenCalledWith(".thoughthouse", "favorites.json");
     });
 
     it("handles missing file", async () => {
@@ -89,7 +89,7 @@ describe("favorite-persistence", () => {
       const backend = mockBackend();
       await saveFavorites(backend);
       expect(backend.writeToDir).toHaveBeenCalledWith(
-        ".noti",
+        ".thoughthouse",
         "favorites.json",
         JSON.stringify({ version: 1, favorites: ["a", "b"] }, null, 2),
       );
@@ -101,7 +101,7 @@ describe("favorite-persistence", () => {
       await saveFavorites(backend);
       expect(favoriteIds.value).toEqual(["a", "b"]);
       expect(backend.writeToDir).toHaveBeenCalledWith(
-        ".noti",
+        ".thoughthouse",
         "favorites.json",
         JSON.stringify({ version: 1, favorites: ["a", "b"] }, null, 2),
       );

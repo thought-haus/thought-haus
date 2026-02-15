@@ -1,8 +1,8 @@
-# Noti: High-Level Specification
+# Thought.Haus: High-Level Specification
 
 ## 1. Product Overview
 
-Noti is a **local-first, browser-based note-taking app** inspired by the
+Thought.Haus is a **local-first, browser-based note-taking app** inspired by the
 original Evernote's focus on simple capture, organization, and retrieval. It
 runs entirely client-side — no server, no accounts, no sync service. Notes are
 stored as plain Markdown files in a user-selected local folder using the browser
@@ -11,13 +11,13 @@ human-readable title.
 
 ### Vision
 
-The file system IS the database. If Noti disappears, the user still has
-perfectly organized, human-readable Markdown files. Noti is a lens on a folder,
+The file system IS the database. If Thought.Haus disappears, the user still has
+perfectly organized, human-readable Markdown files. Thought.Haus is a lens on a folder,
 not a database that exports files.
 
-### What Makes Noti Different
+### What Makes Thought.Haus Different
 
-| Capability          | Noti             | Obsidian      | Bear        | Notion      |
+| Capability          | Thought.Haus             | Obsidian      | Bear        | Thought.Hauson      |
 | ------------------- | ---------------- | ------------- | ----------- | ----------- |
 | Runs in browser     | Yes              | No (Electron) | No (native) | Yes (cloud) |
 | Zero install        | Yes              | No            | No          | N/A         |
@@ -30,7 +30,7 @@ not a database that exports files.
 ## 2. Target Platform
 
 **Chromium-only** (Chrome, Edge, Brave, Arc). The File System API's
-`showDirectoryPicker()` is not supported in Firefox or Safari. Noti must display
+`showDirectoryPicker()` is not supported in Firefox or Safari. Thought.Haus must display
 a clear browser compatibility notice for unsupported browsers. Requires HTTPS or
 localhost.
 
@@ -93,7 +93,7 @@ tags:
 Front matter is written on note creation and updated when the user edits tags
 or title via the UI. Body content follows after the closing `---`.
 
-### Non-Noti Files
+### Non-Thought.Haus Files
 
 `.md` files without the expected naming scheme are shown in the note list using
 their raw filename as the title, with no tags. They are fully editable. Non-`.md`
@@ -111,7 +111,7 @@ files are ignored.
 
 2. **Note listing** — Scan directory for `.md` files, parse filenames for ID and
    title, read front matter for tags. Display in sidebar sorted by creation date
-   (newest first). Show parsed title and tag pills. Handle non-Noti files
+   (newest first). Show parsed title and tag pills. Handle non-Thought.Haus files
    gracefully (see Section 3).
 
 3. **Note creation** — `Cmd/Ctrl+N` or `+` button. Immediate editor focus — no
@@ -182,7 +182,7 @@ files are ignored.
 ## 5. User Stories
 
 **US-1: First-time Setup** — As a new user, I want to select a folder on my
-computer to store my notes, so that I can start using Noti without creating an
+computer to store my notes, so that I can start using Thought.Haus without creating an
 account or installing anything. _First note created in under 30 seconds._
 
 **US-2: Create a Note** — As a user, I want to quickly create a new note, so
@@ -204,12 +204,12 @@ stored in front matter._
 **US-6: Delete a Note** — As a user, I want to delete a note I no longer need.
 _Confirmation dialog, file removed from disk._
 
-**US-7: Return to My Notes** — As a returning user, I want to open Noti and see
+**US-7: Return to My Notes** — As a returning user, I want to open Thought.Haus and see
 my notes with a single click, not re-select my folder. _IndexedDB handle
 persistence with one-click re-permission._
 
 **US-8: External Changes** — As a user who edits files outside the browser, I
-want Noti to detect external changes and stay in sync. _Polling detects
+want Thought.Haus to detect external changes and stay in sync. _Polling detects
 new/deleted/modified files._
 
 ---
@@ -219,7 +219,7 @@ new/deleted/modified files._
 ### Design Principles
 
 1. **Capture is king** — Minimum friction from thought to written note
-2. **Files are the truth** — The folder IS the notebook, Noti is a lens
+2. **Files are the truth** — The folder IS the notebook, Thought.Haus is a lens
 3. **Tags over folders** — More flexible, tags live in front matter
 4. **Search over browse** — Primary navigation via full-text search, secondary
    via tag filtering
@@ -338,7 +338,7 @@ fuzzy matching, prefix search, and field-weighted boosting. Supports incremental
 add/remove/update without full index rebuilds. JSON serialization for IndexedDB
 persistence. Battle-tested in production note-taking apps.
 
-**Why not ProseMirror/TipTap:** Better for WYSIWYG, but Noti is Markdown-first.
+**Why not ProseMirror/TipTap:** Better for WYSIWYG, but Thought.Haus is Markdown-first.
 **Why not Monaco:** 2–4 MB, overkill. **Why not Fuse.js:** Fuzzy matching only,
 not true full-text search. **Why not FlexSearch:** No match scoring, more complex
 API.
@@ -525,9 +525,9 @@ User types query
 
 ## 10. Open Questions for Detailed Planning
 
-1. **Non-Noti `.md` files with front matter** — If an externally-created `.md`
+1. **Non-Thought.Haus `.md` files with front matter** — If an externally-created `.md`
    file has its own front matter, do we parse it for tags? Or only recognize
-   Noti-generated front matter?
+   Thought.Haus-generated front matter?
 2. **Welcome note** — What content? Should it be a tutorial or just a greeting?
 3. **Search index cold start** — On first visit with a large existing folder,
    building the MiniSearch index requires reading every file's content. Show a

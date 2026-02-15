@@ -36,7 +36,7 @@ import styles from "./nav-sidebar.module.css";
 // Module-level DnD state (not reactive — avoids re-renders during drag)
 let dragFromIndex = -1;
 
-const TAGS_COLLAPSED_KEY = "noti-tags-collapsed";
+const TAGS_COLLAPSED_KEY = "th-tags-collapsed";
 
 const THEME_CYCLE: ThemeMode[] = ["light", "dark", "system"];
 const THEME_LABELS: Record<ThemeMode, string> = {

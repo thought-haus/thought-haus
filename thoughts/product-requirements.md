@@ -1,12 +1,12 @@
-# Noti v1 - Product Requirements & Scope
+# Thought.Haus v1 - Product Requirements & Scope
 
 ## Product Vision
 
-Noti is a **local-first, browser-based note-taking app** inspired by the original Evernote simplicity. It stores notes as plain files in a user-selected local folder using the browser File System API. There is no server, no sync service -- the file system IS the database. Files follow the **denote naming scheme** for structured, human-readable filenames.
+Thought.Haus is a **local-first, browser-based note-taking app** inspired by the original Evernote simplicity. It stores notes as plain files in a user-selected local folder using the browser File System API. There is no server, no sync service -- the file system IS the database. Files follow the **denote naming scheme** for structured, human-readable filenames.
 
 ## Core Value Proposition
 
-| | Noti | Obsidian | Bear | Notion |
+| | Thought.Haus | Obsidian | Bear | Thought.Hauson |
 |---|---|---|---|---|
 | Runs in browser | Yes | No (Electron) | No (native) | Yes (cloud) |
 | Zero install | Yes | No | No | N/A (SaaS) |
@@ -16,7 +16,7 @@ Noti is a **local-first, browser-based note-taking app** inspired by the origina
 | Works offline | Yes | Yes | Yes | No |
 | Cross-platform | Any Chromium browser | Desktop only | Apple only | Any browser |
 
-**What makes Noti different**: Zero-install, runs entirely in the browser, stores plain files on the local file system with no proprietary format, and uses the denote naming convention for interoperability with Emacs denote users. Your notes are just files -- readable, movable, and yours.
+**What makes Thought.Haus different**: Zero-install, runs entirely in the browser, stores plain files on the local file system with no proprietary format, and uses the denote naming convention for interoperability with Emacs denote users. Your notes are just files -- readable, movable, and yours.
 
 ---
 
@@ -43,7 +43,7 @@ ID--TITLE__KEYWORDS.EXT
 - `20240322T131856__topic1_topic2.md` (no title)
 - `20240322T131856.md` (ID only)
 
-### Rules for Noti
+### Rules for Thought.Haus
 
 1. **ID generation**: Use `YYYYMMDDTHHMMSS` format based on creation time. Must be unique within the directory.
 2. **Title slugification**: Lowercase, replace spaces with hyphens, strip non-alphanumeric characters (except hyphens).
@@ -51,11 +51,11 @@ ID--TITLE__KEYWORDS.EXT
 4. **Immutable ID**: The ID (creation timestamp) never changes, even when renaming.
 5. **Rename = file rename**: Changing title or tags means renaming the file on disk.
 
-### Implications for Noti
+### Implications for Thought.Haus
 
 - **Search by filename**: Tags and title are in the filename, enabling fast filtering without reading file contents.
 - **Sort by date**: The ID prefix means lexicographic sort = chronological sort.
-- **Interoperability**: Files created by Noti can be opened and managed by Emacs denote, and vice versa.
+- **Interoperability**: Files created by Thought.Haus can be opened and managed by Emacs denote, and vice versa.
 - **No metadata database needed**: The filename carries all the metadata we need for v1.
 
 ---
@@ -76,7 +76,7 @@ ID--TITLE__KEYWORDS.EXT
 
 ### Key Constraints
 
-1. **Chromium-only for full support**: `showDirectoryPicker()` is not supported in Firefox or Safari. This means Noti v1 is a **Chromium-browser app** (Chrome, Edge, Brave, Arc, etc.).
+1. **Chromium-only for full support**: `showDirectoryPicker()` is not supported in Firefox or Safari. This means Thought.Haus v1 is a **Chromium-browser app** (Chrome, Edge, Brave, Arc, etc.).
 2. **HTTPS required**: Must be served over HTTPS or localhost.
 3. **User must grant permission**: The folder picker is the permission gate. Permission may need to be re-granted on browser restart.
 4. **No native file watching**: `FileSystemObserver` is experimental. We need a **polling fallback** (re-scan directory periodically) for detecting external changes.
@@ -97,7 +97,7 @@ ID--TITLE__KEYWORDS.EXT
 
 ### P0 - Launch Blockers (Must Ship)
 
-These are the absolute minimum features required for Noti to be usable as a note-taking app:
+These are the absolute minimum features required for Thought.Haus to be usable as a note-taking app:
 
 1. **Folder selection & persistence**
    - User selects a local folder via `showDirectoryPicker()`
@@ -183,7 +183,7 @@ These are things we are **explicitly NOT building** in v1:
 - **No WYSIWYG rich text**: Markdown editing only, not a rich text editor.
 - **No Electron / desktop app wrapper**: Browser-only.
 - **No user accounts or authentication**: Zero auth. Open the page, pick a folder, start writing.
-- **No import from other apps**: No Evernote/Notion/Obsidian importers (users can manually drop `.md` files).
+- **No import from other apps**: No Evernote/Thought.Hauson/Obsidian importers (users can manually drop `.md` files).
 - **No end-to-end encryption**: Files are plain text on disk.
 - **No Firefox / Safari support**: Chromium-only due to File System API.
 
@@ -192,10 +192,10 @@ These are things we are **explicitly NOT building** in v1:
 ## User Stories
 
 ### US-1: First-time Setup
-**As a** new user, **I want to** select a folder on my computer to store my notes, **so that** I can start using Noti without creating an account or installing anything.
+**As a** new user, **I want to** select a folder on my computer to store my notes, **so that** I can start using Thought.Haus without creating an account or installing anything.
 
 **Acceptance criteria:**
-- Landing page clearly explains what Noti does and how it works
+- Landing page clearly explains what Thought.Haus does and how it works
 - Single "Choose Folder" button triggers the native directory picker
 - After selection, immediately shows the notes list (even if empty)
 - Folder choice is remembered across browser sessions
@@ -251,16 +251,16 @@ These are things we are **explicitly NOT building** in v1:
 - If deleted note was open, editor clears or opens next note
 
 ### US-7: Return to My Notes
-**As a** returning user, **I want to** open Noti and see my notes immediately, **so that** I don't have to re-select my folder every time.
+**As a** returning user, **I want to** open Thought.Haus and see my notes immediately, **so that** I don't have to re-select my folder every time.
 
 **Acceptance criteria:**
-- Noti remembers the previously selected folder (IndexedDB handle)
+- Thought.Haus remembers the previously selected folder (IndexedDB handle)
 - On return, prompts for permission re-grant with a single click
 - After permission, notes list loads immediately
 - If permission is denied, falls back to folder selection flow
 
 ### US-8: External File Changes
-**As a** user who also edits files outside the browser (e.g., in Emacs, VS Code, or file manager), **I want** Noti to detect when files are added, removed, or renamed externally, **so that** my notes list stays in sync.
+**As a** user who also edits files outside the browser (e.g., in Emacs, VS Code, or file manager), **I want** Thought.Haus to detect when files are added, removed, or renamed externally, **so that** my notes list stays in sync.
 
 **Acceptance criteria:**
 - Directory is re-scanned periodically (every 5-10 seconds)
@@ -277,8 +277,8 @@ These are things we are **explicitly NOT building** in v1:
 - [ ] All P0 features are implemented and working
 - [ ] Core note-taking loop (create, edit, find, delete) takes under 3 actions each
 - [ ] Denote filename format is correctly generated and parsed
-- [ ] Files created by Noti are valid denote files (interoperable with Emacs denote)
-- [ ] Files created by Emacs denote are correctly displayed in Noti
+- [ ] Files created by Thought.Haus are valid denote files (interoperable with Emacs denote)
+- [ ] Files created by Emacs denote are correctly displayed in Thought.Haus
 
 ### Performance
 - [ ] App loads in under 2 seconds

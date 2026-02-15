@@ -1,5 +1,5 @@
 export interface Note {
-  /** YYYYMMDDTHHMMSS (immutable, from filename) or raw filename for non-Noti files. */
+  /** YYYYMMDDTHHMMSS (immutable, from filename) or raw filename for plain .md files. */
   id: string;
   /** Human-readable title. */
   title: string;
@@ -13,8 +13,8 @@ export interface Note {
   lastModified: number;
   /** File size in bytes. */
   size: number;
-  /** Whether this file follows Noti naming convention. */
-  isNotiFormat: boolean;
+  /** Whether this file follows the YYYYMMDDTHHMMSS--slug.md naming convention. */
+  isTimestampFormat: boolean;
   /** Creation date parsed from the ID. */
   createdAt: Date;
 }

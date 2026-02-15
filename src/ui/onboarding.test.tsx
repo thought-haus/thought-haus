@@ -3,9 +3,9 @@ import { render, screen, fireEvent } from "@testing-library/preact";
 import { Onboarding } from "./onboarding.tsx";
 
 describe("Onboarding", () => {
-  it("renders the Noti title", () => {
+  it("renders the Thought.Haus title", () => {
     render(<Onboarding onOpenFolder={() => {}} onConnectWebDav={() => {}} showLocalTab={true} />);
-    expect(screen.getByText("Noti")).toBeInTheDocument();
+    expect(screen.getByText("Thought.Haus")).toBeInTheDocument();
   });
 
   it("renders the Open a Folder button when local tab is shown", () => {

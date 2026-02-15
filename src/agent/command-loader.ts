@@ -4,7 +4,7 @@ import { storageBackend } from "../lib/app-state.ts";
 import { parseFrontMatter } from "../notes/frontmatter.ts";
 import { COMMAND_TAG } from "./conversation-format.ts";
 
-/** Return all notes tagged noti-command. */
+/** Return all notes tagged th-command. */
 export function getCommandNotes(): Note[] {
   const notes: Note[] = [];
   for (const note of notesMap.value.values()) {

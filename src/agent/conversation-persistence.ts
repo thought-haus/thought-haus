@@ -48,7 +48,7 @@ export async function createConversationNote(): Promise<string | null> {
     filename,
     lastModified: meta.lastModified,
     size: meta.size,
-    isNotiFormat: true,
+    isTimestampFormat: true,
     createdAt: now,
   };
 

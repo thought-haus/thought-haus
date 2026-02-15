@@ -16,7 +16,7 @@ export function Onboarding({ onOpenFolder, onConnectWebDav, showLocalTab }: Onbo
     return (
       <div class={styles.container}>
         <div class={styles.card}>
-          <h1 class={styles.title}>Noti</h1>
+          <h1 class={styles.title}>Thought.Haus</h1>
           <p class={styles.subtitle}>
             A local-first note-taking app. Connect to a WebDAV server to store your notes.
           </p>
@@ -29,7 +29,7 @@ export function Onboarding({ onOpenFolder, onConnectWebDav, showLocalTab }: Onbo
   return (
     <div class={styles.container}>
       <div class={styles.card}>
-        <h1 class={styles.title}>Noti</h1>
+        <h1 class={styles.title}>Thought.Haus</h1>
         <p class={styles.subtitle}>
           A local-first note-taking app. Your notes never leave your device.
         </p>

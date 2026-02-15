@@ -84,14 +84,14 @@ Body`;
 title: My Skill
 description: Helps format code blocks
 tags:
-  - noti-skill
+  - th-skill
 ---
 Skill body`;
 
     const { frontMatter } = parseFrontMatter(content);
     expect(frontMatter.title).toBe("My Skill");
     expect(frontMatter.properties.description).toBe("Helps format code blocks");
-    expect(frontMatter.tags).toEqual(["noti-skill"]);
+    expect(frontMatter.tags).toEqual(["th-skill"]);
   });
 
   it("returns empty properties when no unknown fields", () => {
@@ -169,11 +169,11 @@ describe("serializeFrontMatter", () => {
 
   it("serializes properties between date and tags", () => {
     const result = serializeFrontMatter(
-      { title: "Skill", date: "2024-01-01", tags: ["noti-skill"], properties: { description: "My description" } },
+      { title: "Skill", date: "2024-01-01", tags: ["th-skill"], properties: { description: "My description" } },
       "Body",
     );
     expect(result).toBe(
-      `---\ntitle: Skill\ndate: 2024-01-01\ndescription: My description\ntags:\n  - noti-skill\n---\nBody`,
+      `---\ntitle: Skill\ndate: 2024-01-01\ndescription: My description\ntags:\n  - th-skill\n---\nBody`,
     );
   });
 

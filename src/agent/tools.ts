@@ -80,7 +80,7 @@ export function createTools(): AgentTool[] {
       const note: Note = {
         id, title, tags, properties: {}, filename,
         lastModified: meta.lastModified, size: meta.size,
-        isNotiFormat: true, createdAt: now,
+        isTimestampFormat: true, createdAt: now,
       };
 
       upsertNote(note);

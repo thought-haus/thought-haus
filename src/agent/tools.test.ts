@@ -13,7 +13,7 @@ function makeNote(overrides: Partial<Note> & { id: string }): Note {
     filename: `${overrides.id}--test-note.md`,
     lastModified: Date.now(),
     size: 100,
-    isNotiFormat: true,
+    isTimestampFormat: true,
     createdAt: new Date("2024-03-22T13:18:56"),
     ...overrides,
   };
@@ -24,7 +24,7 @@ const mockBackend: StorageBackend = {
   name: "test-folder",
   list: vi.fn(() => Promise.resolve([])),
   read: vi.fn(() =>
-    Promise.resolve("---\ntitle: My Skill\ndescription: Helps with formatting\ntags:\n  - noti-skill\n---\nDo the thing step by step."),
+    Promise.resolve("---\ntitle: My Skill\ndescription: Helps with formatting\ntags:\n  - th-skill\n---\nDo the thing step by step."),
   ),
   write: vi.fn(() =>
     Promise.resolve({ lastModified: Date.now(), size: 100 }),
@@ -55,7 +55,7 @@ describe("load_skill tool", () => {
     const skillNote = makeNote({
       id: "20240322T131856",
       title: "My Skill",
-      tags: ["noti-skill"],
+      tags: ["th-skill"],
       properties: { description: "Helps with formatting" },
     });
     setNotes([skillNote]);
@@ -67,7 +67,7 @@ describe("load_skill tool", () => {
     expect((text as { type: "text"; text: string }).text).toContain("Do the thing step by step.");
   });
 
-  it("rejects notes without noti-skill tag", async () => {
+  it("rejects notes without th-skill tag", async () => {
     const regularNote = makeNote({
       id: "20240322T131856",
       title: "Regular Note",

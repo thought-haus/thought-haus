@@ -30,7 +30,7 @@ export function PropertyEditor({
   const [editDraft, setEditDraft] = useState("");
   const [collapsed, setCollapsed] = useState(() => {
     try {
-      return localStorage.getItem(`noti:props-collapsed:${noteId}`) === "true";
+      return localStorage.getItem(`th:props-collapsed:${noteId}`) === "true";
     } catch { return false; }
   });
   const [autocompleteIndex, setAutocompleteIndex] = useState(-1);
@@ -62,7 +62,7 @@ export function PropertyEditor({
   // Persist collapsed state
   useEffect(() => {
     if (showHeader) {
-      try { localStorage.setItem(`noti:props-collapsed:${noteId}`, String(collapsed)); } catch { /* */ }
+      try { localStorage.setItem(`th:props-collapsed:${noteId}`, String(collapsed)); } catch { /* */ }
     }
   }, [collapsed, noteId, showHeader]);
 
@@ -70,7 +70,7 @@ export function PropertyEditor({
   useEffect(() => {
     try {
       setCollapsed(
-        localStorage.getItem(`noti:props-collapsed:${noteId}`) === "true",
+        localStorage.getItem(`th:props-collapsed:${noteId}`) === "true",
       );
     } catch {
       setCollapsed(false);

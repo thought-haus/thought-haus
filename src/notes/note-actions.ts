@@ -12,9 +12,9 @@ import { deleteNoteAttachments } from "../attachments/attachment-service.ts";
 import { removeFavorite } from "../favorites/favorite-store.ts";
 import type { Note } from "./note.ts";
 
-const WELCOME_BODY = `Welcome to Noti! This is your first note.
+const WELCOME_BODY = `Welcome to Thought.Haus! This is your first note.
 
-Noti stores your notes as plain Markdown files in the folder you selected.
+Thought.Haus stores your notes as plain Markdown files in the folder you selected.
 You can edit them here or in any text editor.
 
 ## Getting Started
@@ -55,7 +55,7 @@ export async function createNote(): Promise<Note | null> {
     filename,
     lastModified: meta.lastModified,
     size: meta.size,
-    isNotiFormat: true,
+    isTimestampFormat: true,
     createdAt: now,
   };
 
@@ -145,7 +145,7 @@ export async function createWelcomeNote(): Promise<Note | null> {
 
   const now = new Date();
   const id = formatTimestampId(now);
-  const title = "Welcome to Noti";
+  const title = "Welcome to Thought.Haus";
   const filename = generateFilename(now, title);
 
   const frontMatter = {
@@ -166,7 +166,7 @@ export async function createWelcomeNote(): Promise<Note | null> {
     filename,
     lastModified: meta.lastModified,
     size: meta.size,
-    isNotiFormat: true,
+    isTimestampFormat: true,
     createdAt: now,
   };
 

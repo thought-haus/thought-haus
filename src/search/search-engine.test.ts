@@ -252,17 +252,17 @@ describe("search-engine", () => {
 
   describe("preprocessBody", () => {
     it("appends undone token when body has unchecked tasks", () => {
-      expect(preprocessBody("- [ ] Todo")).toContain("__noti.task.undone__");
+      expect(preprocessBody("- [ ] Todo")).toContain("__th.task.undone__");
     });
 
     it("appends done token when body has checked tasks", () => {
-      expect(preprocessBody("- [x] Done")).toContain("__noti.task.done__");
+      expect(preprocessBody("- [x] Done")).toContain("__th.task.done__");
     });
 
     it("appends both tokens when body has both", () => {
       const result = preprocessBody("- [ ] Open\n- [x] Closed");
-      expect(result).toContain("__noti.task.undone__");
-      expect(result).toContain("__noti.task.done__");
+      expect(result).toContain("__th.task.undone__");
+      expect(result).toContain("__th.task.done__");
     });
 
     it("returns body unchanged when no tasks", () => {
@@ -273,15 +273,15 @@ describe("search-engine", () => {
 
   describe("preprocessQuery", () => {
     it("translates - [ ] to undone token", () => {
-      expect(preprocessQuery("- [ ]")).toBe("__noti.task.undone__");
+      expect(preprocessQuery("- [ ]")).toBe("__th.task.undone__");
     });
 
     it("translates - [x] to done token", () => {
-      expect(preprocessQuery("- [x]")).toBe("__noti.task.done__");
+      expect(preprocessQuery("- [x]")).toBe("__th.task.done__");
     });
 
     it("translates - [X] to done token", () => {
-      expect(preprocessQuery("- [X]")).toBe("__noti.task.done__");
+      expect(preprocessQuery("- [X]")).toBe("__th.task.done__");
     });
 
     it("leaves regular queries unchanged", () => {

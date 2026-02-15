@@ -1,4 +1,4 @@
-# Noti Roadmap
+# Thought.Haus Roadmap
 
 Each phase delivers a usable vertical slice — something a real user can do
 end-to-end — rather than building technology layers in isolation.
@@ -36,7 +36,7 @@ markdown files listed.
 - [x] Create `Note` type and in-memory note store (Preact Signals)
 - [x] Render note list in sidebar sorted by creation date (newest first)
 - [x] Show parsed title, date groupings, and tag pills per note
-- [x] Handle non-Noti `.md` files (raw filename as title, no tags, fully usable)
+- [x] Handle non-Thought.Haus `.md` files (raw filename as title, no tags, fully usable)
 - [x] Persist directory handle in IndexedDB for session persistence
 - [x] Build returning-user flow: check saved handle, `queryPermission()`,
       one-click re-permission
@@ -135,7 +135,7 @@ gracefully.
 - [ ] If file changed externally during edit, warn user and offer reload or
       overwrite
 
-**Deliverable:** User can bookmark Noti, go offline, and it still loads and
+**Deliverable:** User can bookmark Thought.Haus, go offline, and it still loads and
 works. Concurrent edits from other tools don't silently overwrite data.
 
 ---
@@ -159,8 +159,8 @@ The app stays in sync with external changes and supports renaming notes.
 - [x] Progressive enhancement: use `FileSystemObserver` when available via
       feature detection
 
-**Deliverable:** User can rename a note's title from within Noti and the file on
-disk updates. Editing files in VS Code or Finder and switching back to Noti
+**Deliverable:** User can rename a note's title from within Thought.Haus and the file on
+disk updates. Editing files in VS Code or Finder and switching back to Thought.Haus
 reflects changes automatically.
 
 ---

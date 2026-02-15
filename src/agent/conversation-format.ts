@@ -2,10 +2,10 @@ import { parseFrontMatter, serializeFrontMatter } from "../notes/frontmatter.ts"
 import type { FrontMatter } from "../notes/frontmatter.ts";
 import type { Message } from "@mariozechner/pi-ai";
 
-export const CONVERSATION_TAG = "noti-agent-conversation";
-export const MEMORY_TAG = "noti-agent-memory";
-export const COMMAND_TAG = "noti-command";
-export const SKILL_TAG = "noti-skill";
+export const CONVERSATION_TAG = "th-agent-conversation";
+export const MEMORY_TAG = "th-agent-memory";
+export const COMMAND_TAG = "th-command";
+export const SKILL_TAG = "th-skill";
 
 const JSON_BLOCK_RE = /```json\s*\n([\s\S]*?)\n```/;
 

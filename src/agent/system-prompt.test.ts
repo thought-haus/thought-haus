@@ -12,7 +12,7 @@ function makeNote(overrides: Partial<Note> & { id: string }): Note {
     filename: `${overrides.id}--test-note.md`,
     lastModified: Date.now(),
     size: 100,
-    isNotiFormat: true,
+    isTimestampFormat: true,
     createdAt: new Date("2024-03-22T13:18:56"),
     ...overrides,
   };
@@ -29,7 +29,7 @@ describe("buildSystemPrompt skills", () => {
     const skillNote = makeNote({
       id: "20240322T131856",
       title: "Code Formatter",
-      tags: ["noti-skill"],
+      tags: ["th-skill"],
       properties: { description: "Formats code blocks in notes" },
     });
     setNotes([skillNote]);
@@ -56,13 +56,13 @@ describe("buildSystemPrompt skills", () => {
     const skillWithDesc = makeNote({
       id: "20240101T000000",
       title: "With Desc",
-      tags: ["noti-skill"],
+      tags: ["th-skill"],
       properties: { description: "Has a description" },
     });
     const skillWithoutDesc = makeNote({
       id: "20240101T000001",
       title: "No Desc",
-      tags: ["noti-skill"],
+      tags: ["th-skill"],
       properties: {},
     });
     setNotes([skillWithDesc, skillWithoutDesc]);

@@ -1,4 +1,4 @@
-# UX Research: Local-First Note-Taking Patterns for Noti
+# UX Research: Local-First Note-Taking Patterns for Thought.Haus
 
 ## 1. Lessons from Original Evernote (2008-2015)
 
@@ -19,12 +19,12 @@ The original Evernote succeeded by focusing relentlessly on a single promise: **
 
 ### Why It Declined
 
-Evernote's decline is a cautionary tale for Noti:
+Evernote's decline is a cautionary tale for Thought.Haus:
 
 - **Feature bloat**: Added task management, chat, presentation mode, business features. Each individually reasonable, collectively overwhelming.
 - **Lost core identity**: Users couldn't tell if Evernote was a notes app, a task manager, a document scanner, or a collaboration tool.
 - **Performance degradation**: More features meant slower startup, slower sync, buggier experience.
-- **Lesson for Noti**: Do one thing exceptionally well. Note-taking is the core loop. Resist the urge to expand scope. If users want a task manager, they'll use a task manager.
+- **Lesson for Thought.Haus**: Do one thing exceptionally well. Note-taking is the core loop. Resist the urge to expand scope. If users want a task manager, they'll use a task manager.
 
 ---
 
@@ -45,7 +45,7 @@ Evernote's decline is a cautionary tale for Noti:
 - Mobile experience is noticeably weaker than desktop.
 - Can feel like configuring a tool rather than using one.
 
-**Takeaway for Noti:** Obsidian proves local-first Markdown files work. But Noti should provide a more guided, opinionated experience out of the box rather than requiring configuration.
+**Takeaway for Thought.Haus:** Obsidian proves local-first Markdown files work. But Thought.Haus should provide a more guided, opinionated experience out of the box rather than requiring configuration.
 
 ### Bear
 
@@ -66,7 +66,7 @@ Evernote's decline is a cautionary tale for Noti:
 - No folder/notebook concept -- tags are the only organizational tool.
 - Limited export options.
 
-**Takeaway for Noti:** Bear's inline tag creation (`#tag`) is the gold standard for tag UX. The denote filename scheme already encodes tags, so Noti should mirror this by making tags a first-class inline interaction. Nested tags with sidebar hierarchy is a proven pattern.
+**Takeaway for Thought.Haus:** Bear's inline tag creation (`#tag`) is the gold standard for tag UX. The denote filename scheme already encodes tags, so Thought.Haus should mirror this by making tags a first-class inline interaction. Nested tags with sidebar hierarchy is a proven pattern.
 
 ### Apple Notes
 
@@ -81,9 +81,9 @@ Evernote's decline is a cautionary tale for Noti:
 - No cross-platform support.
 - Limited export/interop.
 
-**Takeaway for Noti:** Apple Notes proves that reducing friction at capture time is paramount. The fastest path from "I have a thought" to "it's saved" wins. Noti should make new note creation a single action.
+**Takeaway for Thought.Haus:** Apple Notes proves that reducing friction at capture time is paramount. The fastest path from "I have a thought" to "it's saved" wins. Thought.Haus should make new note creation a single action.
 
-### Notion
+### Thought.Hauson
 
 **Strengths:**
 - Flexible block-based editor supports many content types.
@@ -95,7 +95,7 @@ Evernote's decline is a cautionary tale for Noti:
 - Can be overwhelming for simple note-taking.
 - Performance issues with large workspaces.
 
-**Takeaway for Noti:** Notion's block editor is powerful but too complex for a notes-first app. Noti should use a simpler editing model (Markdown with rich rendering) and avoid the "everything is a database" paradigm.
+**Takeaway for Thought.Haus:** Thought.Hauson's block editor is powerful but too complex for a notes-first app. Thought.Haus should use a simpler editing model (Markdown with rich rendering) and avoid the "everything is a database" paradigm.
 
 ---
 
@@ -124,14 +124,14 @@ Permutations allowed:
 
 ### UX Challenge: Pretty Title vs. Actual Filename
 
-This is the central UX tension for Noti. Users will see these files in two places:
+This is the central UX tension for Thought.Haus. Users will see these files in two places:
 
-1. **In the Noti UI** -- where we control the presentation
+1. **In the Thought.Haus UI** -- where we control the presentation
 2. **In Finder/Explorer** -- where they see the raw filename
 
 **Recommendation: Embrace the dual nature, don't hide it.**
 
-**In the Noti UI:**
+**In the Thought.Haus UI:**
 - Display the **human-readable title** as the primary identifier (e.g., "My Note Title").
 - Show tags as styled pills/badges below or beside the title.
 - Show the date as a relative or formatted timestamp ("March 22, 2024" or "2 days ago").
@@ -139,12 +139,12 @@ This is the central UX tension for Noti. Users will see these files in two place
 
 **In the file system:**
 - The long filename is actually a **feature**, not a bug. Users can search, sort, and filter notes using basic OS tools (grep, find, ls).
-- Noti should generate filenames automatically from the note's title and tags. Users should never manually type a denote filename.
-- When a user changes a title or tags in the UI, Noti renames the file on disk automatically.
+- Thought.Haus should generate filenames automatically from the note's title and tags. Users should never manually type a denote filename.
+- When a user changes a title or tags in the UI, Thought.Haus renames the file on disk automatically.
 
 **Rename handling:**
-- If a user renames a file outside Noti (in Finder), Noti should detect this and parse the new filename to update the displayed title/tags.
-- If a user renames within Noti, the file on disk is renamed to match.
+- If a user renames a file outside Thought.Haus (in Finder), Thought.Haus should detect this and parse the new filename to update the displayed title/tags.
+- If a user renames within Thought.Haus, the file on disk is renamed to match.
 - Conflict resolution: the filename is the source of truth for metadata (title, tags, date). The file content is the source of truth for the note body. Front-matter in the Markdown file can optionally store a "display title" if it differs from the filename slug.
 
 ---
@@ -157,11 +157,11 @@ This is the central UX tension for Noti. Users will see these files in two place
 
 **Flow:**
 
-1. **Landing screen**: Clean, minimal. Brief tagline explaining what Noti is. A single primary CTA: "Open a Folder" (or "Create a Notebook").
+1. **Landing screen**: Clean, minimal. Brief tagline explaining what Thought.Haus is. A single primary CTA: "Open a Folder" (or "Create a Notebook").
 2. **Folder picker**: Browser's native `showDirectoryPicker()` dialog appears. User selects or creates a folder.
-   - **If folder has existing `.md` files**: Noti scans and indexes them. Shows a brief "Found X notes" message. Transition to the main UI with notes populated.
-   - **If folder is empty**: Noti creates a welcome note (e.g., `20240101T000000--welcome-to-noti__getting-started.md`). Transition to the main UI with the welcome note open.
-3. **Permission explanation**: Before the picker, a brief inline message explains: "Noti stores your notes as Markdown files in a folder you choose. Your notes never leave your device."
+   - **If folder has existing `.md` files**: Thought.Haus scans and indexes them. Shows a brief "Found X notes" message. Transition to the main UI with notes populated.
+   - **If folder is empty**: Thought.Haus creates a welcome note (e.g., `20240101T000000--welcome-to-noti__getting-started.md`). Transition to the main UI with the welcome note open.
+3. **Permission explanation**: Before the picker, a brief inline message explains: "Thought.Haus stores your notes as Markdown files in a folder you choose. Your notes never leave your device."
 4. **Handle persistence**: Store the directory handle in IndexedDB so the user doesn't need to re-pick the folder on next visit.
 5. **Returning user flow**: On app load, check IndexedDB for a saved handle. Use `queryPermission()` to verify access. If granted, go straight to the main UI. If expired, show a "Re-open Notebook" prompt with the folder name.
 
@@ -227,7 +227,7 @@ This is the central UX tension for Noti. Users will see these files in two place
 - No split-pane preview. No mode switching. The editor IS the preview.
 
 **Why this approach:**
-- Rich text editors (Google Docs style) lose the Markdown file compatibility that is core to Noti's value.
+- Rich text editors (Google Docs style) lose the Markdown file compatibility that is core to Thought.Haus's value.
 - Raw Markdown editors (plain text) have a learning curve and feel technical.
 - The hybrid approach preserves Markdown on disk while feeling like a rich text editor. Bear and Typora have proven this model works.
 
@@ -347,11 +347,11 @@ Three-pane layouts (sidebar + note list + editor, like classic Evernote or Apple
 
 ---
 
-## 6. Summary: Core Design Principles for Noti
+## 6. Summary: Core Design Principles for Thought.Haus
 
 1. **Capture is king.** The path from "I have a thought" to "it's written down" must be the shortest possible. One action to create a note, then just type.
 
-2. **Files are the truth.** The local folder of Markdown files IS the notebook. Noti is a lens on that folder, not a database that happens to export files. If Noti disappears, the user still has perfectly usable Markdown files with meaningful names.
+2. **Files are the truth.** The local folder of Markdown files IS the notebook. Thought.Haus is a lens on that folder, not a database that happens to export files. If Thought.Haus disappears, the user still has perfectly usable Markdown files with meaningful names.
 
 3. **Tags over folders.** Follow Bear's model. Tags are more flexible than folders (a note can have many tags but only one folder). The denote naming scheme already embeds tags in filenames, making this a natural fit.
 

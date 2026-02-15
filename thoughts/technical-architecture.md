@@ -1,4 +1,4 @@
-# Noti Technical Architecture
+# Thought.Haus Technical Architecture
 
 ## 1. File System API: Capabilities and Constraints
 
@@ -46,9 +46,9 @@ await writable.close(); // Persists to disk
 
 ### Browser Support
 - **Chrome/Edge**: Full support (Chromium-based browsers).
-- **Firefox**: Partial -- supports `showOpenFilePicker` but NOT `showDirectoryPicker`. Major gap for Noti.
+- **Firefox**: Partial -- supports `showOpenFilePicker` but NOT `showDirectoryPicker`. Major gap for Thought.Haus.
 - **Safari**: No support for the picker APIs. OPFS only.
-- **Conclusion**: Noti is **Chromium-only** for the directory-based workflow. We should display a clear browser compatibility notice.
+- **Conclusion**: Thought.Haus is **Chromium-only** for the directory-based workflow. We should display a clear browser compatibility notice.
 
 ### Key Constraints
 1. Requires HTTPS (or localhost for development).
@@ -58,7 +58,7 @@ await writable.close(); // Persists to disk
 5. Directory iteration is async iterator-based, not synchronous.
 
 ### OPFS (Origin Private File System)
-OPFS is a browser-private file system not visible to the user. It does NOT meet Noti's requirement for user-visible, portable files. However, it could be useful as a **cache/index layer** (e.g., storing search indexes). Access: `const root = await navigator.storage.getDirectory();`
+OPFS is a browser-private file system not visible to the user. It does NOT meet Thought.Haus's requirement for user-visible, portable files. However, it could be useful as a **cache/index layer** (e.g., storing search indexes). Access: `const root = await navigator.storage.getDirectory();`
 
 ---
 
@@ -100,7 +100,7 @@ observer.disconnect();
 - `"unknown"` type means events were missed; app should rescan/poll.
 - `"errored"` means observation is invalid (permission lost, handle deleted, or limit reached).
 
-### Recommendation for Noti
+### Recommendation for Thought.Haus
 Since FileSystemObserver is experimental:
 1. **Primary strategy**: Implement **polling** as the baseline. Re-scan the directory on a timer (e.g., every 5-10 seconds) or on window focus.
 2. **Progressive enhancement**: If `FileSystemObserver` is available in the user's browser, use it for real-time updates and disable polling.
@@ -177,7 +177,7 @@ identifier: 20240322T131856
 ---
 ```
 
-### Parsing Strategy for Noti
+### Parsing Strategy for Thought.Haus
 
 ```js
 // Regex to parse denote filenames
@@ -259,7 +259,7 @@ This is the same approach denote uses in Emacs -- the identifier is the stable r
 7. **TypeScript**: Written in TypeScript with excellent type definitions.
 
 **Why not the others:**
-- **ProseMirror**: Better for rich-text/WYSIWYG editing, but Noti's model is Markdown-first. ProseMirror requires building a Markdown-to-schema mapping layer.
+- **ProseMirror**: Better for rich-text/WYSIWYG editing, but Thought.Haus's model is Markdown-first. ProseMirror requires building a Markdown-to-schema mapping layer.
 - **TipTap**: Higher-level ProseMirror wrapper. Adds bundle weight and abstraction. Markdown support is a recent extension, not core. The "AI-native" marketing is for paid features.
 - **Monaco**: Enormous bundle (~2-4 MB). Overkill for note-taking. Designed for IDE scenarios.
 - **contenteditable**: Too much work to build reliable editing. Every note-taking app that tried has regretted it.
@@ -344,7 +344,7 @@ User types query
 
 ### Why Preact over alternatives:
 
-- **vs React**: 3 KB vs 40+ KB. Noti is a focused app, not a complex SPA. Preact's compat layer means we can use React ecosystem if needed.
+- **vs React**: 3 KB vs 40+ KB. Thought.Haus is a focused app, not a complex SPA. Preact's compat layer means we can use React ecosystem if needed.
 - **vs Solid**: Solid is excellent but smaller ecosystem. Preact has broader library compatibility through React compat.
 - **vs Svelte**: Svelte compiles away but the compiler adds build complexity. Less relevant for a Vite project. Smaller ecosystem for editor integration.
 - **vs Vanilla JS**: Possible, but managing state and DOM updates manually for a note list + editor + sidebar would be tedious. A lightweight framework pays for itself.
@@ -499,9 +499,9 @@ const filteredNotes = computed(() => {
 ## 8. Key Technical Risks and Constraints
 
 ### Risk 1: Browser Compatibility (HIGH)
-- **Impact**: Noti only works in Chromium browsers (Chrome, Edge, Brave, Arc).
+- **Impact**: Thought.Haus only works in Chromium browsers (Chrome, Edge, Brave, Arc).
 - **Mitigation**: Clear messaging on landing page. "Works best in Chrome" badge. Graceful degradation message for unsupported browsers.
-- **Firefox**: Has partial File System API but no `showDirectoryPicker()`. Cannot support Noti's core workflow.
+- **Firefox**: Has partial File System API but no `showDirectoryPicker()`. Cannot support Thought.Haus's core workflow.
 - **Safari**: No File System API picker support at all.
 
 ### Risk 2: Permission UX Friction (MEDIUM)
@@ -528,7 +528,7 @@ const filteredNotes = computed(() => {
 - **Mitigation**: Polling fallback (already planned). Poll on window focus and on a timer. The observer is a progressive enhancement, not a dependency.
 
 ### Risk 6: Concurrent Access (LOW-MEDIUM)
-- **Impact**: If the user edits the same file in Noti and an external editor simultaneously, changes could overwrite each other.
+- **Impact**: If the user edits the same file in Thought.Haus and an external editor simultaneously, changes could overwrite each other.
 - **Mitigation**:
   - Check `lastModified` before every write.
   - If external change detected while user has unsaved changes, show a conflict resolution UI (keep mine / keep theirs / merge).
@@ -539,8 +539,8 @@ const filteredNotes = computed(() => {
 - **Mitigation**: Indexes are typically small (a few MB for thousands of notes). Use `navigator.storage.estimate()` to check available space. Compress indexes if needed.
 
 ### Risk 8: PWA / Offline Support (LOW - FUTURE)
-- **Impact**: As a browser app, Noti requires the browser to be open. Users may expect native-app-like behavior.
-- **Mitigation**: Register a Service Worker for offline caching of app assets. The actual notes are on the local file system, so they're always "available" -- but the app needs to be loaded to access them. Future consideration: make Noti installable as a PWA.
+- **Impact**: As a browser app, Thought.Haus requires the browser to be open. Users may expect native-app-like behavior.
+- **Mitigation**: Register a Service Worker for offline caching of app assets. The actual notes are on the local file system, so they're always "available" -- but the app needs to be loaded to access them. Future consideration: make Thought.Haus installable as a PWA.
 
 ---
 

@@ -8,7 +8,7 @@ export type SortDirection = "asc" | "desc";
 
 export type ThemeMode = "light" | "dark" | "system";
 
-const THEME_KEY = "noti-theme";
+const THEME_KEY = "th-theme";
 
 /** The user's chosen theme mode. */
 export const themeMode = signal<ThemeMode>("system");
@@ -66,7 +66,7 @@ export const sortMode = signal<SortMode>("created");
 /** The current sort direction. */
 export const sortDirection = signal<SortDirection>("desc");
 
-const SORT_KEY = "noti-sort";
+const SORT_KEY = "th-sort";
 
 export const SORT_DEFAULTS: Record<SortMode, SortDirection> = {
   created: "desc",
@@ -122,7 +122,7 @@ export const selectedNoteId = signal<string | null>(null);
 export const sidebarCollapsed = signal(false);
 
 /** The sidebar width in pixels. */
-const SIDEBAR_WIDTH_KEY = "noti-sidebar-width";
+const SIDEBAR_WIDTH_KEY = "th-sidebar-width";
 const DEFAULT_SIDEBAR_WIDTH = 300;
 
 export const sidebarWidth = signal(DEFAULT_SIDEBAR_WIDTH);
@@ -149,7 +149,7 @@ export function initSidebarWidth(): void {
 }
 
 /** The agent panel width in pixels. */
-const AGENT_PANEL_WIDTH_KEY = "noti-agent-panel-width";
+const AGENT_PANEL_WIDTH_KEY = "th-agent-panel-width";
 const DEFAULT_AGENT_PANEL_WIDTH = 420;
 
 export const agentPanelWidth = signal(DEFAULT_AGENT_PANEL_WIDTH);

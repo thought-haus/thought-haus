@@ -14,7 +14,7 @@ function makeNote(id: string): Note {
     createdAt: new Date(),
     lastModified: Date.now(),
     size: 0,
-    isNotiFormat: true,
+    isTimestampFormat: true,
   };
 }
 

@@ -14,7 +14,7 @@ function makeNote(overrides: Partial<Note> & { id: string }): Note {
     filename: `${overrides.id}.md`,
     lastModified: Date.now(),
     size: 100,
-    isNotiFormat: true,
+    isTimestampFormat: true,
     createdAt: new Date(2024, 2, 22),
     ...overrides,
   };

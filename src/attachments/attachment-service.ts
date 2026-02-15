@@ -16,7 +16,7 @@ export function isImageFile(filename: string): boolean {
 
 /** Get the attachment subdirectory name for a note. */
 export function getAttachmentDir(note: Note): string {
-  return note.isNotiFormat ? note.id : note.filename.replace(/\.md$/, "");
+  return note.isTimestampFormat ? note.id : note.filename.replace(/\.md$/, "");
 }
 
 /** Generate a timestamped, slugified attachment filename. */
