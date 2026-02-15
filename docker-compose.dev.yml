@@ -1,9 +1,0 @@
-services:
-  webdav:
-    image: ionelmc/nginx-webdav:latest
-    ports:
-      - "8080:8080"
-    volumes:
-      - ./dev/nginx-webdav.conf:/etc/nginx/nginx.conf:ro
-      - ./dev/htpasswd:/etc/nginx/htpasswd:ro
-      - ./dev/webdav-data:/var/webdav
