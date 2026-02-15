@@ -35,6 +35,17 @@ export const tagCounts = computed(() => {
   return counts;
 });
 
+/** All unique property keys across all notes, sorted alphabetically. */
+export const allPropertyKeys = computed(() => {
+  const keys = new Set<string>();
+  for (const note of notesMap.value.values()) {
+    for (const key of Object.keys(note.properties)) {
+      keys.add(key);
+    }
+  }
+  return Array.from(keys).sort();
+});
+
 /** Total number of notes. */
 export const noteCount = computed(() => notesMap.value.size);
 

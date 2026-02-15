@@ -3,6 +3,7 @@ import {
   notesMap,
   notesSorted,
   tagCounts,
+  allPropertyKeys,
   noteCount,
   activeTagFilter,
   filteredNotes,
@@ -116,5 +117,45 @@ describe("note-store", () => {
       makeNote({ id: "2", tags: ["personal"] }),
     ]);
     expect(filteredNotes.value.length).toBe(2);
+  });
+
+  describe("allPropertyKeys", () => {
+    it("returns sorted unique property keys across all notes", () => {
+      setNotes([
+        makeNote({ id: "1", properties: { status: "active", priority: "high" } }),
+        makeNote({ id: "2", properties: { status: "done", owner: "Alice" } }),
+        makeNote({ id: "3", properties: { due: "2026-01-01" } }),
+      ]);
+      expect(allPropertyKeys.value).toEqual(["due", "owner", "priority", "status"]);
+    });
+
+    it("returns empty array when no notes have properties", () => {
+      setNotes([
+        makeNote({ id: "1", properties: {} }),
+        makeNote({ id: "2", properties: {} }),
+      ]);
+      expect(allPropertyKeys.value).toEqual([]);
+    });
+
+    it("updates when a note with new property key is added", () => {
+      setNotes([
+        makeNote({ id: "1", properties: { status: "active" } }),
+      ]);
+      expect(allPropertyKeys.value).toEqual(["status"]);
+
+      upsertNote(makeNote({ id: "2", properties: { priority: "high" } }));
+      expect(allPropertyKeys.value).toEqual(["priority", "status"]);
+    });
+
+    it("updates when a note with properties is removed", () => {
+      setNotes([
+        makeNote({ id: "1", properties: { status: "active" } }),
+        makeNote({ id: "2", properties: { priority: "high" } }),
+      ]);
+      expect(allPropertyKeys.value).toEqual(["priority", "status"]);
+
+      removeNote("2");
+      expect(allPropertyKeys.value).toEqual(["status"]);
+    });
   });
 });
