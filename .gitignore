@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# WebDAV dev server data
+dev/webdav-data/
