@@ -4,12 +4,12 @@ import { Onboarding } from "./onboarding.tsx";
 
 describe("Onboarding", () => {
   it("renders the Noti title", () => {
-    render(<Onboarding onOpenFolder={() => {}} />);
+    render(<Onboarding onOpenFolder={() => {}} onConnectWebDav={() => {}} showLocalTab={true} />);
     expect(screen.getByText("Noti")).toBeInTheDocument();
   });
 
-  it("renders the Open a Folder button", () => {
-    render(<Onboarding onOpenFolder={() => {}} />);
+  it("renders the Open a Folder button when local tab is shown", () => {
+    render(<Onboarding onOpenFolder={() => {}} onConnectWebDav={() => {}} showLocalTab={true} />);
     expect(
       screen.getByRole("button", { name: "Open a Folder" }),
     ).toBeInTheDocument();
@@ -17,8 +17,20 @@ describe("Onboarding", () => {
 
   it("calls onOpenFolder when button is clicked", () => {
     const onOpenFolder = vi.fn();
-    render(<Onboarding onOpenFolder={onOpenFolder} />);
+    render(<Onboarding onOpenFolder={onOpenFolder} onConnectWebDav={() => {}} showLocalTab={true} />);
     fireEvent.click(screen.getByRole("button", { name: "Open a Folder" }));
     expect(onOpenFolder).toHaveBeenCalledOnce();
+  });
+
+  it("shows WebDAV form when local tab is hidden", () => {
+    render(<Onboarding onConnectWebDav={() => {}} showLocalTab={false} />);
+    expect(screen.getByText("Server URL")).toBeInTheDocument();
+    expect(screen.queryByText("Open a Folder")).not.toBeInTheDocument();
+  });
+
+  it("shows tabs when both backends are available", () => {
+    render(<Onboarding onOpenFolder={() => {}} onConnectWebDav={() => {}} showLocalTab={true} />);
+    expect(screen.getByText("Local Folder")).toBeInTheDocument();
+    expect(screen.getByText("WebDAV Server")).toBeInTheDocument();
   });
 });

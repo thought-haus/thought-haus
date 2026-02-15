@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/preact";
 import {
   appView,
-  isBrowserCompatible,
   savedHandle,
+  savedWebDavConfig,
   folderName,
 } from "../lib/app-state.ts";
 import { notesMap } from "../notes/note-store.ts";
@@ -71,11 +71,38 @@ vi.mock("../search/search-persistence.ts", () => ({
   saveSearchIndex: () => Promise.resolve(),
 }));
 
+vi.mock("../storage/backend-persistence.ts", () => ({
+  saveWebDavConfig: vi.fn(() => Promise.resolve()),
+  loadWebDavConfig: vi.fn(() => Promise.resolve(null)),
+  saveActiveBackendType: vi.fn(() => Promise.resolve()),
+  loadActiveBackendType: vi.fn(() => Promise.resolve(null)),
+  clearBackendConfig: vi.fn(() => Promise.resolve()),
+}));
+
+vi.mock("../storage/webdav-connection.ts", () => ({
+  testWebDavConnection: vi.fn(() => Promise.resolve({ ok: false, error: "cors" })),
+}));
+
+vi.mock("../storage/webdav-backend.ts", () => {
+  function MockWebDavBackend(this: Record<string, unknown>, config: { url: string }) {
+    this.type = "webdav";
+    this.name = "test-server";
+    this.list = () => Promise.resolve([]);
+    this.read = () => Promise.resolve("");
+    this.write = () => Promise.resolve({ lastModified: Date.now(), size: 0 });
+    this.delete = () => Promise.resolve();
+    this.getMetadata = () => Promise.resolve({ lastModified: Date.now(), size: 0 });
+    this.disconnect = vi.fn();
+    this.baseUrl = config.url;
+  }
+  return { WebDavBackend: MockWebDavBackend };
+});
+
 describe("App", () => {
   beforeEach(() => {
     appView.value = "onboarding";
-    isBrowserCompatible.value = true;
     savedHandle.value = null;
+    savedWebDavConfig.value = null;
     folderName.value = null;
     notesMap.value = new Map();
   });
@@ -97,10 +124,10 @@ describe("App", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows browser check when browser is incompatible", () => {
-    isBrowserCompatible.value = false;
+  it("shows Local Folder and WebDAV tabs in onboarding", () => {
     render(<App />);
-    expect(screen.getByText("Browser Not Supported")).toBeInTheDocument();
+    expect(screen.getByText("Local Folder")).toBeInTheDocument();
+    expect(screen.getByText("WebDAV Server")).toBeInTheDocument();
   });
 
   it("transitions from onboarding to main on Open a Folder click", async () => {
@@ -130,5 +157,43 @@ describe("App", () => {
     expect(
       screen.getByRole("button", { name: "Or choose a different folder" }),
     ).toBeInTheDocument();
+  });
+
+  describe("WebDAV reconnect view", () => {
+    it("shows WebDAV reconnect view with server URL", () => {
+      appView.value = "webdav-reconnect";
+      savedWebDavConfig.value = {
+        url: "http://myserver:8080/webdav/",
+        username: "noti",
+        password: "notidev",
+      };
+      render(<App />);
+      expect(screen.getByRole("heading", { name: "Reconnect" })).toBeInTheDocument();
+      expect(screen.getByText("http://myserver:8080/webdav/")).toBeInTheDocument();
+    });
+
+    it("shows Change server button in reconnect view", () => {
+      appView.value = "webdav-reconnect";
+      savedWebDavConfig.value = {
+        url: "http://myserver:8080/webdav/",
+        username: "noti",
+        password: "notidev",
+      };
+      render(<App />);
+      expect(screen.getByText("Change server")).toBeInTheDocument();
+    });
+
+    it("Change server goes to onboarding", () => {
+      appView.value = "webdav-reconnect";
+      savedWebDavConfig.value = {
+        url: "http://myserver:8080/webdav/",
+        username: "noti",
+        password: "notidev",
+      };
+      render(<App />);
+      fireEvent.click(screen.getByText("Change server"));
+      expect(appView.value).toBe("onboarding");
+      expect(savedWebDavConfig.value).toBeNull();
+    });
   });
 });

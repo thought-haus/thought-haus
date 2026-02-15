@@ -13,6 +13,7 @@ import {
   loadSerializedIndex,
   preprocessBody,
   preprocessQuery,
+  getIndexedDocumentMeta,
 } from "./search-engine.ts";
 
 describe("search-engine", () => {
@@ -25,8 +26,8 @@ describe("search-engine", () => {
   describe("buildIndex", () => {
     it("builds index from documents", () => {
       buildIndex([
-        { id: "1", title: "Meeting Notes", tags: ["work"], body: "Discussed roadmap" },
-        { id: "2", title: "Recipe Ideas", tags: ["cooking"], body: "Pasta with sauce" },
+        { id: "1", title: "Meeting Notes", tags: ["work"], body: "Discussed roadmap", lastModified: 0 },
+        { id: "2", title: "Recipe Ideas", tags: ["cooking"], body: "Pasta with sauce", lastModified: 0 },
       ]);
 
       const results = executeSearch("meeting");
@@ -36,10 +37,10 @@ describe("search-engine", () => {
 
     it("replaces existing index", () => {
       buildIndex([
-        { id: "1", title: "First", tags: [], body: "content" },
+        { id: "1", title: "First", tags: [], body: "content", lastModified: 0 },
       ]);
       buildIndex([
-        { id: "2", title: "Second", tags: [], body: "content" },
+        { id: "2", title: "Second", tags: [], body: "content", lastModified: 0 },
       ]);
 
       expect(executeSearch("first").length).toBe(0);
@@ -49,7 +50,7 @@ describe("search-engine", () => {
 
   describe("addToIndex", () => {
     it("adds a document that becomes searchable", () => {
-      addToIndex({ id: "1", title: "New Note", tags: ["test"], body: "Hello world" });
+      addToIndex({ id: "1", title: "New Note", tags: ["test"], body: "Hello world", lastModified: 0 });
       expect(executeSearch("hello").length).toBe(1);
     });
   });
@@ -57,17 +58,17 @@ describe("search-engine", () => {
   describe("updateInIndex", () => {
     it("updates an existing document", () => {
       buildIndex([
-        { id: "1", title: "Original Title", tags: [], body: "Original body" },
+        { id: "1", title: "Original Title", tags: [], body: "Original body", lastModified: 0 },
       ]);
 
-      updateInIndex({ id: "1", title: "Updated Title", tags: [], body: "Updated body" });
+      updateInIndex({ id: "1", title: "Updated Title", tags: [], body: "Updated body", lastModified: 0 });
 
       expect(executeSearch("original").length).toBe(0);
       expect(executeSearch("updated").length).toBe(1);
     });
 
     it("handles updating a non-existent document", () => {
-      updateInIndex({ id: "new", title: "Brand New", tags: [], body: "Fresh content" });
+      updateInIndex({ id: "new", title: "Brand New", tags: [], body: "Fresh content", lastModified: 0 });
       expect(executeSearch("brand").length).toBe(1);
     });
   });
@@ -75,8 +76,8 @@ describe("search-engine", () => {
   describe("removeFromIndex", () => {
     it("removes a document from search results", () => {
       buildIndex([
-        { id: "1", title: "To Remove", tags: [], body: "Gone soon" },
-        { id: "2", title: "To Keep", tags: [], body: "Stays here" },
+        { id: "1", title: "To Remove", tags: [], body: "Gone soon", lastModified: 0 },
+        { id: "2", title: "To Keep", tags: [], body: "Stays here", lastModified: 0 },
       ]);
 
       removeFromIndex("1");
@@ -92,9 +93,9 @@ describe("search-engine", () => {
   describe("executeSearch", () => {
     beforeEach(() => {
       buildIndex([
-        { id: "1", title: "Meeting Notes", tags: ["work", "project"], body: "Discussed the roadmap and milestones" },
-        { id: "2", title: "Recipe Ideas", tags: ["cooking", "personal"], body: "Pasta with tomato sauce" },
-        { id: "3", title: "Work Log", tags: ["work"], body: "Completed sprint review" },
+        { id: "1", title: "Meeting Notes", tags: ["work", "project"], body: "Discussed the roadmap and milestones", lastModified: 0 },
+        { id: "2", title: "Recipe Ideas", tags: ["cooking", "personal"], body: "Pasta with tomato sauce", lastModified: 0 },
+        { id: "3", title: "Work Log", tags: ["work"], body: "Completed sprint review", lastModified: 0 },
       ]);
     });
 
@@ -118,8 +119,8 @@ describe("search-engine", () => {
 
     it("boosts title matches over body matches", () => {
       buildIndex([]);
-      addToIndex({ id: "title-match", title: "Important work notes", tags: [], body: "random content" });
-      addToIndex({ id: "body-match", title: "Random title", tags: [], body: "important work notes" });
+      addToIndex({ id: "title-match", title: "Important work notes", tags: [], body: "random content", lastModified: 0 });
+      addToIndex({ id: "body-match", title: "Random title", tags: [], body: "important work notes", lastModified: 0 });
 
       const results = executeSearch("important work notes");
       expect(results.length).toBe(2);
@@ -176,7 +177,7 @@ describe("search-engine", () => {
   describe("clearSearch", () => {
     it("resets all search state", () => {
       buildIndex([
-        { id: "1", title: "Test", tags: [], body: "Content" },
+        { id: "1", title: "Test", tags: [], body: "Content", lastModified: 0 },
       ]);
       executeSearch("test");
 
@@ -190,9 +191,9 @@ describe("search-engine", () => {
   describe("task marker search", () => {
     it("finds notes with unchecked tasks via - [ ]", () => {
       buildIndex([
-        { id: "1", title: "Todo List", tags: [], body: "- [ ] Buy groceries\n- [ ] Clean house" },
-        { id: "2", title: "Done List", tags: [], body: "- [x] Filed taxes" },
-        { id: "3", title: "Plain Note", tags: [], body: "No tasks here" },
+        { id: "1", title: "Todo List", tags: [], body: "- [ ] Buy groceries\n- [ ] Clean house", lastModified: 0 },
+        { id: "2", title: "Done List", tags: [], body: "- [x] Filed taxes", lastModified: 0 },
+        { id: "3", title: "Plain Note", tags: [], body: "No tasks here", lastModified: 0 },
       ]);
 
       const results = executeSearch("- [ ]");
@@ -202,9 +203,9 @@ describe("search-engine", () => {
 
     it("finds notes with checked tasks via - [x]", () => {
       buildIndex([
-        { id: "1", title: "Todo List", tags: [], body: "- [ ] Buy groceries" },
-        { id: "2", title: "Done List", tags: [], body: "- [x] Filed taxes" },
-        { id: "3", title: "Plain Note", tags: [], body: "No tasks here" },
+        { id: "1", title: "Todo List", tags: [], body: "- [ ] Buy groceries", lastModified: 0 },
+        { id: "2", title: "Done List", tags: [], body: "- [x] Filed taxes", lastModified: 0 },
+        { id: "3", title: "Plain Note", tags: [], body: "No tasks here", lastModified: 0 },
       ]);
 
       const results = executeSearch("- [x]");
@@ -214,7 +215,7 @@ describe("search-engine", () => {
 
     it("finds notes with both open and closed tasks", () => {
       buildIndex([
-        { id: "1", title: "Mixed Tasks", tags: [], body: "- [ ] Open\n- [x] Done" },
+        { id: "1", title: "Mixed Tasks", tags: [], body: "- [ ] Open\n- [x] Done", lastModified: 0 },
       ]);
 
       expect(executeSearch("- [ ]").length).toBe(1);
@@ -223,7 +224,7 @@ describe("search-engine", () => {
 
     it("is case-insensitive for [X] vs [x]", () => {
       buildIndex([
-        { id: "1", title: "Tasks", tags: [], body: "- [X] Done item" },
+        { id: "1", title: "Tasks", tags: [], body: "- [X] Done item", lastModified: 0 },
       ]);
 
       const results = executeSearch("- [x]");
@@ -232,7 +233,7 @@ describe("search-engine", () => {
 
     it("does not match notes without tasks", () => {
       buildIndex([
-        { id: "1", title: "Plain", tags: [], body: "Just some text with brackets [like this]" },
+        { id: "1", title: "Plain", tags: [], body: "Just some text with brackets [like this]", lastModified: 0 },
       ]);
 
       expect(executeSearch("- [ ]").length).toBe(0);
@@ -240,10 +241,10 @@ describe("search-engine", () => {
     });
 
     it("works with addToIndex and updateInIndex", () => {
-      addToIndex({ id: "1", title: "New Tasks", tags: [], body: "- [ ] First task" });
+      addToIndex({ id: "1", title: "New Tasks", tags: [], body: "- [ ] First task", lastModified: 0 });
       expect(executeSearch("- [ ]").length).toBe(1);
 
-      updateInIndex({ id: "1", title: "New Tasks", tags: [], body: "- [x] First task" });
+      updateInIndex({ id: "1", title: "New Tasks", tags: [], body: "- [x] First task", lastModified: 0 });
       expect(executeSearch("- [ ]").length).toBe(0);
       expect(executeSearch("- [x]").length).toBe(1);
     });
@@ -291,7 +292,7 @@ describe("search-engine", () => {
   describe("serialization", () => {
     it("serializes and loads index", () => {
       buildIndex([
-        { id: "1", title: "Persistent Note", tags: ["saved"], body: "This should survive" },
+        { id: "1", title: "Persistent Note", tags: ["saved"], body: "This should survive", lastModified: 0 },
       ]);
 
       const json = serializeIndex();
@@ -306,6 +307,65 @@ describe("search-engine", () => {
       const results = executeSearch("persistent");
       expect(results.length).toBe(1);
       expect(results[0].id).toBe("1");
+    });
+  });
+
+  describe("getIndexedDocumentMeta", () => {
+    it("returns empty array when index is empty", () => {
+      buildIndex([]);
+      const meta = getIndexedDocumentMeta();
+      expect(meta).toEqual([]);
+    });
+
+    it("returns id and lastModified for all indexed documents", () => {
+      buildIndex([
+        { id: "note-1", title: "First", tags: [], body: "content", lastModified: 1000 },
+        { id: "note-2", title: "Second", tags: [], body: "more content", lastModified: 2000 },
+      ]);
+
+      const meta = getIndexedDocumentMeta();
+      expect(meta).toHaveLength(2);
+
+      const byId = new Map(meta.map((m) => [m.id, m.lastModified]));
+      expect(byId.get("note-1")).toBe(1000);
+      expect(byId.get("note-2")).toBe(2000);
+    });
+
+    it("reflects documents added with addToIndex", () => {
+      buildIndex([
+        { id: "note-1", title: "First", tags: [], body: "content", lastModified: 1000 },
+      ]);
+      addToIndex({ id: "note-3", title: "Third", tags: [], body: "extra", lastModified: 3000 });
+
+      const meta = getIndexedDocumentMeta();
+      expect(meta).toHaveLength(2);
+
+      const byId = new Map(meta.map((m) => [m.id, m.lastModified]));
+      expect(byId.get("note-3")).toBe(3000);
+    });
+
+    it("reflects updated lastModified from updateInIndex", () => {
+      buildIndex([
+        { id: "note-1", title: "First", tags: [], body: "content", lastModified: 1000 },
+      ]);
+      updateInIndex({ id: "note-1", title: "Updated First", tags: [], body: "new content", lastModified: 5000 });
+
+      const meta = getIndexedDocumentMeta();
+      expect(meta).toHaveLength(1);
+      expect(meta[0].id).toBe("note-1");
+      expect(meta[0].lastModified).toBe(5000);
+    });
+
+    it("does not include removed documents", () => {
+      buildIndex([
+        { id: "note-1", title: "First", tags: [], body: "content", lastModified: 1000 },
+        { id: "note-2", title: "Second", tags: [], body: "more", lastModified: 2000 },
+      ]);
+      removeFromIndex("note-1");
+
+      const meta = getIndexedDocumentMeta();
+      expect(meta).toHaveLength(1);
+      expect(meta[0].id).toBe("note-2");
     });
   });
 });
