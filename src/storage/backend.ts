@@ -10,7 +10,7 @@ export interface FileMeta {
 }
 
 export interface StorageBackend {
-  readonly type: "local";
+  readonly type: "local" | "webdav";
   readonly name: string;
 
   list(): Promise<FileEntry[]>;
