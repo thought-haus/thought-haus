@@ -12,6 +12,7 @@ import { isFavorite, toggleFavorite } from "../favorites/favorite-store.ts";
 import { X, Paperclip, Star } from "lucide-preact";
 import type { Editor } from "@tiptap/core";
 import styles from "./editor-view.module.css";
+import { PropertyEditor } from "./property-editor.tsx";
 
 interface EditorViewProps {
   onDelete?: () => void;
@@ -26,6 +27,7 @@ export function EditorView_({ onDelete }: EditorViewProps) {
   const [tagInput, setTagInput] = useState("");
   const [showTagInput, setShowTagInput] = useState(false);
   const [titleDraft, setTitleDraft] = useState("");
+  const [triggerAddProperty, setTriggerAddProperty] = useState(false);
 
   const handleFiles = useCallback(async (files: File[], pos?: number) => {
     const noteId = noteIdRef.current;
@@ -206,6 +208,18 @@ export function EditorView_({ onDelete }: EditorViewProps) {
     [saveNote],
   );
 
+  const updateProperties = useCallback(
+    (properties: Record<string, string>) => {
+      const noteId = noteIdRef.current;
+      if (!noteId) return;
+      const note = getNote(noteId);
+      if (!note) return;
+      upsertNote({ ...note, properties });
+      saveNote();
+    },
+    [saveNote],
+  );
+
   const commitTitle = useCallback(async () => {
     const noteId = noteIdRef.current;
     if (!noteId) return;
@@ -232,6 +246,18 @@ export function EditorView_({ onDelete }: EditorViewProps) {
     },
     [addTag],
   );
+
+  // Cmd/Ctrl+; to add property
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === ";" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setTriggerAddProperty(true);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const noteId = selectedNoteId.value;
   const note = noteId ? getNote(noteId) : null;
@@ -360,7 +386,21 @@ export function EditorView_({ onDelete }: EditorViewProps) {
               day: "numeric",
             })}
           </span>
+          <button
+            class={styles.addPropertyBtn}
+            onClick={() => setTriggerAddProperty(true)}
+            aria-label="Add property"
+          >
+            + property
+          </button>
         </div>
+        <PropertyEditor
+          noteId={note.id}
+          properties={note.properties}
+          onUpdate={updateProperties}
+          triggerAdd={triggerAddProperty}
+          onTriggerAddHandled={() => setTriggerAddProperty(false)}
+        />
       </div>
       <div class={styles.editorBody} ref={containerRef} />
       <div class={styles.statusBar}>

@@ -218,6 +218,25 @@
   color: var(--color-text-secondary);
 }
 
+.addPropertyBtn {
+  font-size: 0.6875rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  border: 1px dashed var(--color-border);
+  background: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  margin-left: auto;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.addPropertyBtn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
 .editorBody {
   flex: 1;
   overflow-y: auto;
