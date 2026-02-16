@@ -32,7 +32,7 @@ export function resolveVariable(name: string, ctx: TemplateContext): string {
     case "image":
       return ctx.metadata.image ?? "";
     case "tags":
-      return ctx.metadata.keywords.join(", ");
+      return (ctx.metadata.keywords ?? []).join(", ");
     case "content":
       return ctx.content;
     case "selection":

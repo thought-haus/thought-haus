@@ -51,7 +51,7 @@ export function renderClip(
   extraTags?: string[],
 ): { filename: string; content: string } {
   // Resolve filename
-  const filename = expandTemplate(template.filename, ctx) || generateFilename(ctx.now, ctx.metadata.title);
+  const filename = expandTemplate(template.filename, ctx).trim() || generateFilename(ctx.now, ctx.metadata.title);
 
   // Build frontmatter
   const allTags = [...template.tags, ...(extraTags ?? [])];

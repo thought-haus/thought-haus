@@ -69,7 +69,7 @@ export async function loadClipperConfig(): Promise<ClipperStorageConfig | null> 
 
   const config: ClipperStorageConfig = {
     type: data.clipperStorageType as "local" | "webdav",
-    webdav: data.clipperWebDav as WebDavConfig | undefined ?? undefined,
+    webdav: (data.clipperWebDav as WebDavConfig | undefined) ?? undefined,
   };
 
   if (config.type === "local") {

@@ -14,25 +14,58 @@ interface Props {
   onReset: () => void;
 }
 
+/** Inject the content script if not already present. */
+async function ensureContentScript(tabId: number): Promise<void> {
+  try {
+    await browser.tabs.sendMessage(tabId, { type: "ping" });
+  } catch {
+    await browser.scripting.executeScript({
+      target: { tabId },
+      files: ["content.js"],
+    });
+    // Wait briefly for script to initialize
+    await new Promise((r) => setTimeout(r, 100));
+  }
+}
+
 type ClipStatus = "idle" | "clipping" | "success" | "error";
 
 export function ClipperView({ config, onReset }: Props) {
   const [mode, setMode] = useState<ClipMode>("article");
   const [metadata, setMetadata] = useState<PageMetadata | null>(null);
   const [title, setTitle] = useState("");
-  const [tags, setTags] = useState("clipping");
+  const [tags, setTags] = useState("");
   const [template, setTemplate] = useState<ClipTemplate>(getDefaultTemplate("article"));
   const [status, setStatus] = useState<ClipStatus>("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
-  // Fetch page metadata when popup opens
+  // Check for intent from context menu / keyboard shortcut, then fetch metadata
   useEffect(() => {
     (async () => {
       try {
+        // Read intent set by background script (context menu or quick-clip)
+        const data = await browser.storage.local.get("clipperIntent");
+        const intent = data.clipperIntent as
+          | { mode: string; linkUrl?: string; timestamp: number }
+          | undefined;
+        if (intent && Date.now() - intent.timestamp < 5000) {
+          // Intent is fresh — apply it
+          const validModes: ClipMode[] = ["article", "selection", "full-page", "bookmark"];
+          if (validModes.includes(intent.mode as ClipMode)) {
+            handleModeChange(intent.mode as ClipMode);
+          }
+          // Clear the intent so it doesn't persist
+          await browser.storage.local.remove("clipperIntent");
+        }
+
         const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
         if (!tab?.id) return;
 
+        // Inject content script on demand (not pre-injected via manifest)
+        await ensureContentScript(tab.id);
+
         const response = await browser.tabs.sendMessage(tab.id, { type: "get-metadata" });
+        if (!response || typeof response !== "object" || !("title" in response)) return;
         const meta = response as PageMetadata;
         setMetadata(meta);
         setTitle(meta.title);
@@ -61,11 +94,17 @@ export function ClipperView({ config, onReset }: Props) {
       const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
       if (!tab?.id) throw new Error("No active tab");
 
+      await ensureContentScript(tab.id);
+
       // Extract content from page
-      const extraction = await browser.tabs.sendMessage(tab.id, {
+      const raw = await browser.tabs.sendMessage(tab.id, {
         type: "extract",
         mode,
-      }) as { markdown: string; metadata: PageMetadata };
+      });
+      if (!raw || typeof raw !== "object" || "error" in raw) {
+        throw new Error((raw as { error?: string })?.error ?? "Extraction failed");
+      }
+      const extraction = raw as { markdown: string; metadata: PageMetadata };
 
       // Build template context
       const now = new Date();
@@ -90,9 +129,12 @@ export function ClipperView({ config, onReset }: Props) {
         throw new Error("Storage not available. Please reconfigure.");
       }
 
-      const path = template.folder ? `${template.folder}/${filename}` : filename;
-      await backend.write(path, content);
-      backend.disconnect();
+      try {
+        const path = template.folder ? `${template.folder}/${filename}` : filename;
+        await backend.write(path, content);
+      } finally {
+        backend.disconnect();
+      }
 
       setStatus("success");
 

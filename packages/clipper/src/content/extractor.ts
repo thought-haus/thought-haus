@@ -192,24 +192,41 @@ export function extract(mode: ClipMode, doc: Document): { markdown: string; meta
   return { markdown, metadata };
 }
 
-// Listen for messages from the popup/background
+// Listen for messages from the popup/background.
+// The webextension-polyfill wraps onMessage so listeners must return the
+// response value (or a Promise) instead of using the sendResponse callback.
 import { browser } from "../lib/browser-compat.ts";
+
+const VALID_MODES: ClipMode[] = ["article", "selection", "full-page", "bookmark"];
 
 try {
   browser.runtime.onMessage.addListener(
-    (message: unknown, _sender: unknown, sendResponse: (response: unknown) => void) => {
+    (message: unknown) => {
+      if (typeof message !== "object" || message === null) return;
       const msg = message as Record<string, unknown>;
+      if (typeof msg.type !== "string") return;
+
+      if (msg.type === "ping") {
+        return Promise.resolve({ ok: true });
+      }
       if (msg.type === "extract") {
-        const result = extract(msg.mode as ClipMode, document);
-        sendResponse(result);
+        const mode = String(msg.mode);
+        if (!VALID_MODES.includes(mode as ClipMode)) {
+          return Promise.resolve({ error: `Invalid clip mode: ${mode}` });
+        }
+        try {
+          const result = extract(mode as ClipMode, document);
+          return Promise.resolve(result);
+        } catch (e) {
+          return Promise.resolve({ error: (e as Error).message });
+        }
       }
       if (msg.type === "get-selection") {
-        sendResponse({ html: getSelectionHTML() });
+        return Promise.resolve({ html: getSelectionHTML() });
       }
       if (msg.type === "get-metadata") {
-        sendResponse(extractMetadata(document));
+        return Promise.resolve(extractMetadata(document));
       }
-      return true; // Keep message channel open for async response
     },
   );
 } catch {

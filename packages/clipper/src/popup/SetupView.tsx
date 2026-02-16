@@ -153,14 +153,14 @@ export function SetupView({ onConfigured }: Props) {
           />
           <button
             onClick={handleWebDavConnect}
-            disabled={testing || !url || !username}
+            disabled={testing || !url || !username || !password}
             style={{
               padding: "10px",
-              background: testing || !url || !username ? "#d5cec7" : "#b8621b",
+              background: testing || !url || !username || !password ? "#d5cec7" : "#b8621b",
               color: "#fff",
               border: "none",
               borderRadius: "6px",
-              cursor: testing || !url || !username ? "default" : "pointer",
+              cursor: testing || !url || !username || !password ? "default" : "pointer",
               fontSize: "13px",
             }}
           >

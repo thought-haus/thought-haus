@@ -4,12 +4,12 @@ import { browser } from "../lib/browser-compat.ts";
 browser.runtime.onInstalled.addListener(() => {
   browser.contextMenus.create({
     id: "clip-page",
-    title: "Clip Page",
+    title: "Clip Page to Thought.Haus",
     contexts: ["page"],
   });
   browser.contextMenus.create({
     id: "clip-selection",
-    title: "Clip Selection",
+    title: "Clip Selection to Thought.Haus",
     contexts: ["selection"],
   });
   browser.contextMenus.create({
@@ -17,54 +17,51 @@ browser.runtime.onInstalled.addListener(() => {
     title: "Clip Link as Bookmark",
     contexts: ["link"],
   });
-  browser.contextMenus.create({
-    id: "clip-image",
-    title: "Clip Image",
-    contexts: ["image"],
-  });
+  // clip-image reserved for Phase 4 (screenshot mode)
 });
 
-/** Handle context menu clicks. */
+/**
+ * Store the desired clip mode and link URL so the popup can read them on open.
+ * The popup checks storage on mount and uses these values to pre-select mode.
+ */
+async function setPopupIntent(mode: string, linkUrl?: string): Promise<void> {
+  await browser.storage.local.set({
+    clipperIntent: { mode, linkUrl, timestamp: Date.now() },
+  });
+}
+
+/** Handle context menu clicks — store intent then open popup. */
 browser.contextMenus.onClicked.addListener(async (info, tab) => {
   if (!tab?.id) return;
 
   switch (info.menuItemId) {
     case "clip-page":
-      await sendClipMessage(tab.id, "article");
+      await setPopupIntent("article");
       break;
     case "clip-selection":
-      await sendClipMessage(tab.id, "selection");
+      await setPopupIntent("selection");
       break;
     case "clip-link":
-      // Open popup with bookmark mode pre-selected
-      await browser.action.openPopup();
+      await setPopupIntent("bookmark", info.linkUrl);
       break;
-    case "clip-image":
-      // Future: handle image clipping
-      break;
+  }
+
+  // Open the popup — falls back gracefully if openPopup is unavailable
+  try {
+    await browser.action.openPopup();
+  } catch {
+    // openPopup() not supported in this browser — user can click the icon
   }
 });
 
 /** Handle keyboard shortcut commands. */
 browser.commands.onCommand.addListener(async (command) => {
   if (command === "quick-clip") {
-    const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
-    if (tab?.id) {
-      await sendClipMessage(tab.id, "article");
+    await setPopupIntent("article");
+    try {
+      await browser.action.openPopup();
+    } catch {
+      // openPopup() not supported — user can click the icon
     }
   }
 });
-
-/** Send a clip request to the content script. */
-async function sendClipMessage(tabId: number, mode: string): Promise<void> {
-  try {
-    await browser.tabs.sendMessage(tabId, { type: "extract", mode });
-  } catch {
-    // Content script may not be injected yet
-    await browser.scripting.executeScript({
-      target: { tabId },
-      files: ["content.js"],
-    });
-    await browser.tabs.sendMessage(tabId, { type: "extract", mode });
-  }
-}

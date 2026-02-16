@@ -60,7 +60,7 @@ export const YOUTUBE_TEMPLATE: ClipTemplate = {
   properties: {},
   body: `{{description}}
 
-{{image}}
+![{{title}}]({{image}})
 
 ---
 Source: {{url}}

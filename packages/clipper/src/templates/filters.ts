@@ -19,6 +19,7 @@ const filters: Record<string, FilterFn> = {
 
   truncate: (value, arg) => {
     const n = parseInt(arg ?? "100", 10);
+    if (isNaN(n) || n <= 0) return value;
     return value.length > n ? value.slice(0, n) + "..." : value;
   },
 
