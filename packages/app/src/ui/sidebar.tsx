@@ -14,6 +14,7 @@ import {
   searchQuery,
   searchResults,
   isSearchActive,
+  isIndexReady,
 } from "../search/search-engine.ts";
 import {
   sortMode,
@@ -125,6 +126,7 @@ export function NotesList({ selectedNoteId, onSelectNote, onNewNote }: NotesList
   const query = searchQuery.value;
   const results = searchResults.value;
   const searching = isSearchActive.value;
+  const indexReady = isIndexReady.value;
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
 
@@ -197,7 +199,7 @@ export function NotesList({ selectedNoteId, onSelectNote, onNewNote }: NotesList
           class={styles.searchInput}
           type="text"
           value={query}
-          placeholder="Search... (⌘K)"
+          placeholder={indexReady ? "Search... (⌘K)" : "Indexing notes…"}
           aria-label="Search notes"
           onInput={handleSearchInput}
           onKeyDown={(e) => {
@@ -237,6 +239,9 @@ export function NotesList({ selectedNoteId, onSelectNote, onNewNote }: NotesList
           </button>
         )}
       </div>
+      {!indexReady && (
+        <div class={styles.indexingHint}>Indexing…</div>
+      )}
 
       {searching ? (
         <div class={styles.noteList} aria-label="Search results">

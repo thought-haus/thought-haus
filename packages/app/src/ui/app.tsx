@@ -1,6 +1,7 @@
 import { useEffect } from "preact/hooks";
 import {
   appView,
+  appLoading,
   folderName,
   storageBackend,
   savedHandle,
@@ -44,12 +45,17 @@ import { Onboarding } from "./onboarding.tsx";
 import { RePermission } from "./re-permission.tsx";
 import { WebDavReconnect } from "./webdav-reconnect.tsx";
 import { Layout } from "./layout.tsx";
+import { LoadingScreen } from "./loading-screen.tsx";
 
 const fsAccessSupported = isFileSystemAccessSupported();
 
 let stopWatcher: (() => void) | null = null;
 
+/** The last backend passed to openWithBackend, used for retry. */
+let lastBackendForRetry: StorageBackend | null = null;
+
 async function openWithBackend(backend: StorageBackend): Promise<void> {
+  lastBackendForRetry = backend;
   storageBackend.value = backend;
   folderName.value = backend.name;
 
@@ -64,29 +70,69 @@ async function openWithBackend(backend: StorageBackend): Promise<void> {
     await saveActiveBackendType("webdav");
   }
 
-  const notes = await scanNotes(backend);
+  // Phase 1: Scan notes
+  appView.value = "loading";
+  appLoading.value = { phase: "scanning", loaded: 0 };
+
+  let notes;
+  try {
+    notes = await scanNotes(backend, (loaded) => {
+      appLoading.value = { phase: "scanning", loaded };
+    });
+  } catch (err) {
+    appLoading.value = {
+      phase: "error",
+      message: err instanceof Error ? err.message : "Failed to scan notes",
+    };
+    return;
+  }
+
   setNotes(notes);
   await loadFavorites(backend);
+
+  // Switch to main view — notes are visible, index still building
   appView.value = "main";
   applyPendingHash();
   if (notes.length === 0) {
     await createWelcomeNote();
   }
 
-  // Build search index from all note content
-  const docs = await Promise.all(
-    notes.map(async (note) => {
+  // Phase 2: Build search index (non-blocking — user can browse notes)
+  appLoading.value = { phase: "indexing", loaded: 0, total: notes.length };
+  try {
+    const docs: { id: string; title: string; tags: string[]; body: string; lastModified: number }[] = [];
+    for (let i = 0; i < notes.length; i++) {
+      const note = notes[i];
       const raw = await backend.read(note.filename);
       const { body } = parseFrontMatter(raw);
-      return { id: note.id, title: note.title, tags: note.tags, body, lastModified: note.lastModified };
-    }),
-  );
-  buildIndex(docs);
-  saveSearchIndex(serializeIndex()).catch(() => {});
+      docs.push({ id: note.id, title: note.title, tags: note.tags, body, lastModified: note.lastModified });
+      appLoading.value = { phase: "indexing", loaded: i + 1, total: notes.length };
+    }
+    buildIndex(docs);
+    saveSearchIndex(serializeIndex()).catch(() => {});
+  } catch (err) {
+    // Index failure is non-fatal — notes are still usable
+    console.error("Failed to build search index:", err);
+  }
+  appLoading.value = { phase: "idle" };
 
   // Start watching for external changes
   if (stopWatcher) stopWatcher();
   stopWatcher = startWatcher(backend);
+}
+
+async function retryLoad(): Promise<void> {
+  if (lastBackendForRetry) {
+    await openWithBackend(lastBackendForRetry);
+  }
+}
+
+function changeStorageFromError(): void {
+  appLoading.value = { phase: "idle" };
+  storageBackend.value = null;
+  folderName.value = null;
+  clearBackendConfig().catch(() => {});
+  appView.value = "onboarding";
 }
 
 async function openFolder(): Promise<void> {
@@ -142,11 +188,17 @@ async function tryRestoreSession(): Promise<void> {
   try {
     const backendType = await loadActiveBackendType();
 
-    if (!backendType) return; // Fresh install → onboarding
+    if (!backendType) {
+      appView.value = "onboarding";
+      return;
+    }
 
     if (backendType === "webdav") {
       const config = await loadWebDavConfig();
-      if (!config) return;
+      if (!config) {
+        appView.value = "onboarding";
+        return;
+      }
 
       const result = await testWebDavConnection(config.url, config.username, config.password);
       if (result.ok) {
@@ -161,7 +213,10 @@ async function tryRestoreSession(): Promise<void> {
 
     // backendType === "local"
     const handle = await loadDirectoryHandle();
-    if (!handle) return;
+    if (!handle) {
+      appView.value = "onboarding";
+      return;
+    }
 
     if (await checkPermission(handle)) {
       const backend = new LocalBackend(handle);
@@ -174,6 +229,7 @@ async function tryRestoreSession(): Promise<void> {
     }
   } catch {
     // IndexedDB or permission error — fall through to onboarding
+    appView.value = "onboarding";
   }
 }
 
@@ -225,6 +281,16 @@ export function App() {
         serverUrl={savedWebDavConfig.value?.url ?? ""}
         onReconnect={retryWebDavConnection}
         onChangeServer={changeServer}
+      />
+    );
+  }
+
+  if (appView.value === "loading") {
+    return (
+      <LoadingScreen
+        state={appLoading.value}
+        onRetry={retryLoad}
+        onChangeStorage={changeStorageFromError}
       />
     );
   }

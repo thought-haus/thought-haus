@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/preact";
 import {
   appView,
+  appLoading,
   savedHandle,
   savedWebDavConfig,
   folderName,
@@ -87,6 +88,7 @@ vi.mock("../search/search-engine.ts", async () => {
     searchQuery: signal(""),
     searchResults: signal([]),
     isSearchActive: signal(false),
+    isIndexReady: signal(true),
   };
 });
 
@@ -98,6 +100,7 @@ vi.mock("../search/search-persistence.ts", () => ({
 describe("App", () => {
   beforeEach(() => {
     appView.value = "onboarding";
+    appLoading.value = { phase: "idle" };
     savedHandle.value = null;
     savedWebDavConfig.value = null;
     folderName.value = null;
