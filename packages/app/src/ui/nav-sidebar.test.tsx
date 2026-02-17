@@ -106,36 +106,10 @@ describe("NavSidebar", () => {
     expect(onSelectNote).toHaveBeenCalledWith("note-1");
   });
 
-  describe("Change Storage button", () => {
-    it("renders when onChangeStorage is provided", () => {
-      render(
-        <NavSidebar
-          selectedNoteId={null}
-          onSelectNote={() => {}}
-          onChangeStorage={() => {}}
-        />,
-      );
-      expect(screen.getByLabelText("Change storage")).toBeInTheDocument();
-    });
-
-    it("does not render when onChangeStorage is not provided", () => {
-      render(
-        <NavSidebar selectedNoteId={null} onSelectNote={() => {}} />,
-      );
-      expect(screen.queryByLabelText("Change storage")).not.toBeInTheDocument();
-    });
-
-    it("calls onChangeStorage when clicked", () => {
-      const onChangeStorage = vi.fn();
-      render(
-        <NavSidebar
-          selectedNoteId={null}
-          onSelectNote={() => {}}
-          onChangeStorage={onChangeStorage}
-        />,
-      );
-      fireEvent.click(screen.getByLabelText("Change storage"));
-      expect(onChangeStorage).toHaveBeenCalledOnce();
-    });
+  it("renders Settings button in footer", () => {
+    render(
+      <NavSidebar selectedNoteId={null} onSelectNote={() => {}} />,
+    );
+    expect(screen.getByLabelText("Open settings")).toBeInTheDocument();
   });
 });
