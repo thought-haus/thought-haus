@@ -1,9 +1,10 @@
+import { useState } from "preact/hooks";
 import styles from "./onboarding.module.css";
 
 interface RePermissionProps {
   folderName: string;
-  onReopen: () => void;
-  onPickNew: () => void;
+  onReopen: () => Promise<void> | void;
+  onPickNew: () => Promise<void> | void;
 }
 
 export function RePermission({
@@ -11,6 +12,18 @@ export function RePermission({
   onReopen,
   onPickNew,
 }: RePermissionProps) {
+  const [opening, setOpening] = useState(false);
+
+  const handleReopen = async () => {
+    if (opening) return;
+    setOpening(true);
+    try {
+      await onReopen();
+    } finally {
+      setOpening(false);
+    }
+  };
+
   return (
     <div class={styles.container}>
       <div class={styles.card}>
@@ -18,8 +31,8 @@ export function RePermission({
         <p class={styles.subtitle}>
           Re-open <strong>{folderName}</strong> to access your notes.
         </p>
-        <button class={styles.cta} onClick={onReopen}>
-          Re-open {folderName}
+        <button class={styles.cta} onClick={handleReopen} disabled={opening}>
+          {opening ? "Opening…" : `Re-open ${folderName}`}
         </button>
         <p class={styles.hint}>
           <button

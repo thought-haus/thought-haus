@@ -3,13 +3,24 @@ import { WebDavForm } from "./webdav-form.tsx";
 import styles from "./onboarding.module.css";
 
 interface OnboardingProps {
-  onOpenFolder?: () => void;
+  onOpenFolder?: () => Promise<void> | void;
   onConnectWebDav: (config: { url: string; username: string; password: string }) => void;
   showLocalTab: boolean;
 }
 
 export function Onboarding({ onOpenFolder, onConnectWebDav, showLocalTab }: OnboardingProps) {
   const [tab, setTab] = useState<"local" | "webdav">(showLocalTab ? "local" : "webdav");
+  const [opening, setOpening] = useState(false);
+
+  const handleOpenFolder = async () => {
+    if (!onOpenFolder || opening) return;
+    setOpening(true);
+    try {
+      await onOpenFolder();
+    } finally {
+      setOpening(false);
+    }
+  };
 
   // If only WebDAV is available, skip tabs entirely
   if (!showLocalTab) {
@@ -49,8 +60,8 @@ export function Onboarding({ onOpenFolder, onConnectWebDav, showLocalTab }: Onbo
         </div>
         {tab === "local" && (
           <>
-            <button class={styles.cta} onClick={onOpenFolder}>
-              Open a Folder
+            <button class={styles.cta} onClick={handleOpenFolder} disabled={opening}>
+              {opening ? "Opening…" : "Open a Folder"}
             </button>
             <p class={styles.hint}>
               Select a folder to store your notes as Markdown files.
