@@ -21,7 +21,7 @@ async function ensureContentScript(tabId: number): Promise<void> {
   } catch {
     await browser.scripting.executeScript({
       target: { tabId },
-      files: ["content.js"],
+      files: ["/content.js"],
     });
     // Wait briefly for script to initialize
     await new Promise((r) => setTimeout(r, 100));
@@ -75,8 +75,8 @@ export function ClipperView({ config, onReset }: Props) {
         if (matched) {
           setTemplate(matched);
         }
-      } catch {
-        // Content script may not be available
+      } catch (err) {
+        console.error("[Clipper] Failed to initialize:", err);
       }
     })();
   }, []);

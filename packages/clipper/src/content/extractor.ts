@@ -193,14 +193,22 @@ export function extract(mode: ClipMode, doc: Document): { markdown: string; meta
 }
 
 // Listen for messages from the popup/background.
-// The webextension-polyfill wraps onMessage so listeners must return the
-// response value (or a Promise) instead of using the sendResponse callback.
-import { browser } from "../lib/browser-compat.ts";
+// Use the native browser/chrome API directly instead of webextension-polyfill.
+// The polyfill's chrome.runtime.id check can fail in content scripts injected
+// via scripting.executeScript. In Firefox content scripts, `browser` is injected
+// into the scope but may not be a property of globalThis/window.
+/* eslint-disable @typescript-eslint/no-explicit-any */
+declare const browser: any;
+declare const chrome: any;
+let _browser: any;
+try { _browser = browser; } catch { /* not in Firefox */ }
+if (!_browser) { try { _browser = chrome; } catch { /* not in Chrome either */ } }
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 const VALID_MODES: ClipMode[] = ["article", "selection", "full-page", "bookmark"];
 
 try {
-  browser.runtime.onMessage.addListener(
+  _browser.runtime.onMessage.addListener(
     (message: unknown) => {
       if (typeof message !== "object" || message === null) return;
       const msg = message as Record<string, unknown>;
@@ -229,6 +237,6 @@ try {
       }
     },
   );
-} catch {
-  // Content script not in extension context (e.g., during tests)
+} catch (err) {
+  console.error("[Clipper content] Failed to register listener:", err);
 }
