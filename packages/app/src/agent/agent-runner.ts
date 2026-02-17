@@ -1,6 +1,11 @@
 import { Agent } from "@mariozechner/pi-agent-core";
 import type { AgentEvent } from "@mariozechner/pi-agent-core";
-import type { AssistantMessage, TextContent, UserMessage } from "@mariozechner/pi-ai";
+import type {
+  AssistantMessage,
+  Message,
+  TextContent,
+  UserMessage,
+} from "@mariozechner/pi-ai";
 import {
   agentSettings,
   isAgentStreaming,
@@ -24,6 +29,25 @@ import { slugify } from "@thought-haus/core";
 import { expandMentions } from "./note-mention.ts";
 
 let agent: Agent | null = null;
+
+/** Strip OpenAI response IDs (textSignature) from assistant messages so the
+ *  library falls back to synthetic IDs instead of referencing non-persisted
+ *  responses (store: false). */
+function stripResponseIds(messages: Message[]): Message[] {
+  return messages.map((msg) => {
+    if (msg.role !== "assistant") return msg;
+    return {
+      ...msg,
+      content: msg.content.map((block) => {
+        if (block.type === "text" && block.textSignature) {
+          const { textSignature: _, ...rest } = block;
+          return rest;
+        }
+        return block;
+      }),
+    };
+  });
+}
 
 function getOrCreateAgent(): Agent {
   if (!agent) {
@@ -69,8 +93,10 @@ export async function sendMessage(userText: string): Promise<void> {
   a.setTools(tools);
   a.getApiKey = () => providerConfig.apiKey;
 
-  // Sync Pi agent state with our conversation messages
-  a.replaceMessages(conversationMessages.value);
+  // Sync Pi agent state with our conversation messages.
+  // Strip textSignature from assistant messages to avoid OpenAI Responses API
+  // "404 Item not found" errors when store: false (the library default).
+  a.replaceMessages(stripResponseIds(conversationMessages.value));
 
   // Subscribe to events for streaming UI
   const unsub = a.subscribe(handleAgentEvent);
