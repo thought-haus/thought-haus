@@ -22,7 +22,8 @@
     }
   },
   "background": {
-    "page": "background.html"
+    "scripts": ["background.js"],
+    "type": "module"
   },
   "icons": {
     "16": "icons/icon-16.png",
