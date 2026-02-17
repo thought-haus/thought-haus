@@ -9,6 +9,7 @@ import {
 } from "../lib/app-state.ts";
 import { agentPanelOpen } from "../agent/agent-state.ts";
 import { openCommandPalette } from "../lib/command-palette-state.ts";
+import { openSettings } from "../lib/settings-state.ts";
 import { getNote } from "../notes/note-store.ts";
 import { createNote, deleteNote } from "../notes/note-actions.ts";
 import { toggleFavorite } from "../favorites/favorite-store.ts";
@@ -18,6 +19,7 @@ import { NotesList } from "./sidebar.tsx";
 import { EditorView } from "./editor-view.tsx";
 import { AgentPanel } from "./agent-panel.tsx";
 import { CommandPalette } from "./command-palette.tsx";
+import { SettingsModal } from "./settings-modal.tsx";
 import styles from "./layout.module.css";
 
 const NAV_SIDEBAR_WIDTH = 220;
@@ -122,6 +124,10 @@ export function Layout() {
         e.preventDefault();
         agentPanelOpen.value = !agentPanelOpen.value;
       }
+      if ((e.metaKey || e.ctrlKey) && e.key === ",") {
+        e.preventDefault();
+        openSettings();
+      }
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "f") {
         e.preventDefault();
         const id = selectedNoteId.value;
@@ -143,7 +149,6 @@ export function Layout() {
             <NavSidebar
               selectedNoteId={selectedNoteId.value}
               onSelectNote={(id: string) => (selectedNoteId.value = id)}
-              onChangeStorage={disconnectBackend}
             />
           </div>
           <div style={{ width: `${sidebarWidth.value}px`, minWidth: `${sidebarWidth.value}px` }}>
@@ -193,6 +198,7 @@ export function Layout() {
         </div>
       )}
       <CommandPalette />
+      <SettingsModal onChangeStorage={disconnectBackend} />
     </div>
   );
 }

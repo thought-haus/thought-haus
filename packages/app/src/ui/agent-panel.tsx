@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import type { Message, AssistantMessage, ToolResultMessage, TextContent, ToolCall } from "@mariozechner/pi-ai";
 import {
   agentPanelOpen,
-  agentPanelView,
   isAgentStreaming,
   streamingText,
   conversationMessages,
@@ -11,7 +10,7 @@ import {
 } from "../agent/agent-state.ts";
 import { sendMessage, cancelStreaming, newConversation } from "../agent/agent-runner.ts";
 import { listConversations, switchConversation } from "../agent/conversation-persistence.ts";
-import { AgentSettingsPanel } from "./agent-settings-panel.tsx";
+import { openSettings } from "../lib/settings-state.ts";
 import { getCommandNotes } from "../agent/command-loader.ts";
 import { notesMap } from "../notes/note-store.ts";
 import type { Note } from "@thought-haus/core";
@@ -23,15 +22,6 @@ import "../agent/note-mention-suggest.css";
 import { getAtMentionQuery, getNonConversationNotes } from "../agent/note-mention.ts";
 
 export function AgentPanel() {
-  if (agentPanelView.value === "settings") {
-    return (
-      <div class={styles.agentPanel}>
-        <Header />
-        <AgentSettingsPanel />
-      </div>
-    );
-  }
-
   return (
     <div class={styles.agentPanel}>
       <Header />
@@ -56,10 +46,7 @@ function Header() {
         <button
           class={styles.iconBtn}
           title="Settings"
-          onClick={() =>
-            (agentPanelView.value =
-              agentPanelView.value === "settings" ? "chat" : "settings")
-          }
+          onClick={() => openSettings("ai")}
         >
           <Settings size={14} />
         </button>
@@ -118,7 +105,7 @@ function SetupPrompt() {
       <p>Configure an API key to start chatting.</p>
       <button
         class={styles.setupBtn}
-        onClick={() => (agentPanelView.value = "settings")}
+        onClick={() => openSettings("ai")}
       >
         Open Settings
       </button>

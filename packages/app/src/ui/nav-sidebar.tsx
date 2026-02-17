@@ -4,11 +4,8 @@ import {
   tagCounts,
   activeTagFilter,
 } from "../notes/note-store.ts";
-import {
-  themeMode,
-  setTheme,
-} from "../lib/app-state.ts";
 import { agentPanelOpen } from "../agent/agent-state.ts";
+import { openSettings } from "../lib/settings-state.ts";
 import {
   favoriteNotes,
   favoritesCollapsed,
@@ -18,18 +15,14 @@ import {
 } from "../favorites/favorite-store.ts";
 import {
   FileText,
-  Sun,
-  Moon,
-  Monitor,
   ChevronRight,
   ChevronDown,
   Star,
   X,
   Bot,
   Hash,
-  FolderSync,
+  Settings,
 } from "lucide-preact";
-import type { ThemeMode } from "../lib/app-state.ts";
 import type { Note } from "@thought-haus/core";
 import styles from "./nav-sidebar.module.css";
 
@@ -38,20 +31,12 @@ let dragFromIndex = -1;
 
 const TAGS_COLLAPSED_KEY = "th-tags-collapsed";
 
-const THEME_CYCLE: ThemeMode[] = ["light", "dark", "system"];
-const THEME_LABELS: Record<ThemeMode, string> = {
-  light: "Light",
-  dark: "Dark",
-  system: "System",
-};
-
 interface NavSidebarProps {
   selectedNoteId: string | null;
   onSelectNote: (id: string) => void;
-  onChangeStorage?: () => void;
 }
 
-export function NavSidebar({ selectedNoteId, onSelectNote, onChangeStorage }: NavSidebarProps) {
+export function NavSidebar({ selectedNoteId, onSelectNote }: NavSidebarProps) {
   const count = noteCount.value;
   const tags = tagCounts.value;
   const activeTag = activeTagFilter.value;
@@ -69,10 +54,6 @@ export function NavSidebar({ selectedNoteId, onSelectNote, onChangeStorage }: Na
     setTagsCollapsed(next);
     try { localStorage.setItem(TAGS_COLLAPSED_KEY, String(next)); } catch { /* */ }
   };
-
-  // Theme toggle
-  const mode = themeMode.value;
-  const next = THEME_CYCLE[(THEME_CYCLE.indexOf(mode) + 1) % THEME_CYCLE.length];
 
   return (
     <nav class={styles.navSidebar} aria-label="Navigation">
@@ -160,25 +141,13 @@ export function NavSidebar({ selectedNoteId, onSelectNote, onChangeStorage }: Na
       <div class={styles.footer}>
         <button
           class={styles.footerBtn}
-          onClick={() => setTheme(next)}
-          title={`Theme: ${THEME_LABELS[mode]} (click for ${THEME_LABELS[next]})`}
-          aria-label={`Switch theme to ${THEME_LABELS[next]}`}
+          onClick={() => openSettings()}
+          title="Settings (Cmd+,)"
+          aria-label="Open settings"
         >
-          {mode === "light" && <Sun size={14} />}
-          {mode === "dark" && <Moon size={14} />}
-          {mode === "system" && <Monitor size={14} />}
-          <span>{THEME_LABELS[mode]}</span>
+          <Settings size={14} />
+          <span>Settings</span>
         </button>
-        {onChangeStorage && (
-          <button
-            class={styles.footerBtn}
-            onClick={onChangeStorage}
-            title="Change storage location"
-            aria-label="Change storage"
-          >
-            <FolderSync size={14} />
-          </button>
-        )}
         <button
           class={styles.footerBtn}
           onClick={() => (agentPanelOpen.value = !agentPanelOpen.value)}
