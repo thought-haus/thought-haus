@@ -6,6 +6,16 @@ available remotely with WebDAV access. No server, no accounts, no sync.
 
 To get started, visit <https://thought.haus>.
 
+## Packages
+
+This is an npm workspaces monorepo with three packages:
+
+| Package | Description |
+|---------|-------------|
+| `@thought-haus/app` | Main web app — Preact + TipTap + MiniSearch |
+| `@thought-haus/core` | Shared library — storage backends, note types, frontmatter, filename utils |
+| `@thought-haus/clipper` | Browser extension for clipping web content into notes |
+
 ## Features
 
 - **Plain Markdown files**: Notes are just `.md` files with YAML frontmatter.
@@ -22,11 +32,19 @@ To get started, visit <https://thought.haus>.
 - **Custom properties**: Add arbitrary key-value metadata to any note.
 - **AI assistant**: Built-in chat panel with tool use. Can read, create, edit,
   search, and delete notes. Supports Anthropic and OpenAI models.
+- **Web clipper**: Browser extension to clip articles, selections, bookmarks,
+  and full pages as Markdown notes. Supports customizable templates with
+  URL-based triggers.
 - **WebDAV support**: Optionally connect to a WebDAV server (Nextcloud, etc.)
   instead of a local folder.
 - **Dark mode**: Light and dark themes with system preference detection.
 - **File watching**: Detects external changes to your notes folder
   automatically.
+
+## Browser Support
+
+- **Chromium** (Chrome, Edge, Brave, Arc) — local folder + WebDAV
+- **Firefox** — WebDAV only (no File System Access API)
 
 ## Development
 
@@ -35,7 +53,15 @@ npm install
 npm run dev
 ```
 
-## Testing
+### Build
+
+```
+npm run build              # app (tsc + vite)
+npm run build:clipper      # clipper extension (Chrome)
+BROWSER=firefox npm run build:clipper  # clipper extension (Firefox)
+```
+
+### Testing
 
 ```
 npm test

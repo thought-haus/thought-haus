@@ -15,7 +15,8 @@ The repo is an **npm workspaces monorepo** with three packages:
 
 - `npm run dev` — Start app Vite dev server with HMR
 - `npm run build` — Build the main app (tsc + vite)
-- `npm run build:clipper` — Build the clipper extension
+- `npm run build:clipper` — Build the clipper extension (Chrome by default)
+- `BROWSER=firefox npm run build:clipper` — Build the clipper extension for Firefox
 - `npm test` — Run all tests once (`vitest run`) across all packages
 - `npm run test:watch` — Run tests in watch mode
 - `npx vitest run packages/core/src/notes/filename.test.ts` — Run a single test file
