@@ -3,6 +3,7 @@
   "references": [
     { "path": "./packages/core" },
     { "path": "./packages/app" },
-    { "path": "./packages/clipper" }
+    { "path": "./packages/clipper" },
+    { "path": "./packages/docs" }
   ]
 }

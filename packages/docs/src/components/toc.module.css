@@ -1,0 +1,55 @@
+.toc {
+  position: sticky;
+  top: 72px;
+  padding: 1rem 1rem 1rem 0;
+  max-height: calc(100vh - 72px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-scrollbar) transparent;
+}
+
+.title {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.75rem;
+  padding-left: 0.75rem;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-left: 1px solid var(--color-border);
+}
+
+.item {
+  display: block;
+  width: 100%;
+}
+
+.link {
+  display: block;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  margin-left: -1px;
+  transition: color 0.12s ease, border-color 0.12s ease;
+}
+
+.link:hover {
+  color: var(--color-text);
+}
+
+.linkH3 {
+  padding-left: 1.5rem;
+}
+
+.linkActive {
+  color: var(--color-accent);
+  border-left-color: var(--color-accent);
+}

@@ -1,0 +1,302 @@
+@import "@thought-haus/core/src/styles/tokens.css";
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  font-family: var(--font-sans);
+  color: var(--color-text);
+  background: var(--color-bg);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-scrollbar);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-scrollbar-hover);
+}
+
+/* ============================================================
+   Prose typography — adapted from the TipTap editor theme
+   Applied to rendered markdown content via .prose class
+   ============================================================ */
+
+.prose {
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--color-text);
+}
+
+/* Paragraphs */
+.prose p {
+  margin: 0.625rem 0;
+}
+
+/* Headings */
+.prose h2 {
+  font-size: 1.375em;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  margin: 2rem 0 0.75rem;
+  line-height: 1.35;
+  padding-bottom: 0.375rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.prose h3 {
+  font-size: 1.125em;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 1.5rem 0 0.5rem;
+  line-height: 1.4;
+}
+
+.prose h4 {
+  font-size: 1em;
+  font-weight: 600;
+  margin: 1.25rem 0 0.375rem;
+}
+
+/* Heading anchors */
+.prose .heading-anchor {
+  color: inherit;
+  text-decoration: none;
+}
+.prose .heading-anchor:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--color-link-underline);
+  text-underline-offset: 3px;
+}
+
+/* Inline formatting */
+.prose strong {
+  font-weight: 600;
+}
+
+.prose em {
+  font-style: italic;
+}
+
+.prose s {
+  text-decoration: line-through;
+  color: var(--color-text-secondary);
+}
+
+/* Links */
+.prose a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-decoration-color: var(--color-link-underline);
+  text-underline-offset: 2px;
+  border-radius: 2px;
+  padding: 0 1px;
+  transition: text-decoration-color 0.15s ease, background 0.15s ease;
+}
+
+.prose a:hover {
+  text-decoration-color: var(--color-accent);
+  background: var(--color-accent-subtle);
+}
+
+/* Inline code */
+.prose code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  color: var(--editor-code-text);
+  background: var(--editor-code-bg);
+  border-radius: 4px;
+  padding: 0.15em 0.35em;
+}
+
+/* Code blocks (shiki) */
+.prose pre {
+  background: var(--editor-code-bg);
+  border-radius: 8px;
+  padding: 0.875rem 1rem;
+  margin: 1rem 0;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.7;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-scrollbar) transparent;
+}
+
+.prose pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  color: inherit;
+  font-size: inherit;
+}
+
+/* Shiki dual-theme support
+   Shiki inlines light-theme colors as style="background-color:…;color:…"
+   and puts dark values in --shiki-dark / --shiki-dark-bg CSS vars.
+   We must use !important to override the inline styles in dark mode. */
+[data-theme="dark"] .prose .shiki,
+[data-theme="dark"] .prose .shiki span {
+  color: var(--shiki-dark) !important;
+  background-color: var(--shiki-dark-bg) !important;
+}
+
+/* Blockquotes */
+.prose blockquote {
+  border-left: 3px solid var(--editor-blockquote);
+  padding-left: 1rem;
+  margin: 1rem 0;
+  color: var(--editor-blockquote-text);
+  font-style: italic;
+}
+
+/* Horizontal rules */
+.prose hr {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 2rem 0;
+}
+
+/* Lists */
+.prose ul,
+.prose ol {
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.prose li {
+  margin: 0.25rem 0;
+}
+
+.prose li p {
+  margin: 0;
+}
+
+.prose ul > li {
+  list-style-type: disc;
+}
+
+.prose ul > li::marker {
+  color: var(--color-accent);
+}
+
+.prose ol > li::marker {
+  color: var(--color-accent);
+}
+
+/* Nested lists */
+.prose li > ul,
+.prose li > ol {
+  margin: 0.125rem 0;
+}
+
+/* Tables */
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.875rem;
+}
+
+.prose thead th {
+  text-align: left;
+  font-weight: 600;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 2px solid var(--color-border);
+  color: var(--color-text);
+}
+
+.prose tbody td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.prose tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Images */
+.prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+
+/* Callouts (rendered from MD via vite plugin) */
+.prose .callout {
+  border-radius: 8px;
+  padding: 0.875rem 1rem;
+  margin: 1rem 0;
+  border-left: 3px solid;
+}
+
+.prose .callout-info {
+  background: var(--color-accent-subtle);
+  border-left-color: var(--color-accent);
+}
+
+.prose .callout-warning {
+  background: var(--color-danger-subtle);
+  border-left-color: var(--color-danger);
+}
+
+.prose .callout-tip {
+  background: var(--color-tag-bg);
+  border-left-color: var(--color-tag-text);
+}
+
+.prose .callout-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.prose .callout-info .callout-title {
+  color: var(--color-accent);
+}
+
+.prose .callout-warning .callout-title {
+  color: var(--color-danger);
+}
+
+.prose .callout-tip .callout-title {
+  color: var(--color-tag-text);
+}
+
+.prose .callout-body {
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+/* Keyboard shortcuts */
+.prose kbd {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.125rem 0.375rem;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background: var(--color-surface);
+  box-shadow: 0 1px 0 var(--color-border);
+}
