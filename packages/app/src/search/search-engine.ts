@@ -103,6 +103,9 @@ export const searchResults = signal<SearchResult[]>([]);
 /** Whether search is active (query is non-empty). */
 export const isSearchActive = signal(false);
 
+/** Whether the search index has been built and is ready. */
+export const isIndexReady = signal(false);
+
 /** Build the search index from all notes. Requires reading file content. */
 export function buildIndex(
   docs: { id: string; title: string; tags: string[]; body: string; lastModified: number }[],
@@ -117,6 +120,7 @@ export function buildIndex(
       lastModified: doc.lastModified,
     });
   }
+  isIndexReady.value = true;
 }
 
 /** Add a single document to the index. */
@@ -207,6 +211,7 @@ export function clearSearch(): void {
   searchQuery.value = "";
   searchResults.value = [];
   isSearchActive.value = false;
+  isIndexReady.value = false;
 }
 
 /** Query the index without mutating UI signals. Used by the agent tools. */
@@ -227,4 +232,5 @@ export function serializeIndex(): string {
 /** Load a previously serialized index, replacing the current one. */
 export function loadSerializedIndex(json: string): void {
   miniSearch = MiniSearch.loadJSON<SearchDocument>(json, MINISEARCH_OPTIONS);
+  isIndexReady.value = true;
 }

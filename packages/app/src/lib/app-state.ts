@@ -1,7 +1,13 @@
 import { signal, computed } from "@preact/signals";
 import type { StorageBackend } from "@thought-haus/core";
 
-export type AppView = "onboarding" | "re-permission" | "webdav-reconnect" | "main";
+export type AppView = "onboarding" | "re-permission" | "webdav-reconnect" | "loading" | "main";
+
+export type LoadingState =
+  | { phase: "idle" }
+  | { phase: "scanning"; loaded: number }
+  | { phase: "indexing"; loaded: number; total: number }
+  | { phase: "error"; message: string };
 
 export type SortMode = "created" | "title" | "modified";
 export type SortDirection = "asc" | "desc";
@@ -97,8 +103,11 @@ export function initSort(): void {
   } catch { /* corrupt or unavailable */ }
 }
 
-/** The current top-level view of the app. */
-export const appView = signal<AppView>("onboarding");
+/** The current top-level view of the app. Starts on "loading" to avoid flashing onboarding during session restore. */
+export const appView = signal<AppView>("loading");
+
+/** Loading progress state for the scanning/indexing flow. Starts as "scanning" to match initial "loading" view. */
+export const appLoading = signal<LoadingState>({ phase: "scanning", loaded: 0 });
 
 /** Whether the browser is compatible (File System Access API). */
 export const isBrowserCompatible = signal(true);
@@ -178,4 +187,9 @@ export function initAgentPanelWidth(): void {
 /** Derived: should we show the main editor layout? */
 export const showMainLayout = computed(
   () => appView.value === "main" && isBrowserCompatible.value,
+);
+
+/** Derived: is loading in an error state? */
+export const isLoadingError = computed(
+  () => appView.value === "loading" && appLoading.value.phase === "error",
 );

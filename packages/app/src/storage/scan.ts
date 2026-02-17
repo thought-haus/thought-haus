@@ -2,15 +2,20 @@ import type { StorageBackend, Note } from "@thought-haus/core";
 import { parseFilename, slugToTitle, parseFrontMatter, parseTimestampId } from "@thought-haus/core";
 
 /** Scan a storage backend for .md files and return parsed Note objects. */
-export async function scanNotes(backend: StorageBackend): Promise<Note[]> {
+export async function scanNotes(
+  backend: StorageBackend,
+  onProgress?: (loaded: number, total: number) => void,
+): Promise<Note[]> {
   const entries = await backend.list();
+  const mdEntries = entries.filter((e) => e.filename.endsWith(".md"));
   const notes: Note[] = [];
 
-  for (const entry of entries) {
-    if (!entry.filename.endsWith(".md")) continue;
-
+  for (const entry of mdEntries) {
     const parsed = parseFilename(entry.filename);
-    if (!parsed) continue;
+    if (!parsed) {
+      onProgress?.(notes.length, mdEntries.length);
+      continue;
+    }
 
     const content = await backend.read(entry.filename);
     const { frontMatter } = parseFrontMatter(content);
@@ -44,6 +49,7 @@ export async function scanNotes(backend: StorageBackend): Promise<Note[]> {
       isTimestampFormat: parsed.isTimestampFormat,
       createdAt,
     });
+    onProgress?.(notes.length, mdEntries.length);
   }
 
   return notes;
