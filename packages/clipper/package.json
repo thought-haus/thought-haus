@@ -5,9 +5,9 @@
   "license": "AGPL-3.0-only",
   "type": "module",
   "scripts": {
-    "dev": "vite build --watch",
-    "build": "vite build",
-    "build:firefox": "BROWSER=firefox vite build"
+    "dev": "npx vite build --watch",
+    "build": "npx vite build",
+    "build:firefox": "BROWSER=firefox npx vite build"
   },
   "dependencies": {
     "@thought-haus/core": "*",
