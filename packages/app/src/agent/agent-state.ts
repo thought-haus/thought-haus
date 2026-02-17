@@ -16,7 +16,6 @@ const SETTINGS_KEY = "th-agent-settings";
 const DEFAULT_SETTINGS: AgentSettings = {
   providers: {
     anthropic: { apiKey: "" },
-    openai: { apiKey: "" },
   },
   activeProvider: "anthropic",
   activeModel: "claude-sonnet-4-5-20250929",

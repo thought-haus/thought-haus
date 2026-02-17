@@ -1,14 +1,20 @@
 import { agentSettings, agentPanelView, saveSettings } from "../agent/agent-state.ts";
-import { PROVIDERS, getModelsForProvider } from "../agent/agent-settings.ts";
+import { getAvailableProviders, getModelsForProvider } from "../agent/agent-settings.ts";
 import styles from "./agent-panel.module.css";
 
 export function AgentSettingsPanel() {
   const settings = agentSettings.value;
+  const providers = getAvailableProviders();
 
   const handleProviderChange = (provider: string) => {
     const models = getModelsForProvider(provider);
+    const providers = { ...settings.providers };
+    if (!providers[provider]) {
+      providers[provider] = { apiKey: "" };
+    }
     saveSettings({
       ...settings,
+      providers,
       activeProvider: provider,
       activeModel: models[0]?.id || "",
     });
@@ -29,6 +35,7 @@ export function AgentSettingsPanel() {
   };
 
   const models = getModelsForProvider(settings.activeProvider);
+  const activeProviderName = providers.find((p) => p.id === settings.activeProvider)?.name ?? settings.activeProvider;
 
   return (
     <div class={styles.settingsPanel}>
@@ -41,7 +48,7 @@ export function AgentSettingsPanel() {
             handleProviderChange((e.target as HTMLSelectElement).value)
           }
         >
-          {PROVIDERS.map((p) => (
+          {providers.map((p) => (
             <option key={p.id} value={p.id}>
               {p.name}
             </option>
@@ -68,7 +75,7 @@ export function AgentSettingsPanel() {
 
       <div class={styles.settingsGroup}>
         <label class={styles.settingsLabel}>
-          API Key ({PROVIDERS.find((p) => p.id === settings.activeProvider)?.name})
+          API Key ({activeProviderName})
         </label>
         <input
           class={styles.settingsInput}
