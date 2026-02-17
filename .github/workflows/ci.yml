@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Type-check
+        run: npx tsc -b
+
+      - name: Test
+        run: npm test
+
+      - name: Build app
+        run: npm run build
+
+      - name: Build clipper (Chrome)
+        run: npm run build:clipper
+
+      - name: Build clipper (Firefox)
+        run: BROWSER=firefox npm run build:clipper
