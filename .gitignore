@@ -27,3 +27,6 @@ dist-ssr
 
 # WebDAV dev server data
 dev/webdav-data/
+
+# Local scratch/testing
+tmp/
