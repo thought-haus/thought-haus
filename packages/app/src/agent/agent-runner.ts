@@ -1,11 +1,12 @@
 import { Agent } from "@mariozechner/pi-agent-core";
-import type { AgentEvent } from "@mariozechner/pi-agent-core";
+import type { AgentEvent, StreamFn } from "@mariozechner/pi-agent-core";
 import type {
   AssistantMessage,
   Message,
   TextContent,
   UserMessage,
 } from "@mariozechner/pi-ai";
+import { streamSimple } from "@mariozechner/pi-ai";
 import {
   agentSettings,
   isAgentStreaming,
@@ -47,6 +48,25 @@ function stripResponseIds(messages: Message[]): Message[] {
       }),
     };
   });
+}
+
+/** Wrap streamSimple to inject a provider's built-in web search tool via onPayload. */
+export function createWebSearchStreamFn(provider: string): StreamFn {
+  return (model, context, options) => {
+    return streamSimple(model, context, {
+      ...options,
+      onPayload: (payload: unknown) => {
+        const p = payload as Record<string, unknown>;
+        const tools = (p.tools as unknown[]) || [];
+        if (provider === "openai") {
+          tools.push({ type: "web_search_preview" });
+        } else if (provider === "anthropic") {
+          tools.push({ type: "web_search_20260209", name: "web_search" });
+        }
+        p.tools = tools;
+      },
+    });
+  };
 }
 
 function getOrCreateAgent(): Agent {
@@ -92,6 +112,11 @@ export async function sendMessage(userText: string): Promise<void> {
   a.setModel(model);
   a.setTools(tools);
   a.getApiKey = () => providerConfig.apiKey;
+
+  // Inject provider-native web search when enabled
+  const webSearchProviders = new Set(["openai", "anthropic"]);
+  const useWebSearch = settings.webSearchEnabled && webSearchProviders.has(settings.activeProvider);
+  a.streamFn = useWebSearch ? createWebSearchStreamFn(settings.activeProvider) : streamSimple;
 
   // Sync Pi agent state with our conversation messages.
   // Strip textSignature from assistant messages to avoid OpenAI Responses API

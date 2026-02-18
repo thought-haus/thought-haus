@@ -83,6 +83,25 @@ export function AiSection() {
           onInput={(e) => handleApiKeyChange((e.target as HTMLInputElement).value)}
         />
       </div>
+
+      {(settings.activeProvider === "openai" || settings.activeProvider === "anthropic") && (
+        <div class={styles.settingRow}>
+          <div>
+            <div class={styles.settingLabel}>Web Search</div>
+            <div class={styles.settingHint}>Let the AI search the web for current information.</div>
+          </div>
+          <input
+            type="checkbox"
+            checked={settings.webSearchEnabled ?? false}
+            onChange={(e) => {
+              saveSettings({
+                ...settings,
+                webSearchEnabled: (e.target as HTMLInputElement).checked,
+              });
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }

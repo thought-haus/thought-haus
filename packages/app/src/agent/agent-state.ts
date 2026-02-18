@@ -9,6 +9,8 @@ export interface AgentSettings {
   providers: Record<string, ProviderConfig>;
   activeProvider: string;
   activeModel: string;
+  /** Enable OpenAI's built-in web search (OpenAI provider only). */
+  webSearchEnabled?: boolean;
 }
 
 const SETTINGS_KEY = "th-agent-settings";
