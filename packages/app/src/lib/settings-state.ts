@@ -1,6 +1,6 @@
 import { signal } from "@preact/signals";
 
-export type SettingsSection = "appearance" | "ai" | "storage";
+export type SettingsSection = "appearance" | "ai" | "storage" | "about";
 
 /** Whether the settings modal is open. */
 export const settingsOpen = signal(false);

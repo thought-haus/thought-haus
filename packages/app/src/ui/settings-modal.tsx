@@ -5,7 +5,8 @@ import type { SettingsSection } from "../lib/settings-state.ts";
 import { AppearanceSection } from "./settings/appearance-section.tsx";
 import { AiSection } from "./settings/ai-section.tsx";
 import { StorageSection } from "./settings/storage-section.tsx";
-import { Paintbrush, Bot, HardDrive, X } from "lucide-preact";
+import { AboutSection } from "./settings/about-section.tsx";
+import { Paintbrush, Bot, HardDrive, Info, X } from "lucide-preact";
 import styles from "./settings-modal.module.css";
 
 interface SectionDef {
@@ -19,6 +20,7 @@ const SECTIONS: SectionDef[] = [
   { id: "appearance", label: "Appearance", Icon: Paintbrush, component: AppearanceSection },
   { id: "storage", label: "Storage", Icon: HardDrive, component: StorageSection },
   { id: "ai", label: "AI", Icon: Bot, component: AiSection },
+  { id: "about", label: "About", Icon: Info, component: AboutSection },
 ];
 
 const CLOSE_ANIMATION_MS = 100;
