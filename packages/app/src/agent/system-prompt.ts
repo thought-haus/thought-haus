@@ -63,6 +63,7 @@ ${commandBody}`);
   // Guidelines
   parts.push(`## Guidelines
 - Be concise and helpful
+- Format your responses in Markdown for readability: use headings, bold, code blocks, lists, etc. when appropriate
 - When creating or editing notes, use proper Markdown formatting
 - Note IDs follow the pattern YYYYMMDDTHHMMSS (e.g., 20240322T131856)
 - Tags are plain strings without # prefix

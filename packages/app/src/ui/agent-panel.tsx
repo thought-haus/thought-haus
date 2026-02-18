@@ -16,6 +16,7 @@ import { notesMap } from "../notes/note-store.ts";
 import type { Note } from "@thought-haus/core";
 import { slugify } from "@thought-haus/core";
 import { Settings, X, Plus, ChevronRight } from "lucide-preact";
+import { MarkdownRenderer } from "./markdown-renderer.tsx";
 import styles from "./agent-panel.module.css";
 import "../agent/slash-command-suggest.css";
 import "../agent/note-mention-suggest.css";
@@ -140,7 +141,7 @@ function MessageList() {
       ))}
       {isAgentStreaming.value && streaming && (
         <div class={styles.streamingMessage}>
-          {streaming}
+          <MarkdownRenderer content={streaming} />
           <span class={styles.cursor} />
         </div>
       )}
@@ -183,7 +184,9 @@ function MessageBubble({ message }: { message: Message }) {
     return (
       <>
         {textParts.length > 0 && (
-          <div class={styles.assistantMessage}>{textParts.join("")}</div>
+          <div class={styles.assistantMessage}>
+            <MarkdownRenderer content={textParts.join("")} />
+          </div>
         )}
         {toolCalls.map((tc) => (
           <ToolCallBubble key={tc.id} toolCall={tc} />

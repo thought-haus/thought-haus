@@ -130,7 +130,6 @@
   border: 1px solid var(--color-border);
   font-size: 0.8125rem;
   line-height: 1.5;
-  white-space: pre-wrap;
   word-break: break-word;
 }
 
@@ -194,7 +193,6 @@
   border: 1px solid var(--color-border);
   font-size: 0.8125rem;
   line-height: 1.5;
-  white-space: pre-wrap;
   word-break: break-word;
 }
 
@@ -210,6 +208,32 @@
 
 @keyframes blink {
   50% { opacity: 0; }
+}
+
+/* Tiptap theme overrides for agent messages */
+.assistantMessage :global(.tiptap),
+.streamingMessage :global(.tiptap) {
+  padding: 0;
+  min-height: unset;
+  max-width: 100%;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.assistantMessage :global(.tiptap) > :first-child,
+.streamingMessage :global(.tiptap) > :first-child {
+  margin-top: 0;
+}
+
+.assistantMessage :global(.tiptap) > :last-child,
+.streamingMessage :global(.tiptap) > :last-child {
+  margin-bottom: 0;
+}
+
+.assistantMessage :global(.tiptap) li input[type="checkbox"],
+.streamingMessage :global(.tiptap) li input[type="checkbox"] {
+  margin-right: 0.375rem;
+  vertical-align: middle;
 }
 
 .errorMessage {
