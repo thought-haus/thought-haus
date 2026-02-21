@@ -274,3 +274,19 @@
   color: var(--color-text-secondary);
   font-size: 0.8125rem;
 }
+
+/* ---- Mobile ---- */
+@media (max-width: 768px) {
+  .noteItem {
+    padding: 0.75rem 1rem;
+    min-height: 44px;
+  }
+
+  .noteTitle {
+    font-size: 0.875rem;
+  }
+
+  .searchInput {
+    font-size: 1rem;
+  }
+}

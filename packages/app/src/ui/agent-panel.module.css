@@ -435,3 +435,14 @@
   background: var(--color-surface);
   border-color: var(--color-text-secondary);
 }
+
+/* ---- Mobile ---- */
+@media (max-width: 768px) {
+  .agentPanel {
+    border-left: none;
+  }
+
+  .header {
+    display: none;
+  }
+}

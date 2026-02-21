@@ -276,3 +276,34 @@
   color: var(--color-text);
   background: var(--color-note-hover);
 }
+
+/* ---- Mobile drawer ---- */
+@media (max-width: 768px) {
+  .navSidebar {
+    border-right: none;
+  }
+
+  .menuItem {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    min-height: 44px;
+  }
+
+  .tagItem {
+    padding: 0.375rem 0.75rem;
+    padding-left: 1.5rem;
+    font-size: 0.8125rem;
+    min-height: 40px;
+  }
+
+  .favoriteItem {
+    padding: 0.375rem 0.75rem;
+    padding-left: 1.5rem;
+    font-size: 0.8125rem;
+    min-height: 40px;
+  }
+
+  .footer {
+    display: none;
+  }
+}
