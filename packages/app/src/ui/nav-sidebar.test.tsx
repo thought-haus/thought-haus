@@ -85,6 +85,25 @@ describe("NavSidebar", () => {
     expect(activeTagFilter.value).toBeNull();
   });
 
+
+
+  it("renders Favorites section above Tags", () => {
+    setNotes([
+      makeNote({ id: "1", tags: ["work"], title: "Tagged Note" }),
+      makeNote({ id: "2", title: "My Favorite" }),
+    ]);
+    favoriteIds.value = ["2"];
+    render(
+      <NavSidebar selectedNoteId={null} onSelectNote={() => {}} />,
+    );
+
+    const favoritesHeader = screen.getByText("Favorites");
+    const tagsHeader = screen.getByText("Tags");
+    const favoritesPosition = favoritesHeader.compareDocumentPosition(tagsHeader);
+
+    expect(favoritesPosition & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it("shows favorites section when favorites exist", () => {
     setNotes([makeNote({ id: "note-1", title: "My Favorite" })]);
     favoriteIds.value = ["note-1"];
