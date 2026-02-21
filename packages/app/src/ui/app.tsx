@@ -11,6 +11,7 @@ import {
   initSort,
   initSidebarWidth,
   initAgentPanelWidth,
+  initMobile,
 } from "../lib/app-state.ts";
 import { isFileSystemAccessSupported } from "../lib/browser.ts";
 import {
@@ -261,6 +262,7 @@ export function App() {
     initSidebarWidth();
     initAgentPanelWidth();
     initFavoritesCollapsed();
+    initMobile();
     startRouter();
     tryRestoreSession();
   }, []);

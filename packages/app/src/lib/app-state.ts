@@ -187,6 +187,33 @@ export function initAgentPanelWidth(): void {
   } catch { /* corrupt or unavailable */ }
 }
 
+/** Mobile breakpoint (max-width). */
+const MOBILE_BREAKPOINT = "(max-width: 768px)";
+
+/** Whether the viewport is at mobile width. */
+export const isMobile = signal(
+  typeof window.matchMedia === "function"
+    ? window.matchMedia(MOBILE_BREAKPOINT).matches
+    : false,
+);
+
+/** Initialize the isMobile listener for viewport changes. */
+export function initMobile(): void {
+  if (typeof window.matchMedia !== "function") return;
+  const mql = window.matchMedia(MOBILE_BREAKPOINT);
+  mql.addEventListener("change", (e) => {
+    isMobile.value = e.matches;
+  });
+}
+
+export type MobileView = "list" | "editor" | "agent";
+
+/** Which view is active on mobile. */
+export const mobileView = signal<MobileView>("list");
+
+/** Whether the nav sidebar drawer is open (mobile only). */
+export const mobileDrawerOpen = signal(false);
+
 /** Derived: should we show the main editor layout? */
 export const showMainLayout = computed(
   () => appView.value === "main" && isBrowserCompatible.value,
