@@ -68,6 +68,38 @@ export function NavSidebar({ selectedNoteId, onSelectNote }: NavSidebarProps) {
           <span class={styles.menuBadge}>{count}</span>
         </button>
 
+        {/* Favorites section */}
+        {favorites.length > 0 && (
+          <>
+            <div class={styles.sectionDivider} />
+            <button
+              class={styles.sectionHeader}
+              onClick={() => setFavoritesCollapsed(!favCollapsed)}
+              aria-expanded={!favCollapsed}
+              aria-controls="nav-favorites-list"
+            >
+              {favCollapsed
+                ? <ChevronRight size={10} />
+                : <ChevronDown size={10} />}
+              <span>Favorites</span>
+            </button>
+            {!favCollapsed && (
+              <div id="nav-favorites-list" role="list">
+                {favorites.map((note, i) => (
+                  <NavFavoriteItem
+                    key={note.id}
+                    note={note}
+                    index={i}
+                    isSelected={note.id === selectedNoteId}
+                    onSelect={onSelectNote}
+                    onRemove={removeFavorite}
+                  />
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
         {/* Tags section */}
         {tags.size > 0 && (
           <>
@@ -100,38 +132,6 @@ export function NavSidebar({ selectedNoteId, onSelectNote }: NavSidebarProps) {
                       <span class={styles.menuBadge}>{tagCount}</span>
                     </button>
                   ))}
-              </div>
-            )}
-          </>
-        )}
-
-        {/* Favorites section */}
-        {favorites.length > 0 && (
-          <>
-            <div class={styles.sectionDivider} />
-            <button
-              class={styles.sectionHeader}
-              onClick={() => setFavoritesCollapsed(!favCollapsed)}
-              aria-expanded={!favCollapsed}
-              aria-controls="nav-favorites-list"
-            >
-              {favCollapsed
-                ? <ChevronRight size={10} />
-                : <ChevronDown size={10} />}
-              <span>Favorites</span>
-            </button>
-            {!favCollapsed && (
-              <div id="nav-favorites-list" role="list">
-                {favorites.map((note, i) => (
-                  <NavFavoriteItem
-                    key={note.id}
-                    note={note}
-                    index={i}
-                    isSelected={note.id === selectedNoteId}
-                    onSelect={onSelectNote}
-                    onRemove={removeFavorite}
-                  />
-                ))}
               </div>
             )}
           </>
