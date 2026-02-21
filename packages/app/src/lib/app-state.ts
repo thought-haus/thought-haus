@@ -127,6 +127,9 @@ export const savedWebDavConfig = signal<{ url: string; username: string; passwor
 /** The currently selected note ID. */
 export const selectedNoteId = signal<string | null>(null);
 
+/** When true, the title input should be focused and selected on next render (e.g. after creating a new note). */
+export const pendingTitleSelect = signal(false);
+
 /** Whether the sidebar is collapsed. */
 export const sidebarCollapsed = signal(false);
 

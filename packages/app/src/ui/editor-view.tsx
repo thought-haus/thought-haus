@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback, useState } from "preact/hooks";
-import { selectedNoteId, storageBackend } from "../lib/app-state.ts";
+import { selectedNoteId, storageBackend, pendingTitleSelect } from "../lib/app-state.ts";
 import { getNote, upsertNote, tagCounts } from "../notes/note-store.ts";
 import { parseFrontMatter, serializeFrontMatter } from "@thought-haus/core";
 import { createEditor } from "../editor/tiptap-editor.ts";
@@ -25,6 +25,7 @@ export function EditorView_({ onDelete }: EditorViewProps) {
   const bodyRef = useRef("");
   const noteIdRef = useRef<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
   const [tagInput, setTagInput] = useState("");
   const [showTagInput, setShowTagInput] = useState(false);
   const [tagHighlight, setTagHighlight] = useState(-1);
@@ -121,6 +122,14 @@ export function EditorView_({ onDelete }: EditorViewProps) {
     if (!note) return;
 
     setTitleDraft(note.title);
+
+    if (pendingTitleSelect.value) {
+      pendingTitleSelect.value = false;
+      setTimeout(() => {
+        titleInputRef.current?.focus();
+        titleInputRef.current?.select();
+      }, 0);
+    }
 
     (async () => {
       const backend = storageBackend.value;
@@ -293,6 +302,7 @@ export function EditorView_({ onDelete }: EditorViewProps) {
             <Star size={16} fill={favorited ? "currentColor" : "none"} />
           </button>
           <input
+            ref={titleInputRef}
             class={styles.titleInput}
             type="text"
             value={titleDraft}
