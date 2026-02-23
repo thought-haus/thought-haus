@@ -13,6 +13,7 @@ import {
   moveFavorite,
   removeFavorite,
 } from "../favorites/favorite-store.ts";
+import { recentlyViewedNotes } from "../recently-viewed/recently-viewed-store.ts";
 import {
   FileText,
   ChevronRight,
@@ -22,6 +23,7 @@ import {
   Bot,
   Hash,
   Settings,
+  History,
 } from "lucide-preact";
 import type { Note } from "@thought-haus/core";
 import styles from "./nav-sidebar.module.css";
@@ -42,6 +44,7 @@ export function NavSidebar({ selectedNoteId, onSelectNote }: NavSidebarProps) {
   const activeTag = activeTagFilter.value;
   const favorites = favoriteNotes.value;
   const favCollapsed = favoritesCollapsed.value;
+  const recentlyViewed = recentlyViewedNotes.value;
 
   const [tagsCollapsed, setTagsCollapsed] = useState(() => {
     try {
@@ -97,6 +100,31 @@ export function NavSidebar({ selectedNoteId, onSelectNote }: NavSidebarProps) {
                 ))}
               </div>
             )}
+          </>
+        )}
+
+
+        {/* Recently viewed section */}
+        {recentlyViewed.length > 0 && (
+          <>
+            <div class={styles.sectionDivider} />
+            <div class={styles.sectionHeader}>
+              <History size={10} />
+              <span>Recently Viewed</span>
+            </div>
+            <div role="list">
+              {recentlyViewed.map((note) => (
+                <button
+                  key={note.id}
+                  class={`${styles.recentItem} ${note.id === selectedNoteId ? styles.recentItemSelected : ""}`}
+                  onClick={() => onSelectNote(note.id)}
+                  role="listitem"
+                >
+                  <History size={12} class={styles.recentIcon} />
+                  <span class={styles.recentLabel}>{note.title}</span>
+                </button>
+              ))}
+            </div>
           </>
         )}
 
