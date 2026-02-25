@@ -1,13 +1,13 @@
 import { useEffect, useState, useRef, useCallback } from "preact/hooks";
 import { commandPaletteOpen, closeCommandPalette } from "../lib/command-palette-state.ts";
 import { selectedNoteId } from "../lib/app-state.ts";
-import { notesSorted, getNote } from "../notes/note-store.ts";
+import { getNote } from "../notes/note-store.ts";
 import { queryIndex } from "../search/search-engine.ts";
+import { recentlyViewedNotes, trackRecentlyViewed } from "../recently-viewed/recently-viewed-store.ts";
 import { FileText, Search, X } from "lucide-preact";
 import type { Note } from "@thought-haus/core";
 import styles from "./command-palette.module.css";
 
-const MAX_RECENT = 7;
 const MAX_RESULTS = 20;
 const CLOSE_ANIMATION_MS = 100;
 
@@ -31,12 +31,6 @@ function relativeDate(timestamp: number): string {
   });
 }
 
-function getRecentNotes(): Note[] {
-  return [...notesSorted.value]
-    .sort((a, b) => b.lastModified - a.lastModified)
-    .slice(0, MAX_RECENT);
-}
-
 export function CommandPalette() {
   const isOpen = commandPaletteOpen.value;
   const [closing, setClosing] = useState(false);
@@ -52,7 +46,7 @@ export function CommandPalette() {
         .slice(0, MAX_RESULTS)
         .map((r) => getNote(r.id))
         .filter((n): n is Note => n !== undefined)
-    : getRecentNotes();
+    : recentlyViewedNotes.value;
 
   const animatedClose = useCallback(() => {
     setClosing(true);
@@ -67,6 +61,7 @@ export function CommandPalette() {
   const selectNote = useCallback(
     (id: string) => {
       selectedNoteId.value = id;
+      trackRecentlyViewed(id);
       animatedClose();
     },
     [animatedClose],
@@ -203,11 +198,11 @@ export function CommandPalette() {
           <div class={styles.sectionHeader}>
             {isSearching
               ? `Search Results (${notes.length})`
-              : "Recent Notes"}
+              : "Recently Viewed"}
           </div>
           {notes.length === 0 ? (
             <div class={styles.emptyState}>
-              {isSearching ? "No matching notes" : "No notes yet"}
+              {isSearching ? "No matching notes" : "No recently viewed notes"}
             </div>
           ) : (
             notes.map((note, i) => (
