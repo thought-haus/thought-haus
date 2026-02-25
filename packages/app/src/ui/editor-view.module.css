@@ -242,25 +242,29 @@
   color: var(--color-accent);
 }
 
-.editorBody {
+.editorScroll {
   flex: 1;
   overflow-y: auto;
-  padding: 0 3rem;
   scrollbar-width: thin;
   scrollbar-color: var(--color-scrollbar) transparent;
 }
-.editorBody::-webkit-scrollbar {
+.editorScroll::-webkit-scrollbar {
   width: 6px;
 }
-.editorBody::-webkit-scrollbar-track {
+.editorScroll::-webkit-scrollbar-track {
   background: transparent;
 }
-.editorBody::-webkit-scrollbar-thumb {
+.editorScroll::-webkit-scrollbar-thumb {
   background: var(--color-scrollbar);
   border-radius: 3px;
 }
-.editorBody::-webkit-scrollbar-thumb:hover {
+.editorScroll::-webkit-scrollbar-thumb:hover {
   background: var(--color-scrollbar-hover);
+}
+
+.editorBody {
+  padding: 0 3rem;
+  min-height: 60vh;
 }
 
 
@@ -295,6 +299,7 @@
 
   .editorBody {
     padding: 0 1rem;
+    min-height: 50vh;
   }
 
   .statusBar {
