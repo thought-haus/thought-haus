@@ -14,6 +14,8 @@ import { X, Paperclip, Star } from "lucide-preact";
 import type { Editor } from "@tiptap/core";
 import styles from "./editor-view.module.css";
 import { PropertyEditor } from "./property-editor.tsx";
+import { BacklinksSection } from "./backlinks-section.tsx";
+import { updateNoteLinks } from "../notes/backlink-index.ts";
 
 interface EditorViewProps {
   onDelete?: () => void;
@@ -97,6 +99,7 @@ export function EditorView_({ onDelete }: EditorViewProps) {
         body: bodyRef.current,
         lastModified: meta.lastModified,
       });
+      updateNoteLinks(note.id, bodyRef.current);
       saveStatus.value = "saved";
     } catch {
       saveStatus.value = "unsaved";
@@ -466,7 +469,10 @@ export function EditorView_({ onDelete }: EditorViewProps) {
           onTriggerAddHandled={() => setTriggerAddProperty(false)}
         />
       </div>
-      <div class={styles.editorBody} ref={containerRef} />
+      <div class={styles.editorScroll}>
+        <div class={styles.editorBody} ref={containerRef} />
+        <BacklinksSection noteId={note.id} />
+      </div>
       <div class={styles.statusBar}>
         <span>{wordCount.value} words</span>
         <span class={styles.saveIndicator}>

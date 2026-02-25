@@ -8,6 +8,7 @@ import {
 } from "../search/search-engine.ts";
 import { deleteNoteAttachments } from "../attachments/attachment-service.ts";
 import { removeFavorite } from "../favorites/favorite-store.ts";
+import { removeNoteLinks } from "./backlink-index.ts";
 import type { Note } from "@thought-haus/core";
 
 const WELCOME_BODY = `Welcome to Thought.Haus! This is your first note.
@@ -79,6 +80,7 @@ export async function deleteNote(id: string): Promise<boolean> {
     removeNote(id);
     removeFromIndex(id);
     removeFavorite(id);
+    removeNoteLinks(id);
     if (selectedNoteId.value === id) {
       selectedNoteId.value = null;
     }

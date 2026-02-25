@@ -41,6 +41,7 @@ import { saveSearchIndex } from "../search/search-persistence.ts";
 import { startWatcher } from "../storage/file-watcher.ts";
 import { loadFavorites } from "../favorites/favorite-persistence.ts";
 import { favoriteIds, initFavoritesCollapsed } from "../favorites/favorite-store.ts";
+import { buildBacklinkIndex, clearBacklinks } from "../notes/backlink-index.ts";
 import { initRecentlyViewed, startRecentlyViewedTracking } from "../recently-viewed/recently-viewed-store.ts";
 import { startRouter, applyPendingHash } from "../lib/router.ts";
 import { Onboarding } from "./onboarding.tsx";
@@ -111,6 +112,7 @@ async function openWithBackend(backend: StorageBackend): Promise<void> {
       appLoading.value = { phase: "indexing", loaded: i + 1, total: notes.length };
     }
     buildIndex(docs);
+    buildBacklinkIndex(docs);
     saveSearchIndex(serializeIndex()).catch(() => {});
   } catch (err) {
     // Index failure is non-fatal — notes are still usable
@@ -165,6 +167,7 @@ async function disconnectBackend(): Promise<void> {
   selectedNoteId.value = null;
   clearNotes();
   clearSearch();
+  clearBacklinks();
   favoriteIds.value = [];
   await clearBackendConfig();
   appView.value = "onboarding";

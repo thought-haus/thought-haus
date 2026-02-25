@@ -9,6 +9,7 @@ import {
   updateInIndex,
 } from "../search/search-engine.ts";
 import { removeFavorite } from "../favorites/favorite-store.ts";
+import { updateNoteLinks, removeNoteLinks } from "../notes/backlink-index.ts";
 
 const POLL_INTERVAL = 7000; // 7 seconds
 
@@ -70,12 +71,14 @@ export async function applyChanges(
           body,
           lastModified: change.note.lastModified,
         });
+        updateNoteLinks(change.note.id, body);
         break;
       }
       case "deleted": {
         removeNote(change.note.id);
         removeFromIndex(change.note.id);
         removeFavorite(change.note.id);
+        removeNoteLinks(change.note.id);
         if (selectedNoteId.value === change.note.id) {
           selectedNoteId.value = null;
         }
@@ -95,6 +98,7 @@ export async function applyChanges(
           body,
           lastModified: change.note.lastModified,
         });
+        updateNoteLinks(change.note.id, body);
         break;
       }
     }
