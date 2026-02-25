@@ -28,6 +28,8 @@ export function EditorView_({ onDelete }: EditorViewProps) {
   const noteIdRef = useRef<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
+  const tagInputRef = useRef<HTMLInputElement>(null);
+  const tagEscapeRef = useRef(false);
   const [tagInput, setTagInput] = useState("");
   const [showTagInput, setShowTagInput] = useState(false);
   const [tagHighlight, setTagHighlight] = useState(-1);
@@ -204,7 +206,6 @@ export function EditorView_({ onDelete }: EditorViewProps) {
 
       upsertNote({ ...note, tags: [...note.tags, tag] });
       setTagInput("");
-      setShowTagInput(false);
       setTagHighlight(-1);
       saveNote();
     },
@@ -251,6 +252,13 @@ export function EditorView_({ onDelete }: EditorViewProps) {
   }, [titleDraft]);
 
   // handleTagKeyDown is defined inline in JSX to capture tagSuggestions from render scope
+
+  // Focus tag input when it becomes visible
+  useEffect(() => {
+    if (showTagInput) {
+      tagInputRef.current?.focus();
+    }
+  }, [showTagInput]);
 
   // Cmd/Ctrl+; to add property
   useEffect(() => {
@@ -316,6 +324,9 @@ export function EditorView_({ onDelete }: EditorViewProps) {
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 (e.target as HTMLInputElement).blur();
+                setTimeout(() => {
+                  editorInstanceRef.current?.commands.focus();
+                }, 0);
               }
             }}
             aria-label="Note title"
@@ -370,12 +381,12 @@ export function EditorView_({ onDelete }: EditorViewProps) {
             {showTagInput ? (
               <div class={styles.tagInputWrapper}>
                 <input
+                  ref={tagInputRef}
                   class={styles.tagInput}
                   type="text"
                   value={tagInput}
                   placeholder="tag name"
                   aria-label="Add tag"
-                  autoFocus
                   onInput={(e) => {
                     setTagInput((e.target as HTMLInputElement).value);
                     setTagHighlight(-1);
@@ -386,7 +397,10 @@ export function EditorView_({ onDelete }: EditorViewProps) {
                         items: tagSuggestions,
                         highlightedIndex: tagHighlight,
                         onHighlightChange: setTagHighlight,
-                        onSelect: (item) => addTag(item.label),
+                        onSelect: (item) => {
+                          addTag(item.label);
+                          tagInputRef.current?.focus();
+                        },
                       });
                       if (consumed) {
                         e.preventDefault();
@@ -396,18 +410,23 @@ export function EditorView_({ onDelete }: EditorViewProps) {
                     if (e.key === "Enter") {
                       e.preventDefault();
                       addTag((e.target as HTMLInputElement).value);
+                      // Input stays focused for the next tag
                     } else if (e.key === "Escape") {
+                      tagEscapeRef.current = true;
                       setTagInput("");
                       setShowTagInput(false);
                       setTagHighlight(-1);
                     }
                   }}
                   onBlur={() => {
+                    if (tagEscapeRef.current) {
+                      tagEscapeRef.current = false;
+                      return;
+                    }
                     if (tagInput.trim()) {
                       addTag(tagInput);
-                    } else {
-                      setShowTagInput(false);
                     }
+                    setShowTagInput(false);
                   }}
                 />
                 <InlineAutocomplete

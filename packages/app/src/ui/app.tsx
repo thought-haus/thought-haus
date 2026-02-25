@@ -42,6 +42,7 @@ import { startWatcher } from "../storage/file-watcher.ts";
 import { loadFavorites } from "../favorites/favorite-persistence.ts";
 import { favoriteIds, initFavoritesCollapsed } from "../favorites/favorite-store.ts";
 import { buildBacklinkIndex, clearBacklinks } from "../notes/backlink-index.ts";
+import { initRecentlyViewed, startRecentlyViewedTracking } from "../recently-viewed/recently-viewed-store.ts";
 import { startRouter, applyPendingHash } from "../lib/router.ts";
 import { Onboarding } from "./onboarding.tsx";
 import { RePermission } from "./re-permission.tsx";
@@ -265,6 +266,8 @@ export function App() {
     initSidebarWidth();
     initAgentPanelWidth();
     initFavoritesCollapsed();
+    initRecentlyViewed();
+    startRecentlyViewedTracking();
     initMobile();
     startRouter();
     tryRestoreSession();

@@ -74,6 +74,24 @@ describe("note-actions", () => {
       expect(content).toContain("title: Untitled");
       expect(content).toContain("tags:");
     });
+
+    it("creates a note with a custom title", async () => {
+      const note = await createNote("My Custom Title");
+      expect(note!.title).toBe("My Custom Title");
+      const content = String((mockBackend.write as ReturnType<typeof vi.fn>).mock.lastCall?.[1]);
+      expect(content).toContain("title: My Custom Title");
+    });
+
+    it("navigates to new note by default", async () => {
+      const note = await createNote("Nav Test");
+      expect(selectedNoteId.value).toBe(note!.id);
+    });
+
+    it("does not navigate when navigate=false", async () => {
+      selectedNoteId.value = null;
+      await createNote("Background Note", false);
+      expect(selectedNoteId.value).toBeNull();
+    });
   });
 
   describe("deleteNote", () => {

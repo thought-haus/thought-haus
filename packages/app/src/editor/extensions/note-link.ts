@@ -1,4 +1,5 @@
 import { Node, type JSONContent } from "@tiptap/core";
+import { Plugin, PluginKey, TextSelection } from "@tiptap/pm/state";
 import type {
   MarkdownParseHelpers,
   MarkdownRendererHelpers,
@@ -10,6 +11,8 @@ import { resolveNoteLink, NOTE_LINK_RE } from "../note-links.ts";
 import { selectedNoteId } from "../../lib/app-state.ts";
 import { noteLinkSuggestion } from "./note-link-suggest.ts";
 import "../note-link-suggest.css";
+
+const selectionLinkKey = new PluginKey("note-link-wrap-selection");
 
 /**
  * TipTap inline node for [[YYYYMMDDTHHMMSS]] note links.
@@ -93,6 +96,52 @@ export const NoteLink = Node.create({
       Suggestion({
         editor: this.editor,
         ...noteLinkSuggestion,
+      }),
+      // When text is selected and the user presses [, wrap the selection in [[...
+      // to trigger the note-link suggestion with the selected text as the query.
+      new Plugin({
+        key: selectionLinkKey,
+        props: {
+          handleDOMEvents: {
+            beforeinput(view, event) {
+              const inputEvent = event as InputEvent;
+              if (
+                inputEvent.inputType === "insertText" &&
+                inputEvent.data === "["
+              ) {
+                const { selection } = view.state;
+                if (!selection.empty) {
+                  const selectedText = view.state.doc
+                    .textBetween(selection.from, selection.to, " ")
+                    .trim();
+                  if (selectedText) {
+                    inputEvent.preventDefault();
+                    const textToInsert = `[[${selectedText}`;
+                    const tr = view.state.tr.replaceWith(
+                      selection.from,
+                      selection.to,
+                      view.state.schema.text(textToInsert),
+                    );
+                    // Collapse to a cursor so the Suggestion plugin sees
+                    // selection.empty === true and activates trigger detection.
+                    // Without this, replaceWith maps the original range through
+                    // the step, leaving a non-empty selection that suppresses
+                    // the popup.
+                    tr.setSelection(
+                      TextSelection.create(
+                        tr.doc,
+                        selection.from + textToInsert.length,
+                      ),
+                    );
+                    view.dispatch(tr);
+                    return true;
+                  }
+                }
+              }
+              return false;
+            },
+          },
+        },
       }),
     ];
   },

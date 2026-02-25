@@ -26,14 +26,13 @@ You can edit them here or in any text editor.
 Happy writing!
 `;
 
-/** Create a new note and return it. */
-export async function createNote(): Promise<Note | null> {
+/** Create a new note and return it. Pass navigate=false to create in background without switching to it. */
+export async function createNote(title = "Untitled", navigate = true): Promise<Note | null> {
   const backend = storageBackend.value;
   if (!backend) return null;
 
   const now = new Date();
   const id = formatTimestampId(now);
-  const title = "Untitled";
   const filename = generateFilename(now, title);
 
   const frontMatter = {
@@ -59,8 +58,10 @@ export async function createNote(): Promise<Note | null> {
   };
 
   upsertNote(note);
-  pendingTitleSelect.value = true;
-  selectedNoteId.value = note.id;
+  if (navigate) {
+    pendingTitleSelect.value = true;
+    selectedNoteId.value = note.id;
+  }
   addToIndex({ id: note.id, title: note.title, tags: note.tags, body: "\n", lastModified: note.lastModified });
   return note;
 }

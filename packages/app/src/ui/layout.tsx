@@ -16,6 +16,7 @@ import { openSettings } from "../lib/settings-state.ts";
 import { getNote } from "../notes/note-store.ts";
 import { createNote, deleteNote } from "../notes/note-actions.ts";
 import { toggleFavorite } from "../favorites/favorite-store.ts";
+import { trackRecentlyViewed } from "../recently-viewed/recently-viewed-store.ts";
 import { disconnectBackend } from "./app.tsx";
 import { NavSidebar } from "./nav-sidebar.tsx";
 import { NotesList } from "./sidebar.tsx";
@@ -145,6 +146,7 @@ export function Layout() {
 
   const handleMobileSelectNote = (id: string) => {
     selectedNoteId.value = id;
+    trackRecentlyViewed(id);
     if (mobile) {
       mobileView.value = "editor";
       mobileDrawerOpen.value = false;
@@ -153,6 +155,7 @@ export function Layout() {
 
   const handleDrawerSelectNote = (id: string) => {
     selectedNoteId.value = id;
+    trackRecentlyViewed(id);
     mobileDrawerOpen.value = false;
     if (mobile) {
       mobileView.value = "editor";
@@ -341,13 +344,19 @@ export function Layout() {
           <div style={{ width: `${NAV_SIDEBAR_WIDTH}px`, minWidth: `${NAV_SIDEBAR_WIDTH}px` }}>
             <NavSidebar
               selectedNoteId={selectedNoteId.value}
-              onSelectNote={(id: string) => (selectedNoteId.value = id)}
+              onSelectNote={(id: string) => {
+                selectedNoteId.value = id;
+                trackRecentlyViewed(id);
+              }}
             />
           </div>
           <div style={{ width: `${sidebarWidth.value}px`, minWidth: `${sidebarWidth.value}px` }}>
             <NotesList
               selectedNoteId={selectedNoteId.value}
-              onSelectNote={(id: string) => (selectedNoteId.value = id)}
+              onSelectNote={(id: string) => {
+                selectedNoteId.value = id;
+                trackRecentlyViewed(id);
+              }}
               onNewNote={handleNewNote}
             />
           </div>
