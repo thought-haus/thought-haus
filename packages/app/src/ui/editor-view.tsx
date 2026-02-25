@@ -313,6 +313,9 @@ export function EditorView_({ onDelete }: EditorViewProps) {
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 (e.target as HTMLInputElement).blur();
+                setTimeout(() => {
+                  editorInstanceRef.current?.commands.focus();
+                }, 0);
               }
             }}
             aria-label="Note title"
