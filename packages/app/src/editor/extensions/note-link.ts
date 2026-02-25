@@ -1,5 +1,5 @@
 import { Node, type JSONContent } from "@tiptap/core";
-import { Plugin, PluginKey } from "@tiptap/pm/state";
+import { Plugin, PluginKey, TextSelection } from "@tiptap/pm/state";
 import type {
   MarkdownParseHelpers,
   MarkdownRendererHelpers,
@@ -116,13 +116,24 @@ export const NoteLink = Node.create({
                     .trim();
                   if (selectedText) {
                     inputEvent.preventDefault();
-                    view.dispatch(
-                      view.state.tr.replaceWith(
-                        selection.from,
-                        selection.to,
-                        view.state.schema.text(`[[${selectedText}`),
+                    const textToInsert = `[[${selectedText}`;
+                    const tr = view.state.tr.replaceWith(
+                      selection.from,
+                      selection.to,
+                      view.state.schema.text(textToInsert),
+                    );
+                    // Collapse to a cursor so the Suggestion plugin sees
+                    // selection.empty === true and activates trigger detection.
+                    // Without this, replaceWith maps the original range through
+                    // the step, leaving a non-empty selection that suppresses
+                    // the popup.
+                    tr.setSelection(
+                      TextSelection.create(
+                        tr.doc,
+                        selection.from + textToInsert.length,
                       ),
                     );
+                    view.dispatch(tr);
                     return true;
                   }
                 }
