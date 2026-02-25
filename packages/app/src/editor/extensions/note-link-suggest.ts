@@ -1,30 +1,57 @@
 import type { SuggestionOptions, SuggestionProps } from "@tiptap/suggestion";
 import { notesSorted } from "../../notes/note-store.ts";
+import { createNote } from "../../notes/note-actions.ts";
 import type { Note } from "@thought-haus/core";
 
-export const noteLinkSuggestion: Omit<SuggestionOptions<Note>, "editor"> = {
+type CreateOption = { __isCreate: true; title: string };
+type SuggestionItem = Note | CreateOption;
+
+function isCreate(item: SuggestionItem): item is CreateOption {
+  return "__isCreate" in item;
+}
+
+export const noteLinkSuggestion: Omit<SuggestionOptions<SuggestionItem>, "editor"> = {
   char: "[[",
+  allowSpaces: true,
 
   items({ query }) {
-    const q = query.toLowerCase();
-    return notesSorted.value
-      .filter((n) => n.title.toLowerCase().includes(q))
+    const q = query.toLowerCase().trim();
+    const matches = notesSorted.value
+      .filter((n) => !q || n.title.toLowerCase().includes(q))
       .slice(0, 50);
+    return [
+      ...matches,
+      ...(q ? [{ __isCreate: true as const, title: query.trim() }] : []),
+    ];
   },
 
-  command({ editor, range, props: note }) {
-    editor
-      .chain()
-      .focus()
-      .deleteRange(range)
-      .insertContent({ type: "noteLink", attrs: { noteId: note.id } })
-      .run();
+  command({ editor, range, props }) {
+    if (isCreate(props)) {
+      // Delete the [[...query text, then create the note and insert the link
+      editor.chain().focus().deleteRange(range).run();
+      createNote(props.title, false).then((note) => {
+        if (note) {
+          editor
+            .chain()
+            .focus()
+            .insertContent({ type: "noteLink", attrs: { noteId: note.id } })
+            .run();
+        }
+      });
+    } else {
+      editor
+        .chain()
+        .focus()
+        .deleteRange(range)
+        .insertContent({ type: "noteLink", attrs: { noteId: props.id } })
+        .run();
+    }
   },
 
   render() {
     let popup: HTMLDivElement | null = null;
     let selectedIndex = 0;
-    let items: Note[] = [];
+    let items: SuggestionItem[] = [];
 
     function buildList() {
       if (!popup) return;
@@ -38,11 +65,20 @@ export const noteLinkSuggestion: Omit<SuggestionOptions<Note>, "editor"> = {
         return;
       }
 
-      items.forEach((note, index) => {
+      items.forEach((item, index) => {
         const btn = document.createElement("button");
-        btn.className = "note-link-suggest-item";
-        if (index === selectedIndex) btn.classList.add("is-selected");
-        btn.textContent = note.title;
+        const selected = index === selectedIndex;
+
+        if (isCreate(item)) {
+          btn.className =
+            "note-link-suggest-create" + (selected ? " is-selected" : "");
+          btn.textContent = `+ New note: "${item.title}"`;
+        } else {
+          btn.className =
+            "note-link-suggest-item" + (selected ? " is-selected" : "");
+          btn.textContent = item.title;
+        }
+
         btn.addEventListener("mousedown", (e) => {
           e.preventDefault();
         });
@@ -52,16 +88,16 @@ export const noteLinkSuggestion: Omit<SuggestionOptions<Note>, "editor"> = {
         popup!.appendChild(btn);
       });
 
-      const selected = popup.querySelector(".is-selected");
-      if (selected) selected.scrollIntoView({ block: "nearest" });
+      const selectedEl = popup.querySelector(".is-selected");
+      if (selectedEl) selectedEl.scrollIntoView({ block: "nearest" });
     }
 
-    let commandFn: ((props: { id: string } & Note) => void) | null = null;
+    let commandFn: ((props: SuggestionItem) => void) | null = null;
 
     function selectItem(index: number) {
-      const note = items[index];
-      if (note && commandFn) {
-        commandFn(note as { id: string } & Note);
+      const item = items[index];
+      if (item && commandFn) {
+        commandFn(item);
       }
     }
 
@@ -81,21 +117,21 @@ export const noteLinkSuggestion: Omit<SuggestionOptions<Note>, "editor"> = {
     }
 
     return {
-      onStart(props: SuggestionProps<Note>) {
+      onStart(props: SuggestionProps<SuggestionItem>) {
         popup = document.createElement("div");
         popup.className = "note-link-suggest";
         document.body.appendChild(popup);
 
         commandFn = props.command as typeof commandFn;
-        items = props.items as Note[];
+        items = props.items as SuggestionItem[];
         selectedIndex = 0;
         buildList();
         positionPopup(props.clientRect ?? null);
       },
 
-      onUpdate(props: SuggestionProps<Note>) {
+      onUpdate(props: SuggestionProps<SuggestionItem>) {
         commandFn = props.command as typeof commandFn;
-        items = props.items as Note[];
+        items = props.items as SuggestionItem[];
         selectedIndex = 0;
         buildList();
         positionPopup(props.clientRect ?? null);
