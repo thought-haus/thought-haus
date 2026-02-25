@@ -278,3 +278,35 @@
 .saveIndicator {
   font-weight: 500;
 }
+
+/* ---- Mobile ---- */
+@media (max-width: 768px) {
+  .header {
+    padding: 0.75rem 1rem 0.5rem;
+  }
+
+  .titleInput {
+    font-size: 1.375rem;
+  }
+
+  .titleRow {
+    gap: 0.5rem;
+  }
+
+  .editorBody {
+    padding: 0 1rem;
+  }
+
+  .statusBar {
+    padding: 0.375rem 1rem;
+  }
+
+  .metadata {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .addPropertyBtn {
+    margin-left: 0;
+  }
+}

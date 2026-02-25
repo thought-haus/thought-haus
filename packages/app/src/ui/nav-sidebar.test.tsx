@@ -6,6 +6,7 @@ import {
   activeTagFilter,
 } from "../notes/note-store.ts";
 import { favoriteIds } from "../favorites/favorite-store.ts";
+import { recentlyViewedIds } from "../recently-viewed/recently-viewed-store.ts";
 import type { Note } from "@thought-haus/core";
 import { NavSidebar } from "./nav-sidebar.tsx";
 
@@ -28,6 +29,7 @@ describe("NavSidebar", () => {
     notesMap.value = new Map();
     activeTagFilter.value = null;
     favoriteIds.value = [];
+    recentlyViewedIds.value = [];
   });
 
   it("shows All Notes menu item with count", () => {
@@ -85,6 +87,25 @@ describe("NavSidebar", () => {
     expect(activeTagFilter.value).toBeNull();
   });
 
+
+
+  it("renders Favorites section above Tags", () => {
+    setNotes([
+      makeNote({ id: "1", tags: ["work"], title: "Tagged Note" }),
+      makeNote({ id: "2", title: "My Favorite" }),
+    ]);
+    favoriteIds.value = ["2"];
+    render(
+      <NavSidebar selectedNoteId={null} onSelectNote={() => {}} />,
+    );
+
+    const favoritesHeader = screen.getByText("Favorites");
+    const tagsHeader = screen.getByText("Tags");
+    const favoritesPosition = favoritesHeader.compareDocumentPosition(tagsHeader);
+
+    expect(favoritesPosition & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it("shows favorites section when favorites exist", () => {
     setNotes([makeNote({ id: "note-1", title: "My Favorite" })]);
     favoriteIds.value = ["note-1"];
@@ -106,6 +127,31 @@ describe("NavSidebar", () => {
     expect(onSelectNote).toHaveBeenCalledWith("note-1");
   });
 
+
+  it("shows recently viewed section when recently viewed notes exist", () => {
+    setNotes([
+      makeNote({ id: "note-1", title: "Recent Note" }),
+    ]);
+    recentlyViewedIds.value = ["note-1"];
+    render(
+      <NavSidebar selectedNoteId={null} onSelectNote={() => {}} />,
+    );
+
+    expect(screen.getByText("Recently Viewed")).toBeInTheDocument();
+    expect(screen.getByText("Recent Note")).toBeInTheDocument();
+  });
+
+  it("calls onSelectNote when a recently viewed note is clicked", () => {
+    const onSelectNote = vi.fn();
+    setNotes([makeNote({ id: "note-1", title: "Recent Note" })]);
+    recentlyViewedIds.value = ["note-1"];
+    render(
+      <NavSidebar selectedNoteId={null} onSelectNote={onSelectNote} />,
+    );
+
+    fireEvent.click(screen.getByText("Recent Note"));
+    expect(onSelectNote).toHaveBeenCalledWith("note-1");
+  });
   it("renders Settings button in footer", () => {
     render(
       <NavSidebar selectedNoteId={null} onSelectNote={() => {}} />,

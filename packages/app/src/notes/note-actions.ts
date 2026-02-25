@@ -1,4 +1,4 @@
-import { storageBackend, selectedNoteId } from "../lib/app-state.ts";
+import { storageBackend, selectedNoteId, pendingTitleSelect } from "../lib/app-state.ts";
 import { formatTimestampId, generateFilename, parseFrontMatter, serializeFrontMatter } from "@thought-haus/core";
 import { upsertNote, removeNote, getNote } from "./note-store.ts";
 import {
@@ -57,7 +57,10 @@ export async function createNote(title = "Untitled", navigate = true): Promise<N
   };
 
   upsertNote(note);
-  if (navigate) selectedNoteId.value = note.id;
+  if (navigate) {
+    pendingTitleSelect.value = true;
+    selectedNoteId.value = note.id;
+  }
   addToIndex({ id: note.id, title: note.title, tags: note.tags, body: "\n", lastModified: note.lastModified });
   return note;
 }
