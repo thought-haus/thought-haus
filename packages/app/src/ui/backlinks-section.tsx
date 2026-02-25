@@ -43,7 +43,7 @@ export function BacklinksSection({ noteId }: { noteId: string }) {
       {!collapsed && (
         <ul class={styles.list}>
           {backlinks.map((note) => (
-            <li key={note.id}>
+            <li key={note.id} class={styles.row}>
               <button
                 class={styles.item}
                 onClick={() => {
@@ -53,6 +53,13 @@ export function BacklinksSection({ noteId }: { noteId: string }) {
               >
                 {note.title}
               </button>
+              {note.tags.length > 0 && (
+                <span class={styles.tags}>
+                  {note.tags.map((tag) => (
+                    <span key={tag} class={styles.tag}>{tag}</span>
+                  ))}
+                </span>
+              )}
             </li>
           ))}
         </ul>
